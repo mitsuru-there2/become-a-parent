@@ -18,8 +18,10 @@ def main(argv=None):
     service = Service()
     output_format = "json"
     try:
-        parser = Parser(description="親伝説 — Become a Parent：Godotで動く40ターンの人生。人はplay、エージェントはJSONコマンドで遊べます。", allow_abbrev=False)
-        parser.add_argument("command", help="play / scenarios / new / observe / actions / plan / choose / reset-plan / advance / forecast / history / result / replay / debug-state")
+        parser = Parser(description="親伝説 — Become a Parent：Godotで動く40ターンの人生。guiで画面、playで対話、JSONコマンドでエージェントが遊べます。", allow_abbrev=False)
+        parser.add_argument("command", help="gui / play / scenarios / new / observe / actions / plan / choose / reset-plan / advance / forecast / history / result / replay / debug-state")
+        parser.add_argument("--port", type=int, help="GUIのローカルポート（省略時は空きポート）")
+        parser.add_argument("--no-browser", action="store_true", default=None, help="GUIのブラウザ自動起動を省略")
         for flag in ("run", "out", "scenario", "request-id", "input"):
             parser.add_argument("--" + flag)
         for flag in ("seed", "revision", "offset", "limit"):
@@ -29,6 +31,18 @@ def main(argv=None):
         output_format = ns.format
         command = ns.command
         args = {k: v for k, v in vars(ns).items() if v is not None and k not in {"command", "format"}}
+        if command == "gui":
+            if "run" not in args: invalid("--runで保存先を指定してください", "run")
+            if set(args) - {"run", "scenario", "seed", "port", "no_browser"} or output_format != "json":
+                invalid("guiではrun、scenario、seed、port、no-browserを指定できます")
+            from .contract import bounded
+            bounded(args.get("port", 0), 0, 65535, "port")
+            from .gui import gui
+            try:
+                return gui(service, args["run"], args.get("scenario", "home-01"), args.get("seed", 0),
+                           args.get("port", 0), not args.get("no_browser", False))
+            except OSError:
+                raise Failure("IO_ERROR", "画面を起動できません。保存先やポートを確認してください。")
         if command == "serve":
             if args or output_format != "json": invalid("serveは引数なし・JSON形式で利用します")
             from .stream import serve
