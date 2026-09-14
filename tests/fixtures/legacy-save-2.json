@@ -1,0 +1,255 @@
+{
+  "checksum": "70b942ab57a15d64a362871a25950d99ec8b8443a4b4d5f81e4ac635f4933ce3",
+  "format": "parent-save-2",
+  "run": {
+    "commits": [
+      {
+        "answers": { "t01:E-01": "E-01:watch" },
+        "digest": "6144262ccf94d2d876c811bd21f6e9c2f5499b64209bb0098cb098d53b57884a",
+        "plan": {
+          "activity": { "domain": "none", "level": 0, "sponsor": "A" },
+          "help": "none",
+          "parents": {
+            "A": { "bond": 1, "care": 3, "rest": 2, "self": 0, "work": "normal" },
+            "B": { "bond": 1, "care": 3, "rest": 2, "self": 0, "work": "normal" }
+          },
+          "style": "respect"
+        },
+        "turn": 1
+      }
+    ],
+    "digest": "6144262ccf94d2d876c811bd21f6e9c2f5499b64209bb0098cb098d53b57884a",
+    "id": "legacy",
+    "receipts": {},
+    "revision": 2,
+    "state": {
+      "answers": {},
+      "cash": 160,
+      "changed": false,
+      "child": {
+        "ability": { "craft": 10, "study": 10 },
+        "adaptation": 1,
+        "aptitude": { "craft": 3, "study": 2 },
+        "autonomy": 40,
+        "interest": { "craft": 65, "study": 40 },
+        "stress": 15,
+        "trust": { "A": 61, "B": 61 }
+      },
+      "couple": 61,
+      "deltas": [-5],
+      "draws": [{ "index": 1, "phase": "child", "slot": "oddity", "value": 30 }],
+      "effects": [
+        {
+          "after": {
+            "cash": 160,
+            "child": {
+              "ability": { "craft": 10, "study": 10 },
+              "adaptation": 1,
+              "aptitude": { "craft": 3, "study": 2 },
+              "autonomy": 40,
+              "interest": { "craft": 65, "study": 40 },
+              "stress": 15,
+              "trust": { "A": 61, "B": 61 }
+            },
+            "couple": 61,
+            "grandparents": { "funds": 40, "health": 80, "network": true, "relation": 61 },
+            "parents": {
+              "A": {
+                "age_months": 366,
+                "fulfillment": 49,
+                "health": 81,
+                "regret": 9,
+                "social": 48,
+                "stress": 28
+              },
+              "B": {
+                "age_months": 366,
+                "fulfillment": 49,
+                "health": 81,
+                "regret": 9,
+                "social": 48,
+                "stress": 28
+              }
+            }
+          },
+          "before": {
+            "cash": 120,
+            "child": {
+              "ability": { "craft": 10, "study": 10 },
+              "adaptation": 1,
+              "aptitude": { "craft": 3, "study": 2 },
+              "autonomy": 40,
+              "interest": { "craft": 65, "study": 40 },
+              "stress": 20,
+              "trust": { "A": 60, "B": 60 }
+            },
+            "couple": 60,
+            "grandparents": { "funds": 40, "health": 80, "network": true, "relation": 60 },
+            "parents": {
+              "A": {
+                "age_months": 360,
+                "fulfillment": 50,
+                "health": 80,
+                "regret": 10,
+                "social": 50,
+                "stress": 30
+              },
+              "B": {
+                "age_months": 360,
+                "fulfillment": 50,
+                "health": 80,
+                "regret": 10,
+                "social": 50,
+                "stress": 30
+              }
+            }
+          },
+          "turn": 1
+        }
+      ],
+      "events": [],
+      "grandparents": { "funds": 40, "health": 80, "network": true, "relation": 61 },
+      "history": [
+        {
+          "actions": {
+            "answers": [{ "event_instance": "t01:E-01", "option_id": "E-01:watch" }],
+            "plan": {
+              "activity": { "domain": "none", "level": 0, "sponsor": "A" },
+              "help": "none",
+              "parents": {
+                "A": { "bond": 1, "care": 3, "rest": 2, "self": 0, "work": "normal" },
+                "B": { "bond": 1, "care": 3, "rest": 2, "self": 0, "work": "normal" }
+              },
+              "style": "respect"
+            }
+          },
+          "adult_result": null,
+          "adult_step": null,
+          "ages": { "A_months": 366, "B_months": 366, "child_months": 6 },
+          "events": [
+            {
+              "event_id": "E-01",
+              "instance_id": "t01:E-01",
+              "option_id": "E-01:watch",
+              "text": "夜中。赤ちゃんが天井に向かって拍手している。観客は眠い。"
+            }
+          ],
+          "index": 0,
+          "kind": "turn",
+          "money": [
+            {
+              "after": 160,
+              "before": 120,
+              "cap_overflow": 0,
+              "expense": 220,
+              "income": 260,
+              "scope": "household"
+            }
+          ],
+          "observations": [
+            { "code": "energy", "subject": "child", "text": "余裕がありそう" },
+            { "code": "relationship.A", "subject": "A", "text": "自分から触れ合いを求める" },
+            { "code": "relationship.B", "subject": "B", "text": "自分から触れ合いを求める" },
+            {
+              "code": "interest.study",
+              "subject": "study",
+              "text": "ことばや数の遊び：誘うと取り組むことがある"
+            },
+            {
+              "code": "progress.study",
+              "subject": "study",
+              "text": "ことばや数の遊び：試しながら覚えている"
+            },
+            {
+              "code": "interest.craft",
+              "subject": "craft",
+              "text": "形や音の遊び：自分から話題にする"
+            },
+            {
+              "code": "progress.craft",
+              "subject": "craft",
+              "text": "形や音の遊び：試しながら覚えている"
+            }
+          ],
+          "related": [],
+          "text": ["『交代で見守る』を選んだ。"],
+          "turn": 1
+        }
+      ],
+      "last_repair": false,
+      "n": 1,
+      "observations": [
+        { "code": "energy", "subject": "child", "text": "余裕がありそう" },
+        { "code": "relationship.A", "subject": "A", "text": "自分から触れ合いを求める" },
+        { "code": "relationship.B", "subject": "B", "text": "自分から触れ合いを求める" },
+        {
+          "code": "interest.study",
+          "subject": "study",
+          "text": "ことばや数の遊び：誘うと取り組むことがある"
+        },
+        {
+          "code": "progress.study",
+          "subject": "study",
+          "text": "ことばや数の遊び：試しながら覚えている"
+        },
+        {
+          "code": "interest.craft",
+          "subject": "craft",
+          "text": "形や音の遊び：自分から話題にする"
+        },
+        {
+          "code": "progress.craft",
+          "subject": "craft",
+          "text": "形や音の遊び：試しながら覚えている"
+        }
+      ],
+      "oddity_count": 0,
+      "parents": {
+        "A": {
+          "age_months": 366,
+          "fulfillment": 49,
+          "health": 81,
+          "regret": 9,
+          "social": 48,
+          "stress": 28
+        },
+        "B": {
+          "age_months": 366,
+          "fulfillment": 49,
+          "health": 81,
+          "regret": 9,
+          "social": 48,
+          "stress": 28
+        }
+      },
+      "paused": false,
+      "phase": "childhood",
+      "plan": {
+        "activity": { "domain": "none", "level": 0, "sponsor": "A" },
+        "help": "none",
+        "parents": {
+          "A": { "bond": 1, "care": 3, "rest": 2, "self": 0, "work": "normal" },
+          "B": { "bond": 1, "care": 3, "rest": 2, "self": 0, "work": "normal" }
+        },
+        "style": "respect"
+      },
+      "previous_plan": {
+        "activity": { "domain": "none", "level": 0, "sponsor": "A" },
+        "help": "none",
+        "parents": {
+          "A": { "bond": 1, "care": 3, "rest": 2, "self": 0, "work": "normal" },
+          "B": { "bond": 1, "care": 3, "rest": 2, "self": 0, "work": "normal" }
+        },
+        "style": "respect"
+      },
+      "queue": [],
+      "repaired": false,
+      "result": null,
+      "scenario": "home-01",
+      "seed": 0,
+      "seen": { "E-01": 1 },
+      "versions": { "data": "data-1", "rules": "rules-1", "save": "save-2" }
+    },
+    "updated_at": "2026-09-15T00:00:00.000Z"
+  }
+}

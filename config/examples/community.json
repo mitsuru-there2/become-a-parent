@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "community",
+  "version": "1.0.0",
+  "label": "地域の工房（開発用サンプル）",
+  "requires_data": "data-2",
+  "dependencies": [],
+  "scenarios": [
+    {
+      "id": "community-home",
+      "label": "工房に通う家庭",
+      "description": "地域の工房を楽しむ追加シナリオ",
+      "adaptation": 2
+    }
+  ],
+  "actions": {
+    "community-workshop": {
+      "label": "地域の工房へ行く",
+      "description": "親Aの時間を1単位、費用を4万円使って創作に触れる。",
+      "cost": 4,
+      "time": 1,
+      "parent": "A",
+      "min_turn": 7,
+      "max_turn": 40,
+      "target": "craft",
+      "effects": {
+        "B_craft": 2,
+        "I_craft": 1
+      },
+      "visual": null
+    }
+  },
+  "events": {
+    "community-exhibition": {
+      "text": "工房の展示会。作品の説明札だけが、やけに立派だ。",
+      "options": [
+        {
+          "id": "visit",
+          "label": "展示を見に行く",
+          "cost": 0,
+          "effects": {
+            "T": 1
+          }
+        },
+        {
+          "id": "exhibit",
+          "label": "作品を出品する",
+          "cost": 3,
+          "effects": {
+            "B_craft": 3,
+            "F": 1
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [],
+        "min_turn": 7,
+        "max_turn": 40,
+        "cooldown": 4,
+        "once": false,
+        "probability": 35,
+        "priority": 0,
+        "group": "",
+        "all": [
+          {
+            "path": "previous_plan.extra_action",
+            "op": "eq",
+            "value": "community-workshop"
+          }
+        ],
+        "any": []
+      },
+      "target": "craft",
+      "target_suffix": "",
+      "visual": null
+    }
+  },
+  "visuals": {}
+}

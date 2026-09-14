@@ -1,0 +1,16 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/config/base.json", "/config/legacy-data-1.json"],
+      "url": "./config/schemas/content.schema.json"
+    },
+    {
+      "fileMatch": ["/config/packs.json"],
+      "url": "./config/schemas/packs.schema.json"
+    },
+    {
+      "fileMatch": ["/config/examples/*.json"],
+      "url": "./config/schemas/pack.schema.json"
+    }
+  ]
+}

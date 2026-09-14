@@ -1,3 +1,5 @@
+import { Catalog, catalog, contentFor } from "../content/catalog";
+import { ContentError, validateSettings } from "../content/validation";
 import type { State, Plan, PublicState, Choice, History, Result } from "../engine/types";
 import { advance, start, publicView } from "../engine/simulation";
 import { canonical, hash, clone } from "../engine/shared";
@@ -33,7 +35,9 @@ export interface Payload {
   total?: number;
   next_offset?: number | null;
   result?: Result;
-  scenarios?: typeof SCENARIOS;
+  scenarios?: ReturnType<Catalog["list"]>["scenarios"];
+  difficulties?: ReturnType<Catalog["list"]>["difficulties"];
+  packs?: ReturnType<Catalog["list"]>["packs"];
   actions?: ReturnType<typeof actions>;
   matched?: boolean;
   compared_turns?: number;
@@ -45,6 +49,8 @@ export interface Request {
   run?: string;
   scenario?: string;
   seed?: number;
+  difficulty?: string;
+  packs?: string[];
   revision?: number;
   request_id?: string;
   input?: unknown;
@@ -76,20 +82,24 @@ export interface Repository {
     { id: string; revision: number; turn: number; phase: string; updated_at: string }[]
   >;
 }
-export const SCENARIOS = [
-  { id: "home-01", label: "基本の家庭", description: "子ども1人の人生を通す" },
-  { id: "home-02", label: "もう一つの家庭", description: "子ども1人の人生を通す" },
-];
+export const SCENARIOS = catalog.list().scenarios;
 export const digest = (state: State) => hash(canonical(state));
 export function validateRun(run: Run) {
   if (!run || typeof run !== "object" || !run.state || typeof run.state !== "object")
     throw new Failure("CORRUPT_SAVE", "保存を読み込めません。");
-  if (
-    run.state.versions?.save !== "save-2" ||
-    run.state.versions.rules !== "rules-1" ||
-    run.state.versions.data !== "data-1"
-  )
+  const version = run.state.versions;
+  const legacy =
+    version?.save === "save-2" && version.rules === "rules-1" && version.data === "data-1";
+  const current =
+    version?.save === "save-3" && version.rules === "rules-2" && version.data === "data-2";
+  if (!legacy && !current)
     throw new Failure("VERSION_MISMATCH", "この保存の版には対応していません。");
+  try {
+    if (current) validateSettings(run.state.settings);
+    else if (run.state.settings !== undefined) throw new Error("旧保存に設定があります");
+  } catch {
+    throw new Failure("CORRUPT_SAVE", "保存された設定が不正です。");
+  }
   if (
     run.digest !== digest(run.state) ||
     !Array.isArray(run.commits) ||
@@ -120,7 +130,7 @@ function envelope(
 }
 export function replayRun(run: Run) {
   validateRun(run);
-  const state = start(run.state.scenario, run.state.seed);
+  const state = start(run.state.scenario, run.state.seed, run.state.settings ?? null);
   for (const commit of run.commits) {
     state.plan = clone(commit.plan);
     state.answers = clone(commit.answers);
@@ -133,7 +143,10 @@ export function replayRun(run: Run) {
   return state;
 }
 export class Service {
-  constructor(private repo: Repository) {}
+  constructor(
+    private repo: Repository,
+    private contentCatalog: Catalog = catalog,
+  ) {}
   async execute(request: Request): Promise<Response> {
     let context: Run | undefined;
     const command = typeof request?.command === "string" ? request.command : "";
@@ -144,6 +157,8 @@ export class Service {
         "run",
         "scenario",
         "seed",
+        "difficulty",
+        "packs",
         "revision",
         "request_id",
         "input",
@@ -154,7 +169,12 @@ export class Service {
       if (!COMMANDS.includes(request.command))
         throw new Failure("UNKNOWN_COMMAND", "不明な操作です。");
       if (request.command === "scenarios")
-        return envelope(request.command, undefined, { scenarios: SCENARIOS });
+        return envelope(request.command, undefined, this.contentCatalog.list());
+      if (
+        request.command !== "new" &&
+        (request.difficulty !== undefined || request.packs !== undefined)
+      )
+        invalid("難易度とパックは開始時だけ指定できます");
       requestId(request.run);
       const runId = request.run;
       if (request.command === "history") {
@@ -169,8 +189,6 @@ export class Service {
           bounded(request.revision, 0, Number.MAX_SAFE_INTEGER, "revision");
         else {
           bounded(request.seed, 0, 4294967295, "seed");
-          if (!SCENARIOS.some((scenario) => scenario.id === request.scenario))
-            invalid("家庭を選んでください", "scenario");
         }
       }
       if (request.command === "choose") validateChoice(request.input);
@@ -196,7 +214,10 @@ export class Service {
           let run: Run;
           if (request.command === "new") {
             if (existing) throw new Failure("RUN_EXISTS", "この保存は存在しています。");
-            const state = start(request.scenario!, request.seed!);
+            const settings = this.contentCatalog.resolve(request.difficulty, request.packs);
+            if (!settings.content.scenarios.some((s) => s.id === request.scenario))
+              invalid("家庭を選んでください", "scenario");
+            const state = start(request.scenario!, request.seed!, settings);
             run = {
               id: runId,
               revision: 0,
@@ -222,7 +243,11 @@ export class Service {
           const state = run.state;
           switch (request.command) {
             case "plan":
-              state.plan = mergePlan(state.plan, request.input);
+              state.plan = mergePlan(
+                state.plan,
+                request.input,
+                publicView(state).public.extra_actions.map((a) => a.id),
+              );
               break;
             case "choose": {
               validateChoice(request.input);
@@ -288,7 +313,9 @@ export class Service {
       const state = context.state;
       switch (request.command) {
         case "actions":
-          payload = { actions: actions(publicView(state).choices) };
+          payload = {
+            actions: actions(publicView(state).choices, publicView(state).public.extra_actions),
+          };
           break;
         case "history": {
           const offset = request.offset ?? 0;
@@ -318,12 +345,14 @@ export class Service {
       return envelope(request.command, context, payload);
     } catch (error) {
       const failure =
-        error instanceof Failure
-          ? error
-          : new Failure(
-              "IO_ERROR",
-              "保存または読み込みに失敗しました。保存済みの状態から再開できます。",
-            );
+        error instanceof ContentError
+          ? new Failure("INVALID_CONTENT", error.message)
+          : error instanceof Failure
+            ? error
+            : new Failure(
+                "IO_ERROR",
+                "保存または読み込みに失敗しました。保存済みの状態から再開できます。",
+              );
       let safe: Run | undefined;
       try {
         if (context) {
@@ -343,20 +372,28 @@ export class Service {
 }
 export function exportRun(run: Run) {
   validateRun(run);
-  return canonical({ format: "parent-save-2", run, checksum: hash(canonical(run)) });
+  return canonical({
+    format: run.state.versions.save === "save-3" ? "parent-save-3" : "parent-save-2",
+    run,
+    checksum: hash(canonical(run)),
+  });
 }
 export function importRun(text: string): Run {
   try {
     const parsed = JSON.parse(text);
-    if (parsed.format !== "parent-save-2")
+    if (!["parent-save-2", "parent-save-3"].includes(parsed.format))
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");
     if (hash(canonical(parsed.run)) !== parsed.checksum)
       throw new Failure("CORRUPT_SAVE", "書き出しデータが破損しています。");
     const run = parsed.run as Run;
     validateRun(run);
+    if (
+      parsed.format !== (run.state.versions.save === "save-3" ? "parent-save-3" : "parent-save-2")
+    )
+      throw new Failure("VERSION_MISMATCH", "書き出し形式と保存版が一致しません。");
     requestId(run.id);
     bounded(run.state.seed, 0, 4294967295, "seed");
-    if (!SCENARIOS.some((scenario) => scenario.id === run.state.scenario))
+    if (!contentFor(run.state).scenarios.some((scenario) => scenario.id === run.state.scenario))
       invalid("不明な家庭です");
     replayRun(run);
     publicView(run.state);

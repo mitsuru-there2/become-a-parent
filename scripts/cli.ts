@@ -16,12 +16,13 @@ const repository = new FileRepository(flags.dir ?? ".saves");
 const service = new Service(repository);
 if (!command || command === "--help") {
   console.log(
-    "親伝説 — Become a Parent\nbun run cli <command> --run ID [--dir .saves] [--revision N --request-id ID --input JSON]\ncommands: scenarios new observe actions forecast plan choose reset-plan advance history result replay debug-state serve export import\nnew: --scenario home-01 --seed 0 --request-id start\nserve: JSON Linesで共通の公開操作を実行\nexport/import: --run ID --file PATH（importはファイル内のIDを使用）",
+    "親伝説 — Become a Parent\nbun run cli <command> --run ID [--dir .saves] [--revision N --request-id ID --input JSON]\ncommands: scenarios new observe actions forecast plan choose reset-plan advance history result replay debug-state serve export import\nnew: --scenario home-01 --seed 0 --request-id start [--difficulty normal --packs JSON]\nserve: JSON Linesで共通の公開操作を実行\nexport/import: --run ID --file PATH（importはファイル内のIDを使用）",
   );
   process.exit(0);
 }
 function exitCode(code: string) {
   switch (code) {
+    case "INVALID_CONTENT":
     case "INVALID_INPUT":
     case "UNKNOWN_COMMAND":
     case "UNKNOWN_ACTION":
@@ -90,7 +91,7 @@ try {
         if (key === "dir") continue;
         request[key] = ["seed", "revision", "offset", "limit"].includes(key)
           ? Number(value)
-          : key === "input"
+          : ["input", "packs"].includes(key)
             ? JSON.parse(value)
             : value;
       }

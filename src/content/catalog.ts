@@ -1,0 +1,90 @@
+import base from "../../config/base.json";
+import legacy from "../../config/legacy-data-1.json";
+import bundledPacks from "../../config/packs.json";
+import type { Content, ContentPack, Settings } from "./types";
+import type { State } from "../engine/types";
+import { clone, hash, canonical } from "../engine/shared";
+import { ContentError, validateContent, validatePack } from "./validation";
+export class Catalog {
+  private base: Content;
+  private packs: ContentPack[];
+  constructor(data: unknown = base, packs: unknown = bundledPacks) {
+    validateContent(data);
+    if (!Array.isArray(packs)) throw new ContentError("追加パックは配列で指定してください");
+    packs.forEach(validatePack);
+    if (new Set(packs.map((p) => p.id)).size !== packs.length)
+      throw new ContentError("パックIDが重複しています");
+    this.base = clone(data);
+    this.packs = clone(packs);
+    // 未選択のパックも、依存・参照を含めて起動時に検査する。
+    for (const p of this.packs) this.resolve("normal", this.dependencies(p.id));
+  }
+  private dependencies(id: string, visiting = new Set<string>()): string[] {
+    if (visiting.has(id)) throw new ContentError("パックの依存が循環しています");
+    const pack = this.packs.find((p) => p.id === id);
+    if (!pack) throw new ContentError(`依存パックがありません: ${id}`);
+    const next = new Set(visiting).add(id);
+    return [...new Set([id, ...pack.dependencies.flatMap((dep) => this.dependencies(dep, next))])];
+  }
+  list() {
+    return {
+      scenarios: this.base.scenarios.map(({ id, label, description }) => ({
+        id,
+        label,
+        description,
+      })),
+      difficulties: Object.entries(this.base.difficulties).map(([id, d]) => ({
+        id,
+        label: d.label,
+        description: d.description,
+      })),
+      packs: this.packs.map((p) => ({
+        id: p.id,
+        version: p.version,
+        label: p.label,
+        dependencies: p.dependencies,
+        scenarios: p.scenarios.map(({ id, label, description }) => ({ id, label, description })),
+      })),
+    };
+  }
+  resolve(difficulty: unknown = "normal", packIds: unknown = []): Settings {
+    if (typeof difficulty !== "string" || !["easy", "normal", "hard"].includes(difficulty))
+      throw new ContentError("難易度はeasy / normal / hardです");
+    if (
+      !Array.isArray(packIds) ||
+      !packIds.every((id) => typeof id === "string") ||
+      new Set(packIds).size !== packIds.length
+    )
+      throw new ContentError("packsは重複のないID配列です");
+    const content = clone(this.base);
+    const selected = [...packIds].sort().map((id) => {
+      const pack = this.packs.find((p) => p.id === id);
+      if (!pack) throw new ContentError(`不明なパック: ${id}`);
+      if (pack.requires_data !== content.data_version)
+        throw new ContentError(`パックのデータ版が一致しません: ${id}`);
+      if (pack.dependencies.some((d) => !packIds.includes(d)))
+        throw new ContentError(`依存パックを選んでください: ${id}`);
+      for (const field of ["events", "actions", "visuals"] as const) {
+        for (const key of Object.keys(pack[field]))
+          if (Object.hasOwn(content[field], key))
+            throw new ContentError(`IDが衝突しています: ${field}.${key}`);
+        Object.assign(content[field], clone(pack[field]));
+      }
+      content.scenarios.push(...clone(pack.scenarios));
+      return { id: pack.id, version: pack.version, label: pack.label };
+    });
+    validateContent(content);
+    const data = { difficulty: difficulty as Settings["difficulty"], packs: selected, content };
+    return { ...data, fingerprint: hash(canonical(data)) };
+  }
+}
+export const catalog = new Catalog();
+const currentData: unknown = base;
+const legacyData: unknown = legacy;
+validateContent(currentData);
+validateContent(legacyData);
+export const defaultContent: Content = currentData;
+export const contentFor = (state: State): Content =>
+  state.settings?.content ?? (legacyData as Content);
+export const difficultyFor = (state: State) =>
+  contentFor(state).difficulties[state.settings?.difficulty ?? "normal"];

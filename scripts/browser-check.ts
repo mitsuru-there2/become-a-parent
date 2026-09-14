@@ -8,13 +8,35 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } }),
     errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  page.on("console", (message) => {
+    if (["error", "warning"].includes(message.type())) errors.push(message.text());
+  });
   await page.goto(process.env.GAME_URL ?? "http://127.0.0.1:5173");
+  await expect(page).toHaveTitle(/親伝説/);
+  await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "新しい人生をはじめる" })).toBeEnabled();
+  await expect(page.getByLabel("難易度")).toHaveValue("normal");
+  await page.getByLabel("難易度").selectOption("hard");
+  await expect(
+    page.getByText("少ない資金と高めの生活費で、配分を工夫する", { exact: true }),
+  ).toBeVisible();
   await page.screenshot({ path: out + "/home.png", fullPage: true });
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
   await expect(page.getByRole("heading", { name: "0歳 春〜夏", exact: true })).toBeVisible();
+  await expect(page.locator(".run-id")).toContainText("むずかしい");
   await expect(page.getByRole("button", { name: "半年を進める →", exact: true })).toBeDisabled();
+  await page.locator('input[name="parents.A.rest"]').fill("1");
+  await expect(page.getByRole("button", { name: "方針を保存", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "01 交代で見守る 費用 0万円", exact: true }).click();
+  await expect(page.getByRole("button", { name: "半年を進める →", exact: true })).toBeDisabled();
+  await page.getByRole("button", { name: "遊び方", exact: true }).click();
+  await expect(page.locator(".plan-section")).toBeHidden();
+  await page.getByRole("button", { name: "家族の記録", exact: true }).click();
+  await expect(page.locator(".plan-section")).toBeHidden();
+  await page.getByRole("button", { name: "いまの暮らし", exact: true }).click();
+  await expect(page.locator('input[name="parents.A.rest"]')).toHaveValue("1");
+  await page.getByRole("button", { name: "編集を取り消す", exact: true }).click();
+  await expect(page.locator('input[name="parents.A.rest"]')).toHaveValue("2");
   await expect(page.getByRole("button", { name: "半年を進める →", exact: true })).toBeEnabled();
   await page.reload();
   await expect(
@@ -22,7 +44,7 @@ try {
   ).toBeVisible();
   await page.getByRole("button", { name: "好きに付き合う", exact: true }).click();
   await expect(page.getByRole("button", { name: "半年を進める →", exact: true })).toBeDisabled();
-  await page.getByRole("button", { name: "方針を保存", exact: true }).click();
+  await page.locator('input[name="parents.A.rest"]').press("Enter");
   await expect(page.getByRole("button", { name: "方針を保存", exact: true })).toBeDisabled();
   await page.screenshot({ path: out + "/game-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });

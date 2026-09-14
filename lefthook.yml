@@ -1,0 +1,17 @@
+# プロジェクトで固定したバージョンを使う。
+lefthook: bun run lefthook
+
+pre-commit:
+  piped: true
+  commands:
+    format:
+      priority: 1
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css,html,md,yml,yaml}"
+      exclude:
+        - "docs/**"
+        - "assets/**"
+      run: bun run format -- {staged_files}
+      stage_fixed: true
+    lint:
+      priority: 2
+      run: bun run lint

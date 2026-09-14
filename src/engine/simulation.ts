@@ -12,13 +12,10 @@ import type {
   Reason,
 } from "./types";
 import { PEOPLE, DOMAINS, clampStat, integerDivide, clone, hash } from "./shared";
-import { FIXED_EVENTS, EVENT_DATA, findEventOption } from "./events";
+import { matches, findEventOption } from "./events";
+import { catalog, contentFor, difficultyFor, defaultContent } from "../content/catalog";
+import type { Settings } from "../content/types";
 import { finish } from "./adult";
-const WORK = {
-  reduced: { income: 90, time: 2, stress: 2, fulfillment: 1 },
-  normal: { income: 130, time: 4, stress: 4, fulfillment: 3 },
-  heavy: { income: 180, time: 6, stress: 7, fulfillment: 4 },
-};
 export function initialPlan(): Plan {
   const parentAllocation = { work: "normal" as const, care: 3, bond: 1, rest: 2, self: 0 };
   return {
@@ -28,7 +25,11 @@ export function initialPlan(): Plan {
     help: "none",
   };
 }
-export function start(scenario: string, seed: number): State {
+export function start(
+  scenario: string,
+  seed: number,
+  settings: Settings | null = catalog.resolve(),
+): State {
   const parentStats = {
     age_months: 360,
     stress: 30,
@@ -38,7 +39,10 @@ export function start(scenario: string, seed: number): State {
     regret: 10,
   };
   const state: State = {
-    versions: { rules: "rules-1", data: "data-1", save: "save-2" },
+    versions: settings
+      ? { rules: "rules-2", data: "data-2", save: "save-3" }
+      : { rules: "rules-1", data: "data-1", save: "save-2" },
+    ...(settings ? { settings: clone(settings) } : {}),
     scenario,
     seed,
     phase: "childhood",
@@ -74,17 +78,19 @@ export function start(scenario: string, seed: number): State {
     observations: [],
     result: null,
   };
+  const family = contentFor(state).scenarios.find((s) => s.id === scenario);
+  if (!family) throw new Error("不明な家庭です");
+  state.child.adaptation = family.adaptation;
+  state.cash = difficultyFor(state).initial_cash;
   openTurn(state);
   return state;
 }
-export function stage(completedTurns: number) {
+export function stage(completedTurns: number, state?: State) {
+  const content = state ? contentFor(state) : defaultContent;
   const age = integerDivide(completedTurns, 2);
-  if (age < 3) return { id: "baby", care: 6, cost: 20, school: "未就学" };
-  if (age < 6) return { id: "preschool", care: 4, cost: 24, school: "未就学" };
-  if (age < 12) return { id: "primary", care: 2, cost: 28, school: `小${age - 5}` };
-  if (age < 15) return { id: "junior", care: 1, cost: 32, school: `中${age - 11}` };
-  if (age < 18) return { id: "senior", care: 1, cost: 36, school: `高${age - 14}相当` };
-  return { id: "launch", care: 1, cost: 36, school: "進路準備期" };
+  const stage = content.stages.find((s) => age < s.until_age)!;
+  const year = stage.id === "primary" ? age - 5 : stage.id === "junior" ? age - 11 : age - 14;
+  return { ...stage, school: stage.school.replace("{year}", String(year)) };
 }
 export function draw(state: State, phase: string, index: number, slot: string) {
   // 抽選スロットごとに独立した値を作り、呼び出し順で既存の抽選結果を変えない。
@@ -96,22 +102,30 @@ export function draw(state: State, phase: string, index: number, slot: string) {
 export function observeChild(state: State): Observation[] {
   const child = state.child;
   const observations: Observation[] = [];
-  const isBaby = stage(Math.min(state.n, 39)).id === "baby";
+  const isBaby = stage(Math.min(state.n, 39), state).id === "baby";
   const addObservation = (code: string, subject: string, text: string) =>
     observations.push({ code, subject, text });
   addObservation(
     "energy",
     "child",
     child.stress < 40
-      ? "余裕がありそう"
+      ? contentFor(state).text.simulation_000
       : child.stress < 70
-        ? "少し疲れている様子"
-        : "休みたがることが増えた",
+        ? contentFor(state).text.simulation_001
+        : contentFor(state).text.simulation_002,
   );
   for (const parentId of PEOPLE) {
     const texts = isBaby
-      ? ["反応が少ない", "声や気配に反応する", "自分から触れ合いを求める"]
-      : ["話しかけても会話が続きにくい", "用事や近況を話す", "自分から話をしに来る"];
+      ? [
+          contentFor(state).text.simulation_003,
+          contentFor(state).text.simulation_004,
+          contentFor(state).text.simulation_005,
+        ]
+      : [
+          contentFor(state).text.simulation_006,
+          contentFor(state).text.simulation_007,
+          contentFor(state).text.simulation_008,
+        ];
     const trust = child.trust[parentId];
     addObservation(
       "relationship." + parentId,
@@ -124,46 +138,46 @@ export function observeChild(state: State): Observation[] {
       "agency",
       "child",
       child.autonomy < 30
-        ? "決めてもらうのを待つことが多い"
+        ? contentFor(state).text.simulation_009
         : child.autonomy < 60
-          ? "選択肢を示すと選ぶ"
-          : "自分の希望を言う",
+          ? contentFor(state).text.simulation_010
+          : contentFor(state).text.simulation_011,
     );
   for (const domain of DOMAINS) {
     const prefix = isBaby
       ? domain === "study"
-        ? "ことばや数の遊び："
-        : "形や音の遊び："
+        ? contentFor(state).text.simulation_012
+        : contentFor(state).text.simulation_013
       : domain === "study"
-        ? "学習："
-        : "創作：";
+        ? contentFor(state).text.simulation_014
+        : contentFor(state).text.simulation_015;
     addObservation(
       "interest." + domain,
       domain,
       prefix +
         (child.interest[domain] < 40
-          ? "最近は話題にしない"
+          ? contentFor(state).text.simulation_016
           : child.interest[domain] < 60
-            ? "誘うと取り組むことがある"
-            : "自分から話題にする"),
+            ? contentFor(state).text.simulation_017
+            : contentFor(state).text.simulation_018),
     );
     addObservation(
       "progress." + domain,
       domain,
       prefix +
         (child.ability[domain] < 30
-          ? "試しながら覚えている"
+          ? contentFor(state).text.simulation_019
           : child.ability[domain] < 60
-            ? "一人でできることが増えた"
-            : "得意なこととして披露する"),
+            ? contentFor(state).text.simulation_020
+            : contentFor(state).text.simulation_021),
     );
   }
   const latestStressDelta = state.deltas.at(-1) ?? 0;
   if (state.deltas.length) {
     if (state.changed && latestStressDelta >= 5)
-      addObservation("settling", "child", "新しい場の後は疲れている様子");
+      addObservation("settling", "child", contentFor(state).text.simulation_022);
     if ((state.paused || state.last_repair) && latestStressDelta < 0)
-      addObservation("recovery", "child", "前より余裕が出てきた様子");
+      addObservation("recovery", "child", contentFor(state).text.simulation_023);
   }
   if (
     state.deltas.length >= 2 &&
@@ -179,10 +193,10 @@ export function observeChild(state: State): Observation[] {
             : "mixed"),
       "child",
       latestStressDelta > 0 && previousStressDelta > 0
-        ? "疲れが続いて増えている様子"
+        ? contentFor(state).text.simulation_024
         : latestStressDelta < 0 && previousStressDelta < 0
-          ? "疲れが続いて和らいでいる様子"
-          : "調子には波がある",
+          ? contentFor(state).text.simulation_025
+          : contentFor(state).text.simulation_026,
     );
   }
   return observations;
@@ -192,38 +206,47 @@ export function openTurn(state: State) {
   state.events = [];
   state.answers = {};
   const turn = state.n + 1;
-  const eventIds: string[] = [];
-  const child = state.child;
-  if (FIXED_EVENTS[turn]) eventIds.push(FIXED_EVENTS[turn]);
-  if (
-    turn >= 3 &&
-    turn <= 38 &&
-    turn - (state.seen["E-10"] ?? -100) >= 4 &&
-    (child.stress >= 60 ||
-      Math.min(child.trust.A, child.trust.B) < 40 ||
-      Math.max(state.parents.A.stress, state.parents.B.stress) >= 70)
-  )
-    eventIds.push("E-10");
-  else if (
-    turn >= 5 &&
-    !state.seen["E-09"] &&
-    state.grandparents.network &&
-    state.grandparents.funds >= 20 &&
-    state.grandparents.relation >= 30
-  )
-    eventIds.push("E-09");
-  for (const eventId of eventIds.sort()) {
-    let target: Domain = "study";
-    if (eventId === "E-05" && state.previous_plan.activity.domain !== "none")
-      target = state.previous_plan.activity.domain;
-    if (eventId === "E-07" && child.interest.craft > child.interest.study) target = "craft";
-    let text = EVENT_DATA[eventId][0];
-    if (eventId === "E-07")
-      text += `「${target === "study" ? "学習" : "創作"}寄りの道を考えている」`;
+  const content = contentFor(state);
+  const groups = new Set<string>();
+  const selected: string[] = [];
+  const candidates = Object.entries(content.events).sort(
+    ([a, x], [b, y]) => x.trigger.priority - y.trigger.priority || (a < b ? -1 : 1),
+  );
+  for (const [id, event] of candidates) {
+    const t = event.trigger;
+    if (
+      turn < t.min_turn ||
+      turn > t.max_turn ||
+      (t.turns.length && !t.turns.includes(turn)) ||
+      (t.once && state.seen[id] !== undefined) ||
+      turn - (state.seen[id] ?? -100) < t.cooldown ||
+      (t.group && groups.has(t.group)) ||
+      !t.all.every((c) => matches(state, c)) ||
+      (t.any.length && !t.any.some((c) => matches(state, c))) ||
+      t.probability === 0
+    )
+      continue;
+    if (t.probability < 100 && draw(state, "child", turn, "event-" + id) >= t.probability) continue;
+    selected.push(id);
+    if (t.group) groups.add(t.group);
+  }
+  for (const eventId of selected.sort()) {
+    const event = content.events[eventId];
+    const target: Domain =
+      event.target === "previous_activity"
+        ? state.previous_plan.activity.domain === "none"
+          ? "study"
+          : state.previous_plan.activity.domain
+        : event.target === "interest"
+          ? state.child.interest.craft > state.child.interest.study
+            ? "craft"
+            : "study"
+          : event.target;
     state.events.push({
       instance_id: `t${String(turn).padStart(2, "0")}:${eventId}`,
       event_id: eventId,
-      text,
+      text:
+        event.text + event.target_suffix.replace("{domain}", target === "study" ? "学習" : "創作"),
       target,
     });
     state.seen[eventId] = turn;
@@ -234,22 +257,37 @@ export const answerList = (answers: Record<string, string>) =>
     .sort()
     .map((id) => ({ event_instance: id, option_id: answers[id] }));
 export function forecast(state: State, answers = state.answers): Forecast {
+  const content = contentFor(state);
   const plan = state.plan;
-  const lifeStage = stage(state.n);
+  const lifeStage = stage(state.n, state);
   const reasons: Reason[] = [];
   const timeUsed = { A: 0, B: 0 };
   let income = 0;
   let cost =
-    200 + lifeStage.cost + [0, 12, 30][plan.activity.level] + (plan.help === "paid" ? 8 : 0);
+    difficultyFor(state).living_cost +
+    lifeStage.cost +
+    content.balance.activity_cost[plan.activity.level] +
+    (plan.help === "paid" ? content.balance.paid_help_cost : 0);
   let allocatedCare = 0;
   const addReason = (code: string, path: string, message: string) =>
     reasons.push({ code, path, message });
+  const extraId = plan.extra_action ?? "none";
+  const extra = content.actions[extraId];
+  if (
+    extraId !== "none" &&
+    (!Object.hasOwn(content.actions, extraId) ||
+      state.n + 1 < extra.min_turn ||
+      state.n + 1 > extra.max_turn)
+  )
+    addReason("ACTION_UNAVAILABLE", "extra_action", "この期には選べない追加行動です");
+  if (extra) cost += extra.cost;
   for (const parentId of PEOPLE) {
     const allocation = plan.parents[parentId];
-    income += WORK[allocation.work].income;
-    cost += 4 * allocation.self;
+    income += content.work[allocation.work].income;
+    cost += content.balance.self_cost * allocation.self;
     timeUsed[parentId] =
-      WORK[allocation.work].time +
+      content.work[allocation.work].time +
+      (extra?.parent === parentId ? extra.time : 0) +
       allocation.care +
       allocation.bond +
       allocation.rest +
@@ -263,30 +301,34 @@ export function forecast(state: State, answers = state.answers): Forecast {
         `親${parentId}の配分が12時間単位を超えています`,
       );
   }
-  const requiredCare = Math.max(0, lifeStage.care - (plan.help !== "none" ? 2 : 0));
+  const requiredCare = Math.max(
+    0,
+    lifeStage.care - (plan.help !== "none" ? content.balance.help_care : 0),
+  );
   if (allocatedCare !== requiredCare)
     addReason("CARE_MISMATCH", "parents", `今期の世話は合計${requiredCare}単位に配分してください`);
   if (plan.help === "grand" && (state.grandparents.health < 40 || state.grandparents.relation < 30))
-    addReason("HELP_UNAVAILABLE", "help", "祖父母の体力か関係に余裕がありません");
+    addReason("HELP_UNAVAILABLE", "help", contentFor(state).text.simulation_029);
   if (lifeStage.id === "baby" && plan.activity.domain !== "none")
-    addReason("ACTIVITY_AGE", "activity.domain", "乳児期の遊びは関わりの時間で扱います");
+    addReason("ACTIVITY_AGE", "activity.domain", contentFor(state).text.simulation_030);
   for (const event of state.events) {
     if (!answers[event.instance_id]) {
-      addReason(
-        "ANSWER_REQUIRED",
-        event.instance_id,
-        "出来事への回答が必要です（費用0の選択肢もあります）",
-      );
+      addReason("ANSWER_REQUIRED", event.instance_id, contentFor(state).text.simulation_031);
       continue;
     }
-    const [, , optionCost, effects] = findEventOption(event.event_id, answers[event.instance_id]);
+    const { cost: optionCost, effects } = findEventOption(
+      state,
+      event.event_id,
+      answers[event.instance_id],
+    );
     cost += optionCost;
     const aid = Number(effects.income ?? 0);
     income += aid;
     if (aid > state.grandparents.funds)
-      addReason("FUNDS_UNAVAILABLE", event.instance_id, "祖父母の援助資金が足りません");
+      addReason("FUNDS_UNAVAILABLE", event.instance_id, contentFor(state).text.simulation_032);
   }
-  if (state.cash + income - cost < 0) addReason("CASH_LIMIT", "cash", "予測残金が不足しています");
+  if (state.cash + income - cost < 0)
+    addReason("CASH_LIMIT", "cash", contentFor(state).text.simulation_033);
   const fallbackPlan = initialPlan();
   for (const parentId of PEOPLE) {
     fallbackPlan.parents[parentId].care = integerDivide(
@@ -307,21 +349,50 @@ export function forecast(state: State, answers = state.answers): Forecast {
     care_allocated: allocatedCare,
     can_advance: !reasons.length,
     reasons,
-    uncertain_expense_cap: 8,
+    uncertain_expense_cap: Math.max(0, ...content.oddities.map((o) => o.cost)),
     fallback_plan: fallbackPlan,
   };
 }
 export function publicView(state: State): { public: PublicState; choices: Choice[] } {
   // 公開項目を列挙する境界。Stateを展開すると、子どもの隠し数値がUIへ漏れる。
   const finished = state.phase === "finished";
-  const lifeStage = stage(state.n);
+  const lifeStage = stage(state.n, state);
+  const content = contentFor(state);
+  const scene = content.scenes[lifeStage.id];
   const publicState: PublicState = {
+    content: {
+      difficulty: state.settings?.difficulty ?? "normal",
+      difficulty_label: difficultyFor(state).label,
+      packs: state.settings?.packs ?? [],
+      fingerprint: state.settings?.fingerprint ?? null,
+    },
+    extra_actions: Object.entries(content.actions).map(([id, a]) => ({
+      id,
+      label: a.label,
+      description: a.description,
+      cost: a.cost,
+      time: a.time,
+      parent: a.parent,
+      available: !finished && state.n + 1 >= a.min_turn && state.n + 1 <= a.max_turn,
+      visual: a.visual ? content.visuals[a.visual] : null,
+    })),
+    scene: finished
+      ? null
+      : {
+          title: scene.title,
+          text: scene.text,
+          visual: scene.visual ? content.visuals[scene.visual] : null,
+        },
     versions: state.versions,
     time: {
       completed_turns: state.n,
       next_turn: finished ? null : state.n + 1,
       child_months: state.n * 6,
-      season: finished ? null : state.n % 2 === 0 ? "春〜夏" : "秋〜冬",
+      season: finished
+        ? null
+        : state.n % 2 === 0
+          ? contentFor(state).text.simulation_034
+          : contentFor(state).text.simulation_035,
       stage: finished ? null : lifeStage.id,
       school_label: finished ? null : lifeStage.school,
     },
@@ -337,10 +408,13 @@ export function publicView(state: State): { public: PublicState; choices: Choice
   const choices: Choice[] = finished
     ? []
     : state.events.map((event) => ({
+        visual: content.events[event.event_id].visual
+          ? content.visuals[content.events[event.event_id].visual!]
+          : null,
         instance_id: event.instance_id,
         event_id: event.event_id,
         text: event.text,
-        options: EVENT_DATA[event.event_id][1].map(([id, label, cost, effects]) => {
+        options: content.events[event.event_id].options.map(({ id, label, cost, effects }) => {
           const optionId = event.event_id + ":" + id;
           const reasons = forecast(state, {
             ...state.answers,
@@ -361,10 +435,11 @@ export function publicView(state: State): { public: PublicState; choices: Choice
 export function normalUpdate(state: State) {
   // 全員の変化は同じ期首の数値から計算する。更新済みの親の数値を参照しない。
   const previousState = numericState(state);
+  const content = contentFor(state);
   const plan = state.plan;
   const child = state.child;
   const styleIntensity =
-    stage(state.n).id === "baby" ? 0 : ["respect", "coach", "push"].indexOf(plan.style);
+    stage(state.n, state).id === "baby" ? 0 : ["respect", "coach", "push"].indexOf(plan.style);
   const activityDomain = plan.activity.domain;
   const activityLevel = plan.activity.level;
   const hasActivity = activityDomain !== "none";
@@ -378,7 +453,7 @@ export function normalUpdate(state: State) {
   for (const parentId of PEOPLE) {
     const allocation = plan.parents[parentId];
     const previousParent = previousState.parents[parentId];
-    const workload = WORK[allocation.work];
+    const workload = content.work[allocation.work];
     const previousTrust = previousState.child.trust[parentId];
     Object.assign(state.parents[parentId], {
       stress: clampStat(
@@ -442,13 +517,13 @@ export function normalUpdate(state: State) {
   );
   child.autonomy = clampStat(
     previousState.child.autonomy +
-      Number(stage(state.n).id !== "baby") *
+      Number(stage(state.n, state).id !== "baby") *
         (2 * Number(styleIntensity === 0) +
           Number(styleIntensity === 1) -
           2 * Number(styleIntensity === 2)),
   );
   for (const domain of DOMAINS) {
-    const schoolGain = Number(["primary", "junior", "senior"].includes(stage(state.n).id));
+    const schoolGain = Number(["primary", "junior", "senior"].includes(stage(state.n, state).id));
     const abilityGain = Math.max(
       0,
       schoolGain +
@@ -486,9 +561,10 @@ export function applyEffect(state: State, effect: Record<string, number | string
     // 効果キーはdata-1の表記。incomeとdelayは予測・確定処理がそれぞれ扱う。
     switch (key) {
       case "S":
+      case "N":
       case "F":
       case "G": {
-        const field = ({ S: "stress", F: "fulfillment", G: "regret" } as const)[key];
+        const field = ({ S: "stress", N: "social", F: "fulfillment", G: "regret" } as const)[key];
         for (const parentId of PEOPLE)
           state.parents[parentId][field] = clampStat(state.parents[parentId][field] + amount);
         break;
@@ -530,40 +606,27 @@ export function applyOddity(
   lines: string[],
   events: History["events"],
 ) {
-  let id = "";
-  let line = "";
-  if (value < 10) {
-    id = "O-01";
-    line = "忘れていた返金。家計簿が一瞬だけ拍手した。";
-    money.income += 10;
-    money.cap_overflow += Math.max(0, state.cash + 10 - 99999);
-    state.cash = Math.min(99999, state.cash + 10);
-  } else if (value < 18) {
-    id = "O-02";
-    line = "家電が、今しかないという顔で止まった。";
-    if (state.cash < 8) lines.push("残金の範囲に修理を縮小した。負債はない。");
-    money.expense += Math.min(state.cash, 8);
-    state.cash = Math.max(0, state.cash - 8);
-    for (const parentId of PEOPLE)
-      state.parents[parentId].stress = clampStat(state.parents[parentId].stress + 1);
-  } else if (value < 25) {
-    id = "O-03";
-    line = "家族の妙な作品が回覧板の表紙になった。";
-    state.oddity_count++;
-    for (const parentId of PEOPLE) {
-      state.parents[parentId].fulfillment = clampStat(state.parents[parentId].fulfillment + 2);
-      state.parents[parentId].social = clampStat(state.parents[parentId].social + 2);
-    }
-  }
-  if (id) {
-    lines.push(line);
-    events.push({
-      instance_id: `t${String(state.n + 1).padStart(2, "0")}:${id}`,
-      event_id: id,
-      option_id: null,
-      text: line,
-    });
-  }
+  let threshold = 0;
+  const oddity = contentFor(state).oddities.find((o) => {
+    threshold += o.probability;
+    return value < threshold;
+  });
+  if (!oddity) return;
+  const expense = Math.min(state.cash, oddity.cost);
+  if (expense < oddity.cost) lines.push("残金の範囲に修理を縮小した。負債はない。");
+  money.expense += expense;
+  money.income += oddity.income;
+  money.cap_overflow += Math.max(0, state.cash - expense + oddity.income - 99999);
+  state.cash = Math.min(99999, state.cash - expense + oddity.income);
+  applyEffect(state, oddity.effects, "study");
+  if (oddity.memory) state.oddity_count++;
+  lines.push(oddity.text);
+  events.push({
+    instance_id: `t${String(state.n + 1).padStart(2, "0")}:${oddity.id}`,
+    event_id: oddity.id,
+    option_id: null,
+    text: oddity.text,
+  });
 }
 export function advance(state: State, forcedDraw = -1) {
   const turn = state.n + 1;
@@ -583,10 +646,15 @@ export function advance(state: State, forcedDraw = -1) {
   const lines: string[] = [];
   const events: History["events"] = [];
   const related: string[] = [];
+  const extra = contentFor(state).actions[state.plan.extra_action ?? "none"];
+  if (extra) {
+    applyEffect(state, extra.effects, extra.target);
+    lines.push(`『${extra.label}』に取り組んだ。`);
+  }
   state.last_repair = false;
   for (const event of state.events) {
     const optionId = state.answers[event.instance_id];
-    const [, label, , effects] = findEventOption(event.event_id, optionId);
+    const { label, effects } = findEventOption(state, event.event_id, optionId);
     applyEffect(state, effects, event.target);
     lines.push(`『${label}』を選んだ。`);
     events.push({
@@ -618,13 +686,13 @@ export function advance(state: State, forcedDraw = -1) {
       state.plan.style !== "push" && state.plan.parents.A.bond + state.plan.parents.B.bond >= 2;
     if (delayed.id === "L-01") {
       if (canResume) applyEffect(state, { B_target: 2 }, delayed.target);
-      lines.push(canResume ? "少し間を置いて、また取り組み始めた。" : "再開はまだ先になりそう。");
+      lines.push(
+        canResume ? contentFor(state).text.simulation_040 : contentFor(state).text.simulation_041,
+      );
     } else {
       if (canResume) applyEffect(state, { X: -4, T: 2, G: -1 }, delayed.target);
       lines.push(
-        canResume
-          ? "あの会話のあと、少し話しやすくなった様子。"
-          : "話しやすさが続くか、もう少し様子を見たい。",
+        canResume ? contentFor(state).text.simulation_042 : contentFor(state).text.simulation_043,
       );
     }
     related.push(delayed.source);

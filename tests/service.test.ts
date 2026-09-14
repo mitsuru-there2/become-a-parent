@@ -224,7 +224,7 @@ describe("保存と共通操作", () => {
       );
       expect(await repo.read("test")).toEqual(bad);
     }
-    expect(() => importRun(exportRun(good).replace("parent-save-2", "future-save"))).toThrow();
+    expect(() => importRun(exportRun(good).replace("parent-save-3", "future-save"))).toThrow();
     repo.db.close();
   });
 });

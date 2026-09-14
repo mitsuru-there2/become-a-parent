@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState, type FormEvent } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   createRootRoute,
@@ -21,14 +21,16 @@ import {
   $extra,
   loadRun,
   update,
-  createRun,
   readExtra,
   downloadSave,
   repository,
 } from "./stores/game";
-import { SCENARIOS } from "./service/service";
+import { defaultContent } from "./content/catalog";
+import { ContentImage } from "./components/game/content_image";
+import { StartForm } from "./components/game/start_form";
+import { ImportForm } from "./components/game/import_form";
 import { sceneFor } from "./lib/scene";
-import hero from "../assets/marketing/hero.png";
+
 import { PlanEditor } from "./components/game/plan_editor";
 import { Family } from "./components/game/family";
 import { Timeline } from "./components/game/timeline";
@@ -89,10 +91,7 @@ function ErrorNotice() {
 }
 function Home() {
   const navigate = useNavigate();
-  const busy = useStore($busy);
   const [saves, setSaves] = useState<Awaited<ReturnType<typeof repository.list>>>([]);
-  const [scenario, setScenario] = useState("home-01");
-  const [seed, setSeed] = useState("0");
   useEffect(() => {
     $error.set("");
     $notice.set("");
@@ -103,11 +102,6 @@ function Home() {
         $error.set("保存領域を開けません。ブラウザのストレージ設定をご確認ください。");
       });
   }, []);
-  async function begin(event: FormEvent) {
-    event.preventDefault();
-    const id = await createRun(scenario, seed.trim() === "" ? NaN : Number(seed));
-    if (id) await navigate({ to: "/play/$runId", params: { runId: id } });
-  }
   return (
     <>
       <Header />
@@ -118,11 +112,7 @@ function Home() {
           transition={{ duration: 0.5 }}
           className="poster"
         >
-          <img
-            src={hero}
-            alt="親伝説。洗濯物の山と小さな家族を描いた、白黒の育児デスクトップ。"
-            fetchPriority="high"
-          />
+          <ContentImage visual={defaultContent.visuals.hero} priority />
           <p className="tagline">半年ずつ、親になっていく。</p>
         </motion.div>
         <section className="start-area">
@@ -134,35 +124,11 @@ function Home() {
               <br />
               予定どおりにいかない毎日を、あなたの選択で。
             </p>
-            <form onSubmit={begin}>
-              <div className="start-fields">
-                <label>
-                  家庭
-                  <select value={scenario} onChange={(event) => setScenario(event.target.value)}>
-                    {SCENARIOS.map((scenario) => (
-                      <option key={scenario.id} value={scenario.id}>
-                        {scenario.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  人生のシード
-                  <input
-                    type="number"
-                    min="0"
-                    max="4294967295"
-                    step="1"
-                    value={seed}
-                    onChange={(event) => setSeed(event.target.value)}
-                    required
-                  />
-                </label>
-              </div>
-              <Button type="submit" size="lg" disabled={busy}>
-                新しい人生をはじめる <span aria-hidden="true">↗</span>
-              </Button>
-            </form>
+            <StartForm
+              onCreated={async (id) => {
+                await navigate({ to: "/play/$runId", params: { runId: id } });
+              }}
+            />
             <p className="fine">途中の選択は、このブラウザに保存されます。</p>
           </div>
           <div className="continue">
@@ -192,25 +158,11 @@ function Home() {
                 ))}
               </ul>
             )}
-            <label className="import">
-              保存ファイルを取り込む
-              <input
-                type="file"
-                accept="application/json,.json"
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  if (!file) return;
-                  try {
-                    if (file.size > 25_000_000) throw new Error("保存ファイルは25MBまでです。");
-                    const id = await repository.restore(await file.text());
-                    await navigate({ to: "/play/$runId", params: { runId: id } });
-                  } catch (error) {
-                    $error.set(error instanceof Error ? error.message : "読み込めませんでした");
-                  }
-                  event.target.value = "";
-                }}
-              />
-            </label>
+            <ImportForm
+              onImported={async (id) => {
+                await navigate({ to: "/play/$runId", params: { runId: id } });
+              }}
+            />
           </div>
         </section>
         <ErrorNotice />
@@ -261,7 +213,7 @@ function Play() {
       </>
     );
   const projection = publicState.forecast;
-  const scene = sceneFor(publicState.time);
+  const scene = sceneFor(publicState);
   const last = response?.payload?.history_added?.find((entry) => entry.kind === "turn");
   return (
     <>
@@ -269,7 +221,10 @@ function Play() {
       <div className="game-nav">
         <div>
           <span className="eyebrow">FAMILY FILE</span>
-          <span className="run-id">{runId.slice(0, 8)}</span>
+          <span className="run-id">
+            {runId.slice(0, 8)} · {publicState.content.difficulty_label}
+            {publicState.content.packs.map((p) => ` · ${p.label}`).join("")}
+          </span>
         </div>
         <nav aria-label="ゲーム内">
           <button
@@ -339,8 +294,9 @@ function Play() {
           ) : (
             <p>人生を振り返っています…</p>
           )
-        ) : (
-          <>
+        ) : null}
+        {response?.phase !== "finished" && (
+          <div hidden={tab !== "play"}>
             <div className="timebar">
               <div>
                 <span className="eyebrow">
@@ -377,6 +333,7 @@ function Play() {
                   >
                     <span className="eyebrow">TODAY, AT HOME</span>
                     <h2>{scene.title}</h2>
+                    {scene.visual && <ContentImage visual={scene.visual} />}
                     <p className="scene-text">{scene.text}</p>
                     <p className="season">{scene.season}</p>
                     <div className="observations">
@@ -412,6 +369,7 @@ function Play() {
                     response!.choices.map((event) => (
                       <article key={event.instance_id}>
                         <p className="event-text">{event.text}</p>
+                        {event.visual && <ContentImage visual={event.visual} />}
                         <div className="choices">
                           {event.options.map((option, index) => {
                             const selected = publicState.answers.some(
@@ -451,7 +409,7 @@ function Play() {
                     ))
                   )}
                 </section>
-                <PlanEditor publicState={publicState} />
+                <PlanEditor key={runId} publicState={publicState} />
               </div>
               <div>
                 <Family publicState={publicState} />
@@ -510,7 +468,7 @@ function Play() {
                 )}
               </div>
             </div>
-          </>
+          </div>
         )}
       </main>
       <footer className="game-footer">

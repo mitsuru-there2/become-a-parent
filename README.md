@@ -11,7 +11,7 @@ bun install --frozen-lockfile
 bun run dev
 ```
 
-表示されたローカルURLをブラウザで開きます。React / TanStack Router（SPA）/ 8bitcn / Motion / Nano Stores / Dexie / IndexedDBを使用。VitePlusが開発・ビルド・静的検査を担当します。Godot・Pythonは不要です。
+表示されたローカルURLをブラウザで開きます。React / TanStack Router（SPA）/ TanStack Form / 8bitcn / Motion / Nano Stores / Dexie / IndexedDBを使用。VitePlusが開発・ビルド・静的検査を担当します。Godot・Pythonは不要です。
 
 保存はブラウザごとに保持されます。別の端末への移動は、画面の「書き出し」と「保存ファイルを取り込む」を使います。旧SQLite保存の取り込みには対応していません。
 
@@ -24,6 +24,22 @@ bun run build
 bun run deploy:check
 ```
 
+### コミット前の検査
+
+`bun install`でLefthookのGitフックを自動設定します。手動で再設定する場合は`bun run hooks:install`を実行します。
+
+コミット時は、ステージ済みの対象ファイルを整形して再ステージし、続けて`bun run lint`を実行します。JSON違反・lintのエラーや警告があればコミットを中止します。部分ステージの未選択変更は保持します。formatの対象外は既存の設定どおり`docs/`・`assets/`です。
+
+| コマンド               | 内容                                                 |
+| ---------------------- | ---------------------------------------------------- |
+| `bun run lint`         | JSON検査とコードのlint・型検査                       |
+| `bun run check`        | JSON検査と書式・lint・型検査                         |
+| `bun run lint:json`    | 生成スキーマの同期、JSON本体、設定の整合性・画像参照 |
+| `bun run format`       | 書式の自動修正                                       |
+| `bun run format:check` | 書式の検査のみ                                       |
+
+JSONの検査対象は[エディタの関連付け](.vscode/settings.json)に従います。スキーマ変更後は`bun run schema:generate`を実行してください。検証結果は[開発計画](docs/development-plan.md#コミット前の検査2026-09-15)を参照。
+
 Cloudflare Workers Static Assetsの設定は `wrangler.jsonc`。公開先は `become-a-parent` です。認証後にデプロイできます。
 
 ```sh
@@ -34,3 +50,7 @@ bun run deploy
 2026-09-15の作業ではdry-runまで確認済み。Cloudflareの既存認証が期限切れのため、公開URLは未作成です。
 
 CLIは `bun run cli --help`。[操作例](docs/cli-guide.md)、[ゲーム画面の使い方](docs/gui-guide.md)、[構成](docs/architecture.md)、[移植の検証記録](docs/playtests/2026-09-15-web.md)、[仕様](docs/SPEC.md)を参照してください。
+
+## ゲーム設定・難易度・追加パック
+
+イベント、本文、画像参照、確率、主な費用と3段階の難易度はJSONで調整できます。追加家庭・行動・イベントのパックも登録できます。[編集・登録ガイド](config/README.md)と[仕様 S-015](docs/specs/content.md)を参照してください。購入機能は将来の実装対象です。

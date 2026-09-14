@@ -1,3 +1,4 @@
+import type { Settings, Visual } from "../content/types";
 export type Person = "A" | "B";
 export type Domain = "study" | "craft";
 export type Work = "reduced" | "normal" | "heavy";
@@ -9,6 +10,7 @@ export interface Allocation {
   self: number;
 }
 export interface Plan {
+  extra_action?: string;
   parents: Record<Person, Allocation>;
   activity: { domain: Domain | "none"; level: number; sponsor: Person };
   style: "respect" | "coach" | "push";
@@ -130,6 +132,7 @@ export interface NumericState {
   grandparents: { health: number; relation: number; funds: number; network: boolean };
 }
 export interface State extends NumericState {
+  settings?: Settings;
   versions: { rules: string; data: string; save: string };
   scenario: string;
   seed: number;
@@ -155,6 +158,23 @@ export interface State extends NumericState {
   result: Result | null;
 }
 export interface PublicState {
+  content: {
+    difficulty: string;
+    difficulty_label: string;
+    packs: { id: string; version: string; label: string }[];
+    fingerprint: string | null;
+  };
+  extra_actions: {
+    id: string;
+    label: string;
+    description: string;
+    cost: number;
+    time: number;
+    parent: Person;
+    available: boolean;
+    visual: Visual | null;
+  }[];
+  scene: { title: string; text: string; visual: Visual | null } | null;
   versions: State["versions"];
   time: {
     completed_turns: number;
@@ -174,6 +194,7 @@ export interface PublicState {
   forecast: Forecast | null;
 }
 export interface Choice {
+  visual: Visual | null;
   instance_id: string;
   event_id: string;
   text: string;

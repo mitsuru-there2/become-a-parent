@@ -1,21 +1,19 @@
-import { atom, computed } from "nanostores";
+import { atom } from "nanostores";
 import { IndexedRepository } from "../storage/indexeddb";
 import { Service, exportRun, type Response, type Payload } from "../service/service";
 import type { Command } from "../service/contract";
 import type { Plan } from "../engine/types";
-import { clone, canonical } from "../engine/shared";
+import { clone } from "../engine/shared";
 export const repository = new IndexedRepository();
 const service = new Service(repository);
 export const $response = atom<Response | null>(null);
 export const $busy = atom(false);
 export const $error = atom("");
 export const $notice = atom("");
-export const $draft = atom<Plan | null>(null);
+export const $savedPlan = atom<Plan | null>(null);
 export const $extra = atom<Payload>({});
-export const $dirty = computed(
-  [$draft, $response],
-  (draft, response) => !!draft && canonical(draft) !== canonical(response?.public?.plan),
-);
+// 入力値はTanStack Formが保持する。保存基準と離脱ガードだけを共有する。
+export const $dirty = atom(false);
 let generation = 0;
 export async function loadRun(runId: string) {
   const loadGeneration = ++generation;
@@ -26,7 +24,7 @@ export async function loadRun(runId: string) {
     // 別の保存へ移動した後に届いた、古い読み込み結果を捨てる。
     if (loadGeneration !== generation) return;
     $response.set(response);
-    $draft.set(clone(response.public?.plan ?? null));
+    $savedPlan.set(clone(response.public?.plan ?? null));
     $extra.set({});
     if (!response.ok) $error.set(response.error!.message);
   } finally {
@@ -57,7 +55,7 @@ export async function update(command: Command, input?: unknown) {
     }
     $response.set(response);
     // 出来事への回答は、まだ保存していない方針の編集案を上書きしない。
-    if (command !== "choose") $draft.set(clone(response.public?.plan ?? null));
+    if (command !== "choose") $savedPlan.set(clone(response.public?.plan ?? null));
     $notice.set("このブラウザに保存しました");
     if (response.phase === "finished") {
       const result = await service.execute({ command: "result", run: current.run_id });
@@ -79,7 +77,12 @@ export async function readExtra(command: "history" | "result") {
   if (response.ok) $extra.set(response.payload ?? {});
   else $error.set(response.error!.message);
 }
-export async function createRun(scenario: string, seed: number) {
+export async function createRun(
+  scenario: string,
+  seed: number,
+  difficulty = "normal",
+  packs: string[] = [],
+) {
   if ($busy.get()) return null;
   $busy.set(true);
   $error.set("");
@@ -90,6 +93,8 @@ export async function createRun(scenario: string, seed: number) {
       run: runId,
       scenario,
       seed,
+      difficulty,
+      packs,
       request_id: crypto.randomUUID(),
     });
     if (!response.ok) {
@@ -97,7 +102,7 @@ export async function createRun(scenario: string, seed: number) {
       return null;
     }
     $response.set(response);
-    $draft.set(clone(response.public!.plan));
+    $savedPlan.set(clone(response.public!.plan));
     return runId;
   } finally {
     $busy.set(false);

@@ -1,0 +1,688 @@
+{
+  "schema_version": 1,
+  "data_version": "data-2",
+  "events": {
+    "E-01": {
+      "text": "夜中。赤ちゃんが天井に向かって拍手している。観客は眠い。",
+      "options": [
+        {
+          "id": "watch",
+          "label": "交代で見守る",
+          "cost": 0,
+          "effects": {}
+        },
+        {
+          "id": "cuddle",
+          "label": "二人で付き合う",
+          "cost": 0,
+          "effects": {
+            "X": -2,
+            "S": 2
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [1],
+        "min_turn": 1,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 0,
+        "group": "",
+        "all": [],
+        "any": []
+      },
+      "target": "study",
+      "target_suffix": "",
+      "visual": null
+    },
+    "E-02": {
+      "text": "地域の遊び場。名札だけはすでに常連の風格がある。",
+      "options": [
+        {
+          "id": "gradual",
+          "label": "短い体験から始める",
+          "cost": 4,
+          "effects": {
+            "X": -3,
+            "T": 1
+          }
+        },
+        {
+          "id": "dive",
+          "label": "まず輪に入ってみる",
+          "cost": 0,
+          "effects": {
+            "adapt": 2,
+            "U": 2
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [7],
+        "min_turn": 1,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 0,
+        "group": "",
+        "all": [],
+        "any": []
+      },
+      "target": "study",
+      "target_suffix": "",
+      "visual": null
+    },
+    "E-03": {
+      "text": "高そうな教材の箱から、段ボールの城が完成した。",
+      "options": [
+        {
+          "id": "play",
+          "label": "城の続きを一緒に作る",
+          "cost": 0,
+          "effects": {
+            "I_craft": 6,
+            "B_craft": 2
+          }
+        },
+        {
+          "id": "lessons",
+          "label": "教材の課題も試す",
+          "cost": 12,
+          "effects": {
+            "B_study": 5,
+            "X": 2
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [13],
+        "min_turn": 1,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 0,
+        "group": "",
+        "all": [],
+        "any": []
+      },
+      "target": "study",
+      "target_suffix": "",
+      "visual": null
+    },
+    "E-04": {
+      "text": "賞状が来た。子どもより先に親が額縁を検索している。",
+      "options": [
+        {
+          "id": "cheer",
+          "label": "小さなお祝いをする",
+          "cost": 4,
+          "effects": {
+            "T": 2,
+            "G": -1
+          }
+        },
+        {
+          "id": "drill",
+          "label": "次の目標を立てる",
+          "cost": 0,
+          "effects": {
+            "B_study": 4,
+            "X": 5
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [19],
+        "min_turn": 1,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 0,
+        "group": "",
+        "all": [],
+        "any": []
+      },
+      "target": "study",
+      "target_suffix": "",
+      "visual": null
+    },
+    "E-05": {
+      "text": "『この取り組み、いったん休みたい』。予定表は反論したそうだ。",
+      "options": [
+        {
+          "id": "listen",
+          "label": "理由を聞いて余白を作る",
+          "cost": 0,
+          "effects": {
+            "X": -8,
+            "U": 4,
+            "T": 2,
+            "delay": "L-01"
+          }
+        },
+        {
+          "id": "continue",
+          "label": "区切りまでは続けようと伝える",
+          "cost": 0,
+          "effects": {
+            "B_target": 6,
+            "X": 8,
+            "U": -3
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [25],
+        "min_turn": 1,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 0,
+        "group": "",
+        "all": [],
+        "any": []
+      },
+      "target": "previous_activity",
+      "target_suffix": "",
+      "visual": null
+    },
+    "E-06": {
+      "text": "妙な作品が地域の企画に誘われた。募集要項にも『妙なもの』とある。",
+      "options": [
+        {
+          "id": "back",
+          "label": "参加を後押しする",
+          "cost": 10,
+          "effects": {
+            "B_craft": 6,
+            "X": 2
+          }
+        },
+        {
+          "id": "pace",
+          "label": "今回は身近なところで楽しむ",
+          "cost": 0,
+          "effects": {
+            "X": -6,
+            "F": 2
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [31],
+        "min_turn": 1,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 0,
+        "group": "",
+        "all": [],
+        "any": []
+      },
+      "target": "study",
+      "target_suffix": "",
+      "visual": null
+    },
+    "E-07": {
+      "text": "卒業後にやりたいことを話し始めた。親の用意した候補とは少し違う。",
+      "options": [
+        {
+          "id": "ask",
+          "label": "本人の希望を聞く",
+          "cost": 0,
+          "effects": {
+            "U": 6,
+            "T": 2,
+            "I_target": 4
+          }
+        },
+        {
+          "id": "suggest",
+          "label": "準備した候補も勧める",
+          "cost": 0,
+          "effects": {
+            "B_study": 5,
+            "U": -3
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [37],
+        "min_turn": 1,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 0,
+        "group": "",
+        "all": [],
+        "any": []
+      },
+      "target": "interest",
+      "target_suffix": "「{domain}寄りの道を考えている」",
+      "visual": null
+    },
+    "E-08": {
+      "text": "20歳。小さかった靴と、まだ大きすぎる予定が並んでいる。",
+      "options": [
+        {
+          "id": "send",
+          "label": "いつでも話してと伝える",
+          "cost": 0,
+          "effects": {
+            "T": 2,
+            "F": 2
+          }
+        },
+        {
+          "id": "prepare",
+          "label": "当面の暮らしを一緒に準備する",
+          "cost": 10,
+          "effects": {
+            "X": -5,
+            "U": 2
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [40],
+        "min_turn": 1,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 0,
+        "group": "",
+        "all": [],
+        "any": []
+      },
+      "target": "study",
+      "target_suffix": "",
+      "visual": null
+    },
+    "E-09": {
+      "text": "祖父母から援助の話。近所の知り合いの話も、三人分ついてきた。",
+      "options": [
+        {
+          "id": "accept",
+          "label": "20万円の援助を受ける",
+          "cost": 0,
+          "effects": {
+            "income": 20,
+            "GM": -20,
+            "GR": -3
+          }
+        },
+        {
+          "id": "coordinate",
+          "label": "今回は相談だけお願いする",
+          "cost": 0,
+          "effects": {
+            "GR": 5,
+            "S": -2
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [],
+        "min_turn": 5,
+        "max_turn": 40,
+        "cooldown": 1,
+        "once": true,
+        "probability": 100,
+        "priority": 1,
+        "group": "family",
+        "all": [
+          {
+            "path": "grandparents.network",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "grandparents.funds",
+            "op": "gte",
+            "value": 20
+          },
+          {
+            "path": "grandparents.relation",
+            "op": "gte",
+            "value": 30
+          }
+        ],
+        "any": []
+      },
+      "target": "study",
+      "target_suffix": "",
+      "visual": null
+    },
+    "E-10": {
+      "text": "家の会話が短くなってきた。予定を詰め直す前に、話す余地はあるだろうか。",
+      "options": [
+        {
+          "id": "repair",
+          "label": "謝って話を聞く時間を作る",
+          "cost": 4,
+          "effects": {
+            "T": 5,
+            "S": -3,
+            "X": -3,
+            "G": -3,
+            "delay": "L-02"
+          }
+        },
+        {
+          "id": "defer",
+          "label": "今期は予定を優先する",
+          "cost": 0,
+          "effects": {
+            "G": 1
+          }
+        }
+      ],
+      "trigger": {
+        "turns": [],
+        "min_turn": 3,
+        "max_turn": 38,
+        "cooldown": 4,
+        "once": false,
+        "probability": 100,
+        "priority": 0,
+        "group": "family",
+        "all": [],
+        "any": [
+          {
+            "path": "child.stress",
+            "op": "gte",
+            "value": 60
+          },
+          {
+            "path": "child.trust.A",
+            "op": "lt",
+            "value": 40
+          },
+          {
+            "path": "child.trust.B",
+            "op": "lt",
+            "value": 40
+          },
+          {
+            "path": "parents.A.stress",
+            "op": "gte",
+            "value": 70
+          },
+          {
+            "path": "parents.B.stress",
+            "op": "gte",
+            "value": 70
+          }
+        ]
+      },
+      "target": "study",
+      "target_suffix": "",
+      "visual": null
+    }
+  },
+  "actions": {},
+  "scenarios": [
+    {
+      "id": "home-01",
+      "label": "基本の家庭",
+      "description": "子ども1人の人生を通す",
+      "adaptation": 1
+    },
+    {
+      "id": "home-02",
+      "label": "もう一つの家庭",
+      "description": "子ども1人の人生を通す",
+      "adaptation": 3
+    }
+  ],
+  "difficulties": {
+    "easy": {
+      "label": "やさしい",
+      "description": "資金に余裕を持って、家族の暮らしを楽しむ",
+      "initial_cash": 200,
+      "living_cost": 190
+    },
+    "normal": {
+      "label": "ふつう",
+      "description": "基本の家計で、時間とお金をやりくりする",
+      "initial_cash": 120,
+      "living_cost": 200
+    },
+    "hard": {
+      "label": "むずかしい",
+      "description": "少ない資金と高めの生活費で、配分を工夫する",
+      "initial_cash": 80,
+      "living_cost": 210
+    }
+  },
+  "work": {
+    "reduced": {
+      "income": 90,
+      "time": 2,
+      "stress": 2,
+      "fulfillment": 1
+    },
+    "normal": {
+      "income": 130,
+      "time": 4,
+      "stress": 4,
+      "fulfillment": 3
+    },
+    "heavy": {
+      "income": 180,
+      "time": 6,
+      "stress": 7,
+      "fulfillment": 4
+    }
+  },
+  "stages": [
+    {
+      "id": "baby",
+      "until_age": 3,
+      "care": 6,
+      "cost": 20,
+      "school": "未就学"
+    },
+    {
+      "id": "preschool",
+      "until_age": 6,
+      "care": 4,
+      "cost": 24,
+      "school": "未就学"
+    },
+    {
+      "id": "primary",
+      "until_age": 12,
+      "care": 2,
+      "cost": 28,
+      "school": "小{year}"
+    },
+    {
+      "id": "junior",
+      "until_age": 15,
+      "care": 1,
+      "cost": 32,
+      "school": "中{year}"
+    },
+    {
+      "id": "senior",
+      "until_age": 18,
+      "care": 1,
+      "cost": 36,
+      "school": "高{year}相当"
+    },
+    {
+      "id": "launch",
+      "until_age": 100,
+      "care": 1,
+      "cost": 36,
+      "school": "進路準備期"
+    }
+  ],
+  "balance": {
+    "activity_cost": [0, 12, 30],
+    "paid_help_cost": 8,
+    "self_cost": 4,
+    "time_limit": 12,
+    "help_care": 2
+  },
+  "oddities": [
+    {
+      "id": "O-01",
+      "probability": 10,
+      "text": "忘れていた返金。家計簿が一瞬だけ拍手した。",
+      "income": 10,
+      "cost": 0,
+      "effects": {},
+      "memory": false
+    },
+    {
+      "id": "O-02",
+      "probability": 8,
+      "text": "家電が、今しかないという顔で止まった。",
+      "income": 0,
+      "cost": 8,
+      "effects": {
+        "S": 1
+      },
+      "memory": false
+    },
+    {
+      "id": "O-03",
+      "probability": 7,
+      "text": "家族の妙な作品が回覧板の表紙になった。",
+      "income": 0,
+      "cost": 0,
+      "effects": {
+        "F": 2,
+        "N": 2
+      },
+      "memory": true
+    }
+  ],
+  "adult": {
+    "career_low_probability": 20,
+    "career_high_probability": 20,
+    "distance_success_probability": 60,
+    "distance_other_probability": 30,
+    "health_probability": 20
+  },
+  "scenes": {
+    "baby": {
+      "title": "小さな寝息のある暮らし",
+      "text": "洗いかけの哺乳瓶。畳みかけの洗濯物。\n小さな寝息を聞きながら、今日の予定を組み直す。",
+      "visual": null
+    },
+    "preschool": {
+      "title": "「なんで？」が増える頃",
+      "text": "玄関の小さな靴。ポケットの中には、いつの間にか石。\n出かけるだけでも、ひとつの冒険になる。",
+      "visual": null
+    },
+    "primary": {
+      "title": "ただいま、のその先に",
+      "text": "机に置かれた連絡帳。明日の持ち物が、またひとつ。\n家の外の世界が、少しずつ広がっていく。",
+      "visual": null
+    },
+    "junior": {
+      "title": "近すぎず、遠すぎず",
+      "text": "少し大きくなった靴が、玄関に並ぶ。\n声をかけるタイミングを考えながら、夕飯の支度をする。",
+      "visual": null
+    },
+    "senior": {
+      "title": "未来の話をする食卓",
+      "text": "机の上には、進路の資料と飲みかけのコップ。\nこれからの話を、どんな距離で聞こう。",
+      "visual": null
+    },
+    "launch": {
+      "title": "手を離す練習",
+      "text": "予定表に、家族それぞれの用事が増えていく。\nいつもの食卓で、この先の暮らしを思い描く。",
+      "visual": null
+    }
+  },
+  "visuals": {
+    "hero": {
+      "src": "/assets/marketing/hero.png",
+      "alt": "親伝説。洗濯物の山と小さな家族を描いた、白黒の育児デスクトップ。"
+    }
+  },
+  "text": {
+    "simulation_000": "余裕がありそう",
+    "simulation_001": "少し疲れている様子",
+    "simulation_002": "休みたがることが増えた",
+    "simulation_003": "反応が少ない",
+    "simulation_004": "声や気配に反応する",
+    "simulation_005": "自分から触れ合いを求める",
+    "simulation_006": "話しかけても会話が続きにくい",
+    "simulation_007": "用事や近況を話す",
+    "simulation_008": "自分から話をしに来る",
+    "simulation_009": "決めてもらうのを待つことが多い",
+    "simulation_010": "選択肢を示すと選ぶ",
+    "simulation_011": "自分の希望を言う",
+    "simulation_012": "ことばや数の遊び：",
+    "simulation_013": "形や音の遊び：",
+    "simulation_014": "学習：",
+    "simulation_015": "創作：",
+    "simulation_016": "最近は話題にしない",
+    "simulation_017": "誘うと取り組むことがある",
+    "simulation_018": "自分から話題にする",
+    "simulation_019": "試しながら覚えている",
+    "simulation_020": "一人でできることが増えた",
+    "simulation_021": "得意なこととして披露する",
+    "simulation_022": "新しい場の後は疲れている様子",
+    "simulation_023": "前より余裕が出てきた様子",
+    "simulation_024": "疲れが続いて増えている様子",
+    "simulation_025": "疲れが続いて和らいでいる様子",
+    "simulation_026": "調子には波がある",
+    "simulation_027": "学習",
+    "simulation_028": "創作",
+    "simulation_029": "祖父母の体力か関係に余裕がありません",
+    "simulation_030": "乳児期の遊びは関わりの時間で扱います",
+    "simulation_031": "出来事への回答が必要です（費用0の選択肢もあります）",
+    "simulation_032": "祖父母の援助資金が足りません",
+    "simulation_033": "予測残金が不足しています",
+    "simulation_034": "春〜夏",
+    "simulation_035": "秋〜冬",
+    "simulation_036": "忘れていた返金。家計簿が一瞬だけ拍手した。",
+    "simulation_037": "家電が、今しかないという顔で止まった。",
+    "simulation_038": "残金の範囲に修理を縮小した。負債はない。",
+    "simulation_039": "家族の妙な作品が回覧板の表紙になった。",
+    "simulation_040": "少し間を置いて、また取り組み始めた。",
+    "simulation_041": "再開はまだ先になりそう。",
+    "simulation_042": "あの会話のあと、少し話しやすくなった様子。",
+    "simulation_043": "話しやすさが続くか、もう少し様子を見たい。",
+    "adult_044": "満ち足りた振り返り",
+    "adult_045": "喜びと心残りのある振り返り",
+    "adult_046": "心残りの大きい振り返り",
+    "adult_047": "小さな靴、大きな予定",
+    "adult_048": "靴箱を片づけると、小さな靴が出てきた。予定通りのことも、そうでないこともあった。家族の歩みは、この一足には収まりきらない。",
+    "adult_049": "立派な額縁、静かな食卓",
+    "adult_050": "壁には立派な額縁が並んだ。食卓には、聞きそびれた話が残った。大きな成果と、親子それぞれの実感を振り返る。",
+    "adult_051": "「あのとき、ごめん」の続き",
+    "adult_052": "昔の言い争いを話せる日が来た。謝罪の名文句は忘れたが、そのあとに続いた会話は覚えている。",
+    "adult_053": "それぞれの予定表",
+    "adult_054": "親の予定表にも、子どもの予定表にも、別々の用事がある。家族の予定を合わせる係は、最後までなかなか忙しかった。",
+    "adult_055": "遠くの街から、いつもの声",
+    "adult_056": "遠くの街から電話が鳴る。最初の話題はいつも天気。大事な話は、だいたいそのあとにやってきた。",
+    "adult_057": "近況の連絡が届いた。",
+    "adult_058": "連絡は用件が中心だった。",
+    "adult_059": "退職後にも会う人と予定がある。",
+    "adult_060": "仕事の外の過ごし方を探し始めた。",
+    "adult_061": "妙な作品が、まだ家に残っている。",
+    "adult_062": "学びを生かす専門の道",
+    "adult_063": "作ることを仕事にする道",
+    "adult_064": "試しながら自分の道を探す",
+    "adult_065": "相談しながら足場を作る",
+    "adult_066": "遠方で暮らす。",
+    "adult_067": "近くで暮らす。",
+    "adult_068": "回覧板を飾った作品は、家族の思い出になった。"
+  }
+}

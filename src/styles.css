@@ -1138,3 +1138,27 @@ meter::-moz-meter-bar {
 .home .poster img {
   max-height: clamp(180px, 32svh, 360px);
 }
+
+.events img,
+.scene img,
+.extra-actions img {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  margin: 16px 0;
+}
+.extra-actions {
+  margin: 20px 0;
+}
+.extra-actions select {
+  max-width: 100%;
+}
+
+/* TanStack Formの送信中ガード用。既存のフィールド配置を維持する。 */
+.form-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}

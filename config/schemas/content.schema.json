@@ -1,0 +1,735 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "data_version": {
+      "const": "data-2"
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Scenario"
+      },
+      "minItems": 1
+    },
+    "difficulties": {
+      "type": "object",
+      "properties": {
+        "easy": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "initial_cash": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "living_cost": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            }
+          },
+          "required": ["label", "description", "initial_cash", "living_cost"],
+          "additionalProperties": false
+        },
+        "normal": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "initial_cash": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "living_cost": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            }
+          },
+          "required": ["label", "description", "initial_cash", "living_cost"],
+          "additionalProperties": false
+        },
+        "hard": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "initial_cash": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "living_cost": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            }
+          },
+          "required": ["label", "description", "initial_cash", "living_cost"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["easy", "normal", "hard"],
+      "additionalProperties": false
+    },
+    "work": {
+      "type": "object",
+      "properties": {
+        "reduced": {
+          "type": "object",
+          "properties": {
+            "income": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "time": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            },
+            "stress": {
+              "type": "integer",
+              "minimum": -100,
+              "maximum": 100
+            },
+            "fulfillment": {
+              "type": "integer",
+              "minimum": -100,
+              "maximum": 100
+            }
+          },
+          "required": ["income", "time", "stress", "fulfillment"],
+          "additionalProperties": false
+        },
+        "normal": {
+          "type": "object",
+          "properties": {
+            "income": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "time": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            },
+            "stress": {
+              "type": "integer",
+              "minimum": -100,
+              "maximum": 100
+            },
+            "fulfillment": {
+              "type": "integer",
+              "minimum": -100,
+              "maximum": 100
+            }
+          },
+          "required": ["income", "time", "stress", "fulfillment"],
+          "additionalProperties": false
+        },
+        "heavy": {
+          "type": "object",
+          "properties": {
+            "income": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "time": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            },
+            "stress": {
+              "type": "integer",
+              "minimum": -100,
+              "maximum": 100
+            },
+            "fulfillment": {
+              "type": "integer",
+              "minimum": -100,
+              "maximum": 100
+            }
+          },
+          "required": ["income", "time", "stress", "fulfillment"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["reduced", "normal", "heavy"],
+      "additionalProperties": false
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "until_age": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99999
+          },
+          "care": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "cost": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99999
+          },
+          "school": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "until_age", "care", "cost", "school"],
+        "additionalProperties": false
+      }
+    },
+    "balance": {
+      "type": "object",
+      "properties": {
+        "activity_cost": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99999
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "paid_help_cost": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999
+        },
+        "self_cost": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999
+        },
+        "time_limit": {
+          "const": 12
+        },
+        "help_care": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        }
+      },
+      "required": ["activity_cost", "paid_help_cost", "self_cost", "time_limit", "help_care"],
+      "additionalProperties": false
+    },
+    "oddities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "probability": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "text": {
+            "type": "string"
+          },
+          "income": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99999
+          },
+          "cost": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99999
+          },
+          "effects": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": -100,
+                  "maximum": 99999
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "memory": {
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "probability", "text", "income", "cost", "effects", "memory"],
+        "additionalProperties": false
+      }
+    },
+    "adult": {
+      "type": "object",
+      "properties": {
+        "career_low_probability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "career_high_probability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "distance_success_probability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "distance_other_probability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "health_probability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "career_low_probability",
+        "career_high_probability",
+        "distance_success_probability",
+        "distance_other_probability",
+        "health_probability"
+      ],
+      "additionalProperties": false
+    },
+    "events": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Event"
+      }
+    },
+    "actions": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Action"
+      }
+    },
+    "scenes": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "visual": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["title", "text", "visual"],
+        "additionalProperties": false
+      }
+    },
+    "visuals": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Visual"
+      }
+    },
+    "text": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "data_version",
+    "scenarios",
+    "difficulties",
+    "work",
+    "stages",
+    "balance",
+    "oddities",
+    "adult",
+    "events",
+    "actions",
+    "scenes",
+    "visuals",
+    "text"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$defs": {
+    "Event": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+              },
+              "label": {
+                "type": "string"
+              },
+              "cost": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99999
+              },
+              "effects": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 99999
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": ["id", "label", "cost", "effects"],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "trigger": {
+          "type": "object",
+          "properties": {
+            "turns": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 40
+              }
+            },
+            "min_turn": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "max_turn": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "cooldown": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "once": {
+              "type": "boolean"
+            },
+            "probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "group": {
+              "type": "string"
+            },
+            "all": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "op": {
+                    "enum": ["eq", "lt", "gte"],
+                    "type": "string"
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                },
+                "required": ["path", "op", "value"],
+                "additionalProperties": false
+              }
+            },
+            "any": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "op": {
+                    "enum": ["eq", "lt", "gte"],
+                    "type": "string"
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                },
+                "required": ["path", "op", "value"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "turns",
+            "min_turn",
+            "max_turn",
+            "cooldown",
+            "once",
+            "probability",
+            "priority",
+            "group",
+            "all",
+            "any"
+          ],
+          "additionalProperties": false
+        },
+        "target": {
+          "enum": ["study", "craft", "previous_activity", "interest"],
+          "type": "string"
+        },
+        "target_suffix": {
+          "type": "string"
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["text", "options", "trigger", "target", "target_suffix", "visual"],
+      "additionalProperties": false
+    },
+    "Action": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999
+        },
+        "time": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "parent": {
+          "enum": ["A", "B"],
+          "type": "string"
+        },
+        "min_turn": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "max_turn": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "target": {
+          "enum": ["study", "craft"],
+          "type": "string"
+        },
+        "effects": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -100,
+                "maximum": 99999
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "description",
+        "cost",
+        "time",
+        "parent",
+        "min_turn",
+        "max_turn",
+        "target",
+        "effects",
+        "visual"
+      ],
+      "additionalProperties": false
+    },
+    "Visual": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "pattern": "^\\/assets\\/[A-Za-z0-9_./-]+\\.(png|jpg|jpeg|webp|gif|svg)$"
+        },
+        "alt": {
+          "type": "string"
+        }
+      },
+      "required": ["src", "alt"],
+      "additionalProperties": false
+    },
+    "Scenario": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "adaptation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "required": ["id", "label", "description", "adaptation"],
+      "additionalProperties": false
+    }
+  },
+  "title": "親伝説：本編のゲーム設定",
+  "description": "Valibotから自動生成。参照・依存・独自条件の検査には bun run check:content を実行してください。",
+  "$comment": "生成元: src/content/schemas.ts。変更後は bun run schema:generate。手で編集しないでください。"
+}

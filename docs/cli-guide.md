@@ -31,3 +31,16 @@ bun run cli import --dir /tmp/another-saves --file /tmp/trial-export.json
 ```
 
 通常プレイではobserve/actions/forecast/history/resultの公開情報だけを使い、ソース・保存ファイル・debug-state・参照数値を判断に使わない。内部検証は別記録とする。
+
+## 難易度と追加シナリオ（S-015）
+
+```sh
+bun run cli scenarios
+bun run cli new --run my-family --scenario home-01 --seed 0 --difficulty hard --request-id start
+```
+
+`difficulty` は `easy` / `normal` / `hard`、省略時は `normal`。`packs` はパックIDのJSON配列です（例：`--packs '["community"]'`）。登録済みパックのみ選べます。`scenarios` の公開一覧には難易度とパック・追加家庭も含みます。開始後は難易度・パックを変更できません。
+
+追加行動は `plan` の `input` に `{"extra_action":"community-workshop"}` を指定します。`none` で解除し、ID・費用・時間・時期の可否は `actions` の `extra_actions` で確認します。選択は毎期引き継がれます。設定方法は[設定ガイド](../config/README.md)。
+
+新規保存・書き出しはsave-3 / parent-save-3です。使用した設定を保存し、旧save-2も読み込めます。上記以外の公開コマンド・revision・request-id契約はcli-2を維持します。不正な新規設定は `INVALID_CONTENT`（CLI終了コード2）、保存内設定の破損は `CORRUPT_SAVE` です。

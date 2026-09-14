@@ -1,3 +1,4 @@
+import { contentFor } from "../content/catalog";
 import type { State, ChildResult, ParentResult, Person, Result, History, Money } from "./types";
 import { clampStat, integerDivide, clone, PEOPLE } from "./shared";
 type Career = Omit<ChildResult, "age" | "happiness" | "autonomy">;
@@ -49,10 +50,10 @@ function parentResult(
     health: parentStats.health,
     label:
       happiness >= 75
-        ? "満ち足りた振り返り"
+        ? contentFor(state).text.adult_044
         : happiness >= 45
-          ? "喜びと心残りのある振り返り"
-          : "心残りの大きい振り返り",
+          ? contentFor(state).text.adult_045
+          : contentFor(state).text.adult_046,
   };
 }
 export function ending(state: State, childOutcome: ChildResult): Result["ending"] {
@@ -60,30 +61,25 @@ export function ending(state: State, childOutcome: ChildResult): Result["ending"
   const fulfillment = integerDivide(state.parents.A.fulfillment + state.parents.B.fulfillment, 2);
   const social = integerDivide(state.parents.A.social + state.parents.B.social, 2);
   let id = "EN-05";
-  let title = "小さな靴、大きな予定";
-  let text =
-    "靴箱を片づけると、小さな靴が出てきた。予定通りのことも、そうでないこともあった。家族の歩みは、この一足には収まりきらない。";
+  let title = contentFor(state).text.adult_047;
+  let text = contentFor(state).text.adult_048;
   // 複数条件が成立する場合も上から優先する（ending-1）。独立した判定に分けない。
   if (childOutcome.social_success >= 70 && trust < 40) {
     id = "EN-01";
-    title = "立派な額縁、静かな食卓";
-    text =
-      "壁には立派な額縁が並んだ。食卓には、聞きそびれた話が残った。大きな成果と、親子それぞれの実感を振り返る。";
+    title = contentFor(state).text.adult_049;
+    text = contentFor(state).text.adult_050;
   } else if (state.repaired && trust >= 60) {
     id = "EN-02";
-    title = "「あのとき、ごめん」の続き";
-    text =
-      "昔の言い争いを話せる日が来た。謝罪の名文句は忘れたが、そのあとに続いた会話は覚えている。";
+    title = contentFor(state).text.adult_051;
+    text = contentFor(state).text.adult_052;
   } else if (fulfillment >= 70 && social >= 50) {
     id = "EN-03";
-    title = "それぞれの予定表";
-    text =
-      "親の予定表にも、子どもの予定表にも、別々の用事がある。家族の予定を合わせる係は、最後までなかなか忙しかった。";
+    title = contentFor(state).text.adult_053;
+    text = contentFor(state).text.adult_054;
   } else if (childOutcome.residence === "far" && trust >= 60) {
     id = "EN-04";
-    title = "遠くの街から、いつもの声";
-    text =
-      "遠くの街から電話が鳴る。最初の話題はいつも天気。大事な話は、だいたいそのあとにやってきた。";
+    title = contentFor(state).text.adult_055;
+    text = contentFor(state).text.adult_056;
   }
   return { version: "ending-1", id, title, text };
 }
@@ -98,14 +94,24 @@ export function finish(
   const careerDraw = draw(state, "adult", 0, "career");
   const success = clampStat(
     integerDivide(child.ability[domain] + child.autonomy, 2) +
-      (careerDraw < 20 ? -10 : careerDraw >= 80 ? 10 : 0),
+      (careerDraw < contentFor(state).adult.career_low_probability
+        ? -10
+        : careerDraw >= 100 - contentFor(state).adult.career_high_probability
+          ? 10
+          : 0),
   );
   const distance = draw(state, "adult", 0, "distance");
   const career: Career = {
     domain,
     route,
     social_success: success,
-    residence: distance < (success >= 60 ? 60 : 30) ? "far" : "near",
+    residence:
+      distance <
+      (success >= 60
+        ? contentFor(state).adult.distance_success_probability
+        : contentFor(state).adult.distance_other_probability)
+        ? "far"
+        : "near",
   };
   const accounts = { A: integerDivide(state.cash + 1, 2), B: integerDivide(state.cash, 2) };
   const alive = { A: true, B: true };
@@ -131,7 +137,7 @@ export function finish(
       const income =
         5 *
         (adultStep <= 3
-          ? { reduced: 90, normal: 130, heavy: 180 }[state.previous_plan.parents[parentId].work] * 2
+          ? contentFor(state).work[state.previous_plan.parents[parentId].work].income * 2
           : 200);
       const plannedExpense = 5 * (adultStep <= 3 ? 240 : 220);
       const shortfall = before + income < plannedExpense;
@@ -185,7 +191,7 @@ export function finish(
         addEvent(
           "A-01",
           parentId,
-          `親${parentId}：${child.trust[parentId] >= 50 ? "近況の連絡が届いた。" : "連絡は用件が中心だった。"}`,
+          `親${parentId}：${child.trust[parentId] >= 50 ? contentFor(state).text.adult_057 : contentFor(state).text.adult_058}`,
         );
       }
       if (adultStep === 3) {
@@ -194,10 +200,14 @@ export function finish(
         addEvent(
           "A-02",
           parentId,
-          `親${parentId}：${state.parents[parentId].social >= 50 ? "退職後にも会う人と予定がある。" : "仕事の外の過ごし方を探し始めた。"}`,
+          `親${parentId}：${state.parents[parentId].social >= 50 ? contentFor(state).text.adult_059 : contentFor(state).text.adult_060}`,
         );
       }
-      if (adultStep >= 4 && draw(state, "adult", adultStep, `health-${parentId}`) < 20) {
+      if (
+        adultStep >= 4 &&
+        draw(state, "adult", adultStep, `health-${parentId}`) <
+          contentFor(state).adult.health_probability
+      ) {
         state.parents[parentId].health = Math.max(0, state.parents[parentId].health - 5);
         addEvent("A-03", parentId, `親${parentId}：体調を崩し、しばらく休んだ。`);
       }
@@ -207,7 +217,7 @@ export function finish(
       }
     }
     if (adultStep === 6 && state.oddity_count > 0)
-      addEvent("A-05", "family", "妙な作品が、まだ家に残っている。");
+      addEvent("A-05", "family", contentFor(state).text.adult_061);
     childOutcome = childResult(state, 20 + 5 * adultStep, career);
     const deaths = PEOPLE.filter(
       (parentId) =>
@@ -269,13 +279,16 @@ export function finish(
     (parentId) => `親${parentId}：幸福${results[parentId].happiness}／${results[parentId].label}。`,
   );
   const routes = {
-    specialist: domain === "study" ? "学びを生かす専門の道" : "作ることを仕事にする道",
-    explorer: "試しながら自分の道を探す",
-    supported: "相談しながら足場を作る",
+    specialist:
+      domain === "study" ? contentFor(state).text.adult_062 : contentFor(state).text.adult_063,
+    explorer: contentFor(state).text.adult_064,
+    supported: contentFor(state).text.adult_065,
   };
   story.push(
     `子どもは${routes[route]}へ。社会的成果${success}。`,
-    career.residence === "far" ? "遠方で暮らす。" : "近くで暮らす。",
+    career.residence === "far"
+      ? contentFor(state).text.adult_066
+      : contentFor(state).text.adult_067,
     `子どもの幸福${childOutcome.happiness}／主体性${childOutcome.autonomy}。`,
   );
   for (const parentId of PEOPLE) {
@@ -288,7 +301,7 @@ export function finish(
     if (state.parents[parentId].social >= 60)
       story.push(`親${parentId}：家族以外とのつながりも支えになった。`);
   }
-  if (state.oddity_count > 0) story.push("回覧板を飾った作品は、家族の思い出になった。");
+  if (state.oddity_count > 0) story.push(contentFor(state).text.adult_068);
   for (const parentId of PEOPLE)
     story.push(`親${parentId}の最期は${results[parentId].death_age}歳。`);
   state.result = {
