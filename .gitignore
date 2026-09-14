@@ -1,0 +1,8 @@
+.godot/
+.tools/
+__pycache__/
+*.pyc
+*.sqlite
+*.sqlite-journal
+playtests-local/
+.DS_Store

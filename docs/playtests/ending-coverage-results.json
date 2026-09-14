@@ -1,0 +1,439 @@
+{
+  "kind": "targeted_ending_coverage",
+  "results": [
+    {
+      "kind": "targeted_ending_coverage_not_blind_play",
+      "pattern": "BP-02",
+      "scenario": "home-01",
+      "seed": 0,
+      "run_id": "2330bf13-76a4-40b7-a83f-59d9b9480c28",
+      "versions": {
+        "data": "data-1",
+        "rules": "rules-1",
+        "save": "save-1"
+      },
+      "started": "2026-09-14T04:03:48.643222+00:00",
+      "finished": "2026-09-14T04:03:51.186125+00:00",
+      "model": "none (deterministic public policy)",
+      "max_calls": 600,
+      "calls": 101,
+      "advances": 40,
+      "status": "completed",
+      "error": null,
+      "changed_policy": false,
+      "paused_activity": false,
+      "result": {
+        "child": {
+          "age": 60,
+          "autonomy": 80,
+          "domain": "craft",
+          "happiness": 49,
+          "residence": "near",
+          "route": "specialist",
+          "social_success": 76
+        },
+        "ending": {
+          "id": "EN-01",
+          "text": "壁には立派な額縁が並んだ。食卓には、聞きそびれた話が残った。大きな成果と、親子それぞれの実感を振り返る。",
+          "title": "立派な額縁、静かな食卓",
+          "version": "ending-1"
+        },
+        "parents": {
+          "A": {
+            "axes": {
+              "child_assurance": 57,
+              "fulfillment": 0,
+              "regret": 48,
+              "relationship": 29,
+              "security": 50
+            },
+            "cash": 2962,
+            "death_age": 65,
+            "happiness": 33,
+            "health": 0,
+            "label": "心残りの大きい振り返り"
+          },
+          "B": {
+            "axes": {
+              "child_assurance": 62,
+              "fulfillment": 0,
+              "regret": 31,
+              "relationship": 12,
+              "security": 56
+            },
+            "cash": 962,
+            "death_age": 90,
+            "happiness": 33,
+            "health": 12,
+            "label": "心残りの大きい振り返り"
+          }
+        },
+        "story": [
+          "親A：幸福33／心残りの大きい振り返り。",
+          "親B：幸福33／心残りの大きい振り返り。",
+          "子どもは作ることを仕事にする道へ。社会的成果76。",
+          "近くで暮らす。",
+          "子どもの幸福49／主体性80。",
+          "親A：成果は大きかったが、会話は少なかった。",
+          "親B：成果は大きかったが、会話は少なかった。",
+          "回覧板を飾った作品は、家族の思い出になった。",
+          "親Aの最期は65歳。",
+          "親Bの最期は90歳。"
+        ]
+      },
+      "expected_ending": "EN-01",
+      "variant": "quiet",
+      "save": "playtests-local/ending-coverage/EN-01/BP-02-seed0.sqlite",
+      "log": "playtests-local/ending-coverage/EN-01/BP-02-seed0.jsonl",
+      "log_sha256": "fff8bbda75174e42a10369b8923369bc7695fe14b46f2e08b636ca40d6a04f93",
+      "replay_matched": true
+    },
+    {
+      "kind": "targeted_ending_coverage_not_blind_play",
+      "pattern": "BP-03",
+      "scenario": "home-01",
+      "seed": 0,
+      "run_id": "8c4f59ef-3904-49d3-9f90-dc0a4287c661",
+      "versions": {
+        "data": "data-1",
+        "rules": "rules-1",
+        "save": "save-1"
+      },
+      "started": "2026-09-14T04:03:51.186684+00:00",
+      "finished": "2026-09-14T04:03:53.080818+00:00",
+      "model": "none (deterministic public policy)",
+      "max_calls": 600,
+      "calls": 95,
+      "advances": 40,
+      "status": "completed",
+      "error": null,
+      "changed_policy": true,
+      "paused_activity": false,
+      "result": {
+        "child": {
+          "age": 60,
+          "autonomy": 100,
+          "domain": "craft",
+          "happiness": 100,
+          "residence": "near",
+          "route": "specialist",
+          "social_success": 90
+        },
+        "ending": {
+          "id": "EN-02",
+          "text": "昔の言い争いを話せる日が来た。謝罪の名文句は忘れたが、そのあとに続いた会話は覚えている。",
+          "title": "「あのとき、ごめん」の続き",
+          "version": "ending-1"
+        },
+        "parents": {
+          "A": {
+            "axes": {
+              "child_assurance": 95,
+              "fulfillment": 97,
+              "regret": 0,
+              "relationship": 86,
+              "security": 59
+            },
+            "cash": 420,
+            "death_age": 90,
+            "happiness": 84,
+            "health": 35,
+            "label": "満ち足りた振り返り"
+          },
+          "B": {
+            "axes": {
+              "child_assurance": 95,
+              "fulfillment": 97,
+              "regret": 0,
+              "relationship": 86,
+              "security": 59
+            },
+            "cash": 420,
+            "death_age": 90,
+            "happiness": 84,
+            "health": 35,
+            "label": "満ち足りた振り返り"
+          }
+        },
+        "story": [
+          "親A：幸福84／満ち足りた振り返り。",
+          "親B：幸福84／満ち足りた振り返り。",
+          "子どもは作ることを仕事にする道へ。社会的成果90。",
+          "近くで暮らす。",
+          "子どもの幸福100／主体性100。",
+          "親A：関係を修復したあとの会話が続いた。",
+          "親B：関係を修復したあとの会話が続いた。",
+          "回覧板を飾った作品は、家族の思い出になった。",
+          "親Aの最期は90歳。",
+          "親Bの最期は90歳。"
+        ]
+      },
+      "expected_ending": "EN-02",
+      "variant": "standard",
+      "save": "playtests-local/ending-coverage/EN-02/BP-03-seed0.sqlite",
+      "log": "playtests-local/ending-coverage/EN-02/BP-03-seed0.jsonl",
+      "log_sha256": "8bfab526a6a9a97e34eac1ddb8d02b60fb6f895c095a1b9bb64f95082279e198",
+      "replay_matched": true
+    },
+    {
+      "kind": "targeted_ending_coverage_not_blind_play",
+      "pattern": "BP-04",
+      "scenario": "home-01",
+      "seed": 0,
+      "run_id": "81518ced-6a58-47a5-8227-8398831355c5",
+      "versions": {
+        "data": "data-1",
+        "rules": "rules-1",
+        "save": "save-1"
+      },
+      "started": "2026-09-14T04:03:53.081410+00:00",
+      "finished": "2026-09-14T04:03:54.851193+00:00",
+      "model": "none (deterministic public policy)",
+      "max_calls": 600,
+      "calls": 94,
+      "advances": 40,
+      "status": "completed",
+      "error": null,
+      "changed_policy": false,
+      "paused_activity": false,
+      "result": {
+        "child": {
+          "age": 60,
+          "autonomy": 100,
+          "domain": "craft",
+          "happiness": 91,
+          "residence": "near",
+          "route": "explorer",
+          "social_success": 58
+        },
+        "ending": {
+          "id": "EN-03",
+          "text": "親の予定表にも、子どもの予定表にも、別々の用事がある。家族の予定を合わせる係は、最後までなかなか忙しかった。",
+          "title": "それぞれの予定表",
+          "version": "ending-1"
+        },
+        "parents": {
+          "A": {
+            "axes": {
+              "child_assurance": 74,
+              "fulfillment": 100,
+              "regret": 1,
+              "relationship": 88,
+              "security": 57
+            },
+            "cash": 2654,
+            "death_age": 90,
+            "happiness": 82,
+            "health": 15,
+            "label": "満ち足りた振り返り"
+          },
+          "B": {
+            "axes": {
+              "child_assurance": 74,
+              "fulfillment": 100,
+              "regret": 1,
+              "relationship": 88,
+              "security": 57
+            },
+            "cash": 1154,
+            "death_age": 90,
+            "happiness": 82,
+            "health": 15,
+            "label": "満ち足りた振り返り"
+          }
+        },
+        "story": [
+          "親A：幸福82／満ち足りた振り返り。",
+          "親B：幸福82／満ち足りた振り返り。",
+          "子どもは試しながら自分の道を探すへ。社会的成果58。",
+          "近くで暮らす。",
+          "子どもの幸福91／主体性100。",
+          "親A：家族以外とのつながりも支えになった。",
+          "親B：家族以外とのつながりも支えになった。",
+          "回覧板を飾った作品は、家族の思い出になった。",
+          "親Aの最期は90歳。",
+          "親Bの最期は90歳。"
+        ]
+      },
+      "expected_ending": "EN-03",
+      "variant": "standard",
+      "save": "playtests-local/ending-coverage/EN-03/BP-04-seed0.sqlite",
+      "log": "playtests-local/ending-coverage/EN-03/BP-04-seed0.jsonl",
+      "log_sha256": "64a268f788d173b5fd47d7c35bf1363b3af524c76bab523d545c0c8dc234cf73",
+      "replay_matched": true
+    },
+    {
+      "kind": "targeted_ending_coverage_not_blind_play",
+      "pattern": "BP-01",
+      "scenario": "home-01",
+      "seed": 1,
+      "run_id": "cf05d806-e555-48e5-a7bb-1d5d85abd6ef",
+      "versions": {
+        "data": "data-1",
+        "rules": "rules-1",
+        "save": "save-1"
+      },
+      "started": "2026-09-14T04:03:54.851678+00:00",
+      "finished": "2026-09-14T04:03:56.610168+00:00",
+      "model": "none (deterministic public policy)",
+      "max_calls": 600,
+      "calls": 94,
+      "advances": 40,
+      "status": "completed",
+      "error": null,
+      "changed_policy": false,
+      "paused_activity": false,
+      "result": {
+        "child": {
+          "age": 60,
+          "autonomy": 100,
+          "domain": "craft",
+          "happiness": 100,
+          "residence": "far",
+          "route": "specialist",
+          "social_success": 100
+        },
+        "ending": {
+          "id": "EN-04",
+          "text": "遠くの街から電話が鳴る。最初の話題はいつも天気。大事な話は、だいたいそのあとにやってきた。",
+          "title": "遠くの街から、いつもの声",
+          "version": "ending-1"
+        },
+        "parents": {
+          "A": {
+            "axes": {
+              "child_assurance": 100,
+              "fulfillment": 0,
+              "regret": 8,
+              "relationship": 75,
+              "security": 44
+            },
+            "cash": 293,
+            "death_age": 90,
+            "happiness": 53,
+            "health": 30,
+            "label": "喜びと心残りのある振り返り"
+          },
+          "B": {
+            "axes": {
+              "child_assurance": 100,
+              "fulfillment": 0,
+              "regret": 8,
+              "relationship": 75,
+              "security": 44
+            },
+            "cash": 293,
+            "death_age": 90,
+            "happiness": 53,
+            "health": 30,
+            "label": "喜びと心残りのある振り返り"
+          }
+        },
+        "story": [
+          "親A：幸福53／喜びと心残りのある振り返り。",
+          "親B：幸福53／喜びと心残りのある振り返り。",
+          "子どもは作ることを仕事にする道へ。社会的成果100。",
+          "遠方で暮らす。",
+          "子どもの幸福100／主体性100。",
+          "親A：距離があっても連絡が続いた。",
+          "親B：距離があっても連絡が続いた。",
+          "回覧板を飾った作品は、家族の思い出になった。",
+          "親Aの最期は90歳。",
+          "親Bの最期は90歳。"
+        ]
+      },
+      "expected_ending": "EN-04",
+      "variant": "distance",
+      "save": "playtests-local/ending-coverage/EN-04/BP-01-seed1.sqlite",
+      "log": "playtests-local/ending-coverage/EN-04/BP-01-seed1.jsonl",
+      "log_sha256": "925e7a4f5991d8eb3f09e23beb573a5134009992d9ef99b62005c48d3830faec",
+      "replay_matched": true
+    },
+    {
+      "kind": "targeted_ending_coverage_not_blind_play",
+      "pattern": "BP-02",
+      "scenario": "home-01",
+      "seed": 0,
+      "run_id": "a2ace600-cc9d-4578-a269-a23606765cae",
+      "versions": {
+        "data": "data-1",
+        "rules": "rules-1",
+        "save": "save-1"
+      },
+      "started": "2026-09-14T04:03:56.610688+00:00",
+      "finished": "2026-09-14T04:03:58.481455+00:00",
+      "model": "none (deterministic public policy)",
+      "max_calls": 600,
+      "calls": 101,
+      "advances": 40,
+      "status": "completed",
+      "error": null,
+      "changed_policy": false,
+      "paused_activity": false,
+      "result": {
+        "child": {
+          "age": 60,
+          "autonomy": 80,
+          "domain": "craft",
+          "happiness": 50,
+          "residence": "near",
+          "route": "specialist",
+          "social_success": 76
+        },
+        "ending": {
+          "id": "EN-05",
+          "text": "靴箱を片づけると、小さな靴が出てきた。予定通りのことも、そうでないこともあった。家族の歩みは、この一足には収まりきらない。",
+          "title": "小さな靴、大きな予定",
+          "version": "ending-1"
+        },
+        "parents": {
+          "A": {
+            "axes": {
+              "child_assurance": 58,
+              "fulfillment": 0,
+              "regret": 48,
+              "relationship": 29,
+              "security": 50
+            },
+            "cash": 2962,
+            "death_age": 65,
+            "happiness": 33,
+            "health": 0,
+            "label": "心残りの大きい振り返り"
+          },
+          "B": {
+            "axes": {
+              "child_assurance": 63,
+              "fulfillment": 0,
+              "regret": 19,
+              "relationship": 54,
+              "security": 56
+            },
+            "cash": 962,
+            "death_age": 90,
+            "happiness": 45,
+            "health": 12,
+            "label": "喜びと心残りのある振り返り"
+          }
+        },
+        "story": [
+          "親A：幸福33／心残りの大きい振り返り。",
+          "親B：幸福45／喜びと心残りのある振り返り。",
+          "子どもは作ることを仕事にする道へ。社会的成果76。",
+          "近くで暮らす。",
+          "子どもの幸福50／主体性80。",
+          "親A：成果は大きかったが、会話は少なかった。",
+          "回覧板を飾った作品は、家族の思い出になった。",
+          "親Aの最期は65歳。",
+          "親Bの最期は90歳。"
+        ]
+      },
+      "expected_ending": "EN-05",
+      "variant": "standard",
+      "save": "playtests-local/ending-coverage/EN-05/BP-02-seed0.sqlite",
+      "log": "playtests-local/ending-coverage/EN-05/BP-02-seed0.jsonl",
+      "log_sha256": "23037025f2e670322f33a56e4eb72c1a8776e4d2f4d5f055db1943a41145b804",
+      "replay_matched": true
+    }
+  ]
+}

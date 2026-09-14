@@ -1,10 +1,10 @@
 # CLI・保存・公開情報の契約
 
-[SPEC索引](../SPEC.md)のS-007・S-008・S-011を担当する規範仕様。状態：実装対象・未実装。記載コマンドは将来実装する契約で、現在は実行できない。
+[SPEC索引](../SPEC.md)のS-007・S-008・S-011を担当する規範仕様。2026-09-14にGodot版を実装。[構成](../architecture.md)と[検証記録](../playtests/2026-09-14.md)を参照。
 
 ## S-008：技術構成
 
-Python 3.12以上を対象とし、標準ライブラリのargparse/json/sqlite3/hashlib/uuid/pathlibを使用する初版設計。外部依存、外部AI API、ネットワーク接続はゲーム実行に不要。起動形は `python -m kosodate`。macOS/Linuxのローカルファイルで検証する。対応OSの製品保証と配布形式はP-RELEASEで決める。
+Godot 4.5.1（GDScript）をゲームエンジンとする。Python 3.9以上の標準ライブラリはCLI・SQLite保存・Godotとのローカル通信を担当する。ゲーム進行、観察、出来事、抽選、成人後、評価はGodotで計算し、Pythonへ複製しない。Godot導入後は外部AI API・ネットワーク接続はゲーム実行に不要。起動形は `python3 -m kosodate`。macOSで検証する。対応OSの製品保証と配布形式はP-RELEASEで決める。
 
 計算は入出力を持たない状態遷移、イベントはID付きデータ、CLIは入力検査・保存・公開情報の整形を担当する。Python/JSONの辞書順・組込みhash・randomの内部状態にゲームの抽選を依存させない。描画を含めず、後に共通の状態遷移をビジュアル版から呼べる構造にする。
 
@@ -16,11 +16,17 @@ rules-1|data-1|{seed}|{phase}|{index}|{slot}
 
 seedは0〜4294967295の十進整数、phase/index/slotは仕様に指定された文字列・十進整数。前後の空白・末尾改行なし。育児のphaseはchild、index=t、slot=oddity。成人のphase=adult、index=0ではcareer/distance、index=kではhealth-A/health-B。読み取りでは抽選関数を呼ばず、保存済みの観察・結果を返す。抽選を使ったキーとRは内部履歴に記録する。抽選は呼出回数に依存せず、編集・イベント分岐が独立した珍事をずらさない。
 
-版は `rules-1`、`data-1`、`cli-1`、`save-1`。初版では未知の版の読込を拒否し、自動移行・古いルールへの黙った読替えはしない。規則を変えたらrules、初期値・係数・イベント文を変えたらdata、公開契約の破壊的変更はcli、保存構造の破壊的変更はsaveを増分する。
+版は `rules-1`、`data-1`、`cli-1`、`save-1`。5種類の結末は既存の加点・抽選を変えない追加表示で、`ending-1` としてresult.endingに独立の版を持つ。初版では未知の版の読込を拒否し、自動移行・古いルールへの黙った読替えはしない。規則を変えたらrules、初期値・係数・イベント文を変えたらdata、公開契約の破壊的変更はcli、保存構造の破壊的変更はsaveを増分する。
 
 ## S-011：コマンド
 
-全コマンドは非対話、既定出力はJSON。`--format text` で同じ公開情報を日本語に整形する。標準出力はJSON1個と改行、診断は標準エラー。色・TTY・プロンプト・ページャーは不要。`--help` はテキストの使用方法を返し、終了コード0。
+下表のコマンドは非対話、既定出力はJSON。`--format text` で公開情報を日本語に整形する。標準出力はJSON1個と改行、診断は標準エラー。色・TTY・プロンプト・ページャーは不要。`--help` はテキストの使用方法を返し、終了コード0。
+
+人向けに `play --run PATH [--scenario ID --seed INT]` を追加する。新規なら開始し、既存なら再開する。方針プリセット・項目編集・イベント回答・確定・履歴・中断を日本語で操作する。同じ保存契約を使い、案の編集時には効果を適用しない。プリセットと世話再配分は明示操作であり、年代が変わっただけでは引継ぎ案を自動で変えない。
+
+対話プレイ開始時、CLIのヘルプ、Godotのプロジェクト名には[ゲーム企画](../game-concept.md)の正式タイトルを表示する（D-019）。タイトルの変更はゲームルール・既存の結末名・保存形式に影響しない。
+
+大量操作用に引数なしの `serve` を追加する。JSON Linesの各入力は `{command,run,...}`、更新の引数は `request_id` と `revision`、inputはJSONオブジェクト。各出力は `{response:下記の共通応答,exit_code:下記の終了コード}`。1要求64KiBまで。EOFでプロセスを終了し、各要求の失敗は応答内に記録して次の要求を受ける。実行中のGodotを再利用するが、すべてのゲーム状態を要求ごとに保存から読む。新しいゲーム操作は追加しない。操作例は[CLIガイド](../cli-guide.md)。
 
 | コマンド | 必須・任意引数 | 効果・返す固有データ |
 | --- | --- | --- |
@@ -97,8 +103,8 @@ payloadの型：
 | observe / forecast | `{}`。必要情報はpublic |
 | actions | `{commands:[{id,required_args}],plan_fields:[{path,type,enum,min,max,required_with}],input_examples:{plan,choose}}`。該当しないenum/min/max/required_withはnull。公開の値域のみ。全編集フィールドとchooseの形式を発見できること |
 | history | `{items:[公開履歴要素],next_offset:intまたはnull,total:int}` |
-| result | `{parents:{A:親の結果,B:親の結果},child:子の結果,story:[string]}` |
-| replay | `{source_run_id,new_run_id,matched:bool,compared_turns:int,compared_adult_steps:int}`。不一致はREPLAY_MISMATCHのエラーで内部差分はdebugのみ |
+| result | `{parents:{A:親の結果,B:親の結果},child:子の結果,ending:{version,id,title,text},story:[string]}`。分類は[S-009](ending.md) |
+| replay | `{source_run_id,new_run_id,matched:bool,compared_turns:int,compared_adult_steps:int,receipt:{request_id,applied_revision,duplicate}}`。不一致はREPLAY_MISMATCHのエラーで内部差分はdebugのみ |
 | debug-state | `{debug_only:true,state:内部snapshot,draws:[{phase,index,slot,value}],effects:[内部差分]}`。このコマンドだけは非公開項目を許可 |
 
 親の結果は `{death_age,happiness,axes:{relationship,security,fulfillment,child_assurance,regret},cash,health,label}`。子の結果は `{age,domain,route,social_success,residence,happiness,autonomy}`。子の最終年齢は最後の節目。各親死亡時の子の評価は対応する履歴にも残す。
@@ -117,9 +123,9 @@ actionsは育児では `{plan,answers}`、成人ではnull。eventsは `{instanc
 
 一実行一SQLiteファイル。保存形式save-1は次の3テーブル。JSONは `ensure_ascii=false,sort_keys=true,separators=(',',':'),allow_nan=false` 相当の正規化UTF-8文字列で保持する。
 
-- `run(id TEXT PRIMARY KEY, save_version TEXT, revision INTEGER, snapshot_json TEXT)`：1行。snapshotに全状態辞書、seed、各版、phase、初期scenario、前期案、編集案、未回答・回答、観察、予約、内部抽選記録・差分、公開履歴、成人中間計算・最終結果を含む。外部キャッシュを再開の前提にしない。
+- `run(id TEXT PRIMARY KEY, save_version TEXT, revision INTEGER, snapshot_json TEXT)`：1行。snapshot_jsonは `{state:全状態辞書,sha256:stateの正規化JSONのSHA-256}`。stateにseed、各版、phase、初期scenario、前期案、編集案、未回答・回答、観察、予約、内部抽選記録・差分、公開履歴、成人節目の結果・最終結果を含む。外部キャッシュを再開の前提にしない。SHA-256は破損検出用であり認証用の署名ではない。
 - `receipts(request_id TEXT PRIMARY KEY, request_json TEXT, response_json TEXT)`：成功更新の入力と出力。newとreplayも含む。
-- `commits(turn INTEGER PRIMARY KEY, plan_json TEXT, answers_json TEXT, digest TEXT)`：確定済みの育児期1〜40。snapshotの当期ゲーム状態を正規化してSHA-256。含む状態は辞書のゲーム値、前期案、予約、出来事履歴、成人結果。run_id/revision/編集操作台帳/時刻/ファイルパスは除外する。
+- `commits(turn INTEGER PRIMARY KEY, plan_json TEXT, answers_json TEXT, digest TEXT)`：確定済みの育児期1〜40。確定直後・次期を開いた状態（40期はfinished）のstate全体を正規化してSHA-256。ゲーム値、次期案、前期案、予約、観察、出来事・抽選・計算履歴、成人結果を含む。run_id/revision/編集操作台帳/時刻/ファイルパスはstateに含めない。
 
 更新は `BEGIN IMMEDIATE`、busy_timeout=5000ms、synchronous=FULL、journal_mode=DELETE。検査・履歴・台帳・snapshot更新を一トランザクションでCOMMIT。中断前にCOMMITしなければ再開時に前の状態、していれば新しい状態。readは読取専用接続でスナップショットを得て、保存や新規ファイル作成をしない。
 

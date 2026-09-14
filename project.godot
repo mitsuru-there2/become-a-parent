@@ -1,0 +1,12 @@
+; Godot is the game engine. The CLI loads game/bridge.gd headlessly.
+config_version=5
+
+[application]
+config/name="親伝説 — Become a Parent"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+
+[debug]
+gdscript/warnings/integer_division=0
