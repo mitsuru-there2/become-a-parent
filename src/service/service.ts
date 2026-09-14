@@ -67,8 +67,11 @@ export interface Run {
   updated_at: string;
 }
 export interface Repository {
-  read(id: string): Promise<Run | undefined>;
-  transact<T>(id: string, fn: (run: Run | undefined) => { run: Run; value: T }): Promise<T>;
+  read(runId: string): Promise<Run | undefined>;
+  transact<T>(
+    runId: string,
+    applyTransaction: (run: Run | undefined) => { run: Run; value: T },
+  ): Promise<T>;
   list(): Promise<
     { id: string; revision: number; turn: number; phase: string; updated_at: string }[]
   >;
@@ -77,7 +80,7 @@ export const SCENARIOS = [
   { id: "home-01", label: "基本の家庭", description: "子ども1人の人生を通す" },
   { id: "home-02", label: "もう一つの家庭", description: "子ども1人の人生を通す" },
 ];
-export const digest = (s: State) => hash(canonical(s));
+export const digest = (state: State) => hash(canonical(state));
 export function validateRun(run: Run) {
   if (!run || typeof run !== "object" || !run.state || typeof run.state !== "object")
     throw new Failure("CORRUPT_SAVE", "保存を読み込めません。");
@@ -131,11 +134,11 @@ export function replayRun(run: Run) {
 }
 export class Service {
   constructor(private repo: Repository) {}
-  async execute(req: Request): Promise<Response> {
+  async execute(request: Request): Promise<Response> {
     let context: Run | undefined;
-    const command = typeof req?.command === "string" ? req.command : "";
+    const command = typeof request?.command === "string" ? request.command : "";
     try {
-      object(req);
+      object(request);
       const allowed = [
         "command",
         "run",
@@ -147,39 +150,42 @@ export class Service {
         "offset",
         "limit",
       ];
-      if (Object.keys(req).some((key) => !allowed.includes(key))) invalid("未知の要求項目です");
-      if (!COMMANDS.includes(req.command)) throw new Failure("UNKNOWN_COMMAND", "不明な操作です。");
-      if (req.command === "scenarios")
-        return envelope(req.command, undefined, { scenarios: SCENARIOS });
-      requestId(req.run);
-      const id = req.run;
-      if (req.command === "history") {
-        bounded(req.offset ?? 0, 0, 2147483647, "offset");
-        bounded(req.limit ?? 50, 1, 200, "limit");
+      if (Object.keys(request).some((key) => !allowed.includes(key))) invalid("未知の要求項目です");
+      if (!COMMANDS.includes(request.command))
+        throw new Failure("UNKNOWN_COMMAND", "不明な操作です。");
+      if (request.command === "scenarios")
+        return envelope(request.command, undefined, { scenarios: SCENARIOS });
+      requestId(request.run);
+      const runId = request.run;
+      if (request.command === "history") {
+        bounded(request.offset ?? 0, 0, 2147483647, "offset");
+        bounded(request.limit ?? 50, 1, 200, "limit");
       }
       const updating =
-        (UPDATES as readonly string[]).includes(req.command) || req.command === "new";
+        (UPDATES as readonly string[]).includes(request.command) || request.command === "new";
       if (updating) {
-        requestId(req.request_id);
-        if (req.command !== "new") bounded(req.revision, 0, Number.MAX_SAFE_INTEGER, "revision");
+        requestId(request.request_id);
+        if (request.command !== "new")
+          bounded(request.revision, 0, Number.MAX_SAFE_INTEGER, "revision");
         else {
-          bounded(req.seed, 0, 4294967295, "seed");
-          if (!SCENARIOS.some((s) => s.id === req.scenario))
+          bounded(request.seed, 0, 4294967295, "seed");
+          if (!SCENARIOS.some((scenario) => scenario.id === request.scenario))
             invalid("家庭を選んでください", "scenario");
         }
       }
-      if (req.command === "choose") validateChoice(req.input);
+      if (request.command === "choose") validateChoice(request.input);
       if (updating)
-        return await this.repo.transact(id, (existing) => {
+        return await this.repo.transact(runId, (existing) => {
           if (existing) {
             validateRun(existing);
             context = clone(existing);
           }
-          const normalized = canonical(req),
-            receipt =
-              existing && Object.hasOwn(existing.receipts, req.request_id!)
-                ? existing.receipts[req.request_id!]
-                : undefined;
+          const normalized = canonical(request);
+          const receipt =
+            existing && Object.hasOwn(existing.receipts, request.request_id!)
+              ? existing.receipts[request.request_id!]
+              : undefined;
+          // 再送は古いrevisionでも元の応答を返すため、revision検査より先に照合する。
           if (receipt) {
             if (receipt.request !== normalized)
               throw new Failure("REQUEST_ID_CONFLICT", "同じIDが別の入力に使用されています。");
@@ -188,11 +194,11 @@ export class Service {
             return { run: existing!, value: response };
           }
           let run: Run;
-          if (req.command === "new") {
+          if (request.command === "new") {
             if (existing) throw new Failure("RUN_EXISTS", "この保存は存在しています。");
-            const state = start(req.scenario!, req.seed!);
+            const state = start(request.scenario!, request.seed!);
             run = {
-              id,
+              id: runId,
               revision: 0,
               state,
               digest: digest(state),
@@ -203,7 +209,7 @@ export class Service {
           } else {
             if (!existing) throw new Failure("RUN_NOT_FOUND", "保存が見つかりません。");
             run = clone(existing);
-            if (req.revision !== run.revision)
+            if (request.revision !== run.revision)
               throw new Failure(
                 "STALE_REVISION",
                 "別の画面で更新されました。最新の保存を読み直してください。",
@@ -211,84 +217,109 @@ export class Service {
             if (run.state.phase === "finished")
               throw new Failure("FINISHED", "この人生は終了しています。");
           }
-          const oldCount = run.state.history.length,
-            s = run.state;
-          if (req.command === "plan") s.plan = mergePlan(s.plan, req.input);
-          if (req.command === "choose") {
-            validateChoice(req.input);
-            const choice = req.input;
-            if (
-              !publicView(s).choices.some(
-                (e) =>
-                  e.instance_id === choice.event_instance &&
-                  e.options.some((o) => o.option_id === choice.option_id),
+          // 検証・更新・応答の記録まで同じ保存トランザクションで行う。例外時は確定しない。
+          const previousHistoryLength = run.state.history.length;
+          const state = run.state;
+          switch (request.command) {
+            case "plan":
+              state.plan = mergePlan(state.plan, request.input);
+              break;
+            case "choose": {
+              validateChoice(request.input);
+              const choice = request.input;
+              if (
+                !publicView(state).choices.some(
+                  (event) =>
+                    event.instance_id === choice.event_instance &&
+                    event.options.some((option) => option.option_id === choice.option_id),
+                )
               )
-            )
-              throw new Failure("UNKNOWN_ACTION", "現在の出来事と選択肢を指定してください。");
-            s.answers[choice.event_instance] = choice.option_id;
+                throw new Failure("UNKNOWN_ACTION", "現在の出来事と選択肢を指定してください。");
+              state.answers[choice.event_instance] = choice.option_id;
+              break;
+            }
+            case "reset-plan":
+              state.plan = clone(state.previous_plan);
+              break;
+            case "advance": {
+              const projection = publicView(state).public.forecast!;
+              if (!projection.can_advance)
+                throw new Failure(
+                  projection.reasons.some((reason) => reason.code === "ANSWER_REQUIRED")
+                    ? "ANSWER_REQUIRED"
+                    : "RESOURCE_LIMIT",
+                  "回答・方針の配分を確認してください。",
+                  projection.reasons.map((reason) => ({
+                    path: reason.path,
+                    reason: reason.message,
+                  })),
+                );
+              const plan = clone(state.plan);
+              const answers = clone(state.answers);
+              advance(state);
+              run.commits.push({ turn: state.n, plan, answers, digest: digest(state) });
+              break;
+            }
+            // newは上で初期状態を作成済み。
+            case "new":
+              break;
           }
-          if (req.command === "reset-plan") s.plan = clone(s.previous_plan);
-          if (req.command === "advance") {
-            const f = publicView(s).public.forecast!;
-            if (!f.can_advance)
-              throw new Failure(
-                f.reasons.some((r) => r.code === "ANSWER_REQUIRED")
-                  ? "ANSWER_REQUIRED"
-                  : "RESOURCE_LIMIT",
-                "回答・方針の配分を確認してください。",
-                f.reasons.map((r) => ({ path: r.path, reason: r.message })),
-              );
-            const plan = clone(s.plan),
-              answers = clone(s.answers);
-            advance(s);
-            run.commits.push({ turn: s.n, plan, answers, digest: digest(s) });
-          }
-          if (req.command !== "new") run.revision++;
-          run.digest = digest(s);
+          if (request.command !== "new") run.revision++;
+          run.digest = digest(state);
           run.updated_at = new Date().toISOString();
-          const response = envelope(req.command, run, {
+          const response = envelope(request.command, run, {
             receipt: {
-              request_id: req.request_id!,
+              request_id: request.request_id!,
               applied_revision: run.revision,
               duplicate: false,
             },
-            history_added: s.history.slice(oldCount),
+            history_added: state.history.slice(previousHistoryLength),
           });
           run.receipts = {
             ...run.receipts,
-            [req.request_id!]: { request: normalized, response: clone(response) },
+            [request.request_id!]: { request: normalized, response: clone(response) },
           };
           return { run, value: response };
         });
-      context = await this.repo.read(id);
+      context = await this.repo.read(runId);
       if (!context) throw new Failure("RUN_NOT_FOUND", "保存が見つかりません。");
       validateRun(context);
       let payload: Payload = {};
-      const s = context.state;
-      if (req.command === "actions") payload = { actions: actions(publicView(s).choices) };
-      if (req.command === "history") {
-        const offset = req.offset ?? 0,
-          limit = req.limit ?? 50;
-        payload = {
-          items: s.history.slice(offset, offset + limit),
-          total: s.history.length,
-          next_offset: offset + limit < s.history.length ? offset + limit : null,
-        };
+      const state = context.state;
+      switch (request.command) {
+        case "actions":
+          payload = { actions: actions(publicView(state).choices) };
+          break;
+        case "history": {
+          const offset = request.offset ?? 0;
+          const limit = request.limit ?? 50;
+          payload = {
+            items: state.history.slice(offset, offset + limit),
+            total: state.history.length,
+            next_offset: offset + limit < state.history.length ? offset + limit : null,
+          };
+          break;
+        }
+        case "result": {
+          if (!state.result) throw new Failure("NOT_FINISHED", "まだ育児編の途中です。");
+          payload = { result: clone(state.result) };
+          break;
+        }
+        case "replay": {
+          const replayed = replayRun(context);
+          payload = { matched: true, compared_turns: replayed.n };
+          break;
+        }
+        case "debug-state":
+          payload = { debug_only: true, state: clone(state) };
+          break;
+        // observe / forecastは共通の公開応答だけを返す。
       }
-      if (req.command === "result") {
-        if (!s.result) throw new Failure("NOT_FINISHED", "まだ育児編の途中です。");
-        payload = { result: clone(s.result) };
-      }
-      if (req.command === "replay") {
-        const replayed = replayRun(context);
-        payload = { matched: true, compared_turns: replayed.n };
-      }
-      if (req.command === "debug-state") payload = { debug_only: true, state: clone(s) };
-      return envelope(req.command, context, payload);
-    } catch (e) {
+      return envelope(request.command, context, payload);
+    } catch (error) {
       const failure =
-        e instanceof Failure
-          ? e
+        error instanceof Failure
+          ? error
           : new Failure(
               "IO_ERROR",
               "保存または読み込みに失敗しました。保存済みの状態から再開できます。",
@@ -300,7 +331,7 @@ export class Service {
           safe = context;
         }
       } catch {
-        /* A corrupt snapshot must never be exposed. */
+        /* 壊れたsnapshotは、エラー応答の公開状態にも使用しない。 */
       }
       return envelope(command, safe, null, {
         code: failure.code,
@@ -325,12 +356,13 @@ export function importRun(text: string): Run {
     validateRun(run);
     requestId(run.id);
     bounded(run.state.seed, 0, 4294967295, "seed");
-    if (!SCENARIOS.some((s) => s.id === run.state.scenario)) invalid("不明な家庭です");
+    if (!SCENARIOS.some((scenario) => scenario.id === run.state.scenario))
+      invalid("不明な家庭です");
     replayRun(run);
     publicView(run.state);
     return run;
-  } catch (e) {
-    if (e instanceof Failure) throw e;
+  } catch (error) {
+    if (error instanceof Failure) throw error;
     throw new Failure("CORRUPT_SAVE", "保存ファイルを読み込めません。");
   }
 }

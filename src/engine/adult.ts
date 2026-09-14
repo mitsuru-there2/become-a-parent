@@ -1,36 +1,39 @@
 import type { State, ChildResult, ParentResult, Person, Result, History, Money } from "./types";
-import { c, div, clone, PEOPLE } from "./shared";
+import { clampStat, integerDivide, clone, PEOPLE } from "./shared";
 type Career = Omit<ChildResult, "age" | "happiness" | "autonomy">;
-function childResult(s: State, age: number, career: Career): ChildResult {
-  const ch = s.child;
+function childResult(state: State, age: number, career: Career): ChildResult {
+  const child = state.child;
   return {
     ...career,
     age,
-    happiness: c(
-      div(100 - ch.stress + ch.autonomy + Math.max(ch.interest.study, ch.interest.craft), 3),
+    happiness: clampStat(
+      integerDivide(
+        100 - child.stress + child.autonomy + Math.max(child.interest.study, child.interest.craft),
+        3,
+      ),
     ),
-    autonomy: ch.autonomy,
+    autonomy: child.autonomy,
   };
 }
 function parentResult(
-  s: State,
-  p: Person,
+  state: State,
+  parentId: Person,
   money: number,
   spouseAlive: boolean,
-  child: ChildResult,
+  childOutcome: ChildResult,
 ): ParentResult {
-  const v = s.parents[p];
+  const parentStats = state.parents[parentId];
   const axes = {
-    relationship: div(
-      2 * s.child.trust[p] + v.social + (spouseAlive ? s.couple : 0),
+    relationship: integerDivide(
+      2 * state.child.trust[parentId] + parentStats.social + (spouseAlive ? state.couple : 0),
       spouseAlive ? 4 : 3,
     ),
-    security: div(Math.min(100, div(money, 5)) + v.health, 2),
-    fulfillment: v.fulfillment,
-    child_assurance: div(child.happiness + child.social_success, 2),
-    regret: v.regret,
+    security: integerDivide(Math.min(100, integerDivide(money, 5)) + parentStats.health, 2),
+    fulfillment: parentStats.fulfillment,
+    child_assurance: integerDivide(childOutcome.happiness + childOutcome.social_success, 2),
+    regret: parentStats.regret,
   };
-  const happiness = div(
+  const happiness = integerDivide(
     25 * axes.relationship +
       25 * axes.security +
       25 * axes.fulfillment +
@@ -39,11 +42,11 @@ function parentResult(
     100,
   );
   return {
-    death_age: div(v.age_months, 12),
+    death_age: integerDivide(parentStats.age_months, 12),
     happiness,
     axes,
     cash: money,
-    health: v.health,
+    health: parentStats.health,
     label:
       happiness >= 75
         ? "満ち足りた振り返り"
@@ -52,20 +55,21 @@ function parentResult(
           : "心残りの大きい振り返り",
   };
 }
-export function ending(s: State, child: ChildResult): Result["ending"] {
-  const trust = div(s.child.trust.A + s.child.trust.B, 2),
-    fulfillment = div(s.parents.A.fulfillment + s.parents.B.fulfillment, 2),
-    social = div(s.parents.A.social + s.parents.B.social, 2);
-  let id = "EN-05",
-    title = "小さな靴、大きな予定",
-    text =
-      "靴箱を片づけると、小さな靴が出てきた。予定通りのことも、そうでないこともあった。家族の歩みは、この一足には収まりきらない。";
-  if (child.social_success >= 70 && trust < 40) {
+export function ending(state: State, childOutcome: ChildResult): Result["ending"] {
+  const trust = integerDivide(state.child.trust.A + state.child.trust.B, 2);
+  const fulfillment = integerDivide(state.parents.A.fulfillment + state.parents.B.fulfillment, 2);
+  const social = integerDivide(state.parents.A.social + state.parents.B.social, 2);
+  let id = "EN-05";
+  let title = "小さな靴、大きな予定";
+  let text =
+    "靴箱を片づけると、小さな靴が出てきた。予定通りのことも、そうでないこともあった。家族の歩みは、この一足には収まりきらない。";
+  // 複数条件が成立する場合も上から優先する（ending-1）。独立した判定に分けない。
+  if (childOutcome.social_success >= 70 && trust < 40) {
     id = "EN-01";
     title = "立派な額縁、静かな食卓";
     text =
       "壁には立派な額縁が並んだ。食卓には、聞きそびれた話が残った。大きな成果と、親子それぞれの実感を振り返る。";
-  } else if (s.repaired && trust >= 60) {
+  } else if (state.repaired && trust >= 60) {
     id = "EN-02";
     title = "「あのとき、ごめん」の続き";
     text =
@@ -75,7 +79,7 @@ export function ending(s: State, child: ChildResult): Result["ending"] {
     title = "それぞれの予定表";
     text =
       "親の予定表にも、子どもの予定表にも、別々の用事がある。家族の予定を合わせる係は、最後までなかなか忙しかった。";
-  } else if (child.residence === "far" && trust >= 60) {
+  } else if (childOutcome.residence === "far" && trust >= 60) {
     id = "EN-04";
     title = "遠くの街から、いつもの声";
     text =
@@ -84,138 +88,172 @@ export function ending(s: State, child: ChildResult): Result["ending"] {
   return { version: "ending-1", id, title, text };
 }
 export function finish(
-  s: State,
-  draw: (s: State, phase: string, index: number, slot: string) => number,
+  state: State,
+  draw: (state: State, phase: string, index: number, slot: string) => number,
 ) {
-  const ch = s.child,
-    domain = ch.interest.craft > ch.interest.study ? "craft" : "study";
+  const child = state.child;
+  const domain = child.interest.craft > child.interest.study ? "craft" : "study";
   const route =
-    ch.ability[domain] >= 60 ? "specialist" : ch.autonomy >= 50 ? "explorer" : "supported";
-  const r = draw(s, "adult", 0, "career"),
-    success = c(div(ch.ability[domain] + ch.autonomy, 2) + (r < 20 ? -10 : r >= 80 ? 10 : 0));
-  const distance = draw(s, "adult", 0, "distance");
+    child.ability[domain] >= 60 ? "specialist" : child.autonomy >= 50 ? "explorer" : "supported";
+  const careerDraw = draw(state, "adult", 0, "career");
+  const success = clampStat(
+    integerDivide(child.ability[domain] + child.autonomy, 2) +
+      (careerDraw < 20 ? -10 : careerDraw >= 80 ? 10 : 0),
+  );
+  const distance = draw(state, "adult", 0, "distance");
   const career: Career = {
     domain,
     route,
     social_success: success,
     residence: distance < (success >= 60 ? 60 : 30) ? "far" : "near",
   };
-  const accounts = { A: div(s.cash + 1, 2), B: div(s.cash, 2) },
-    alive = { A: true, B: true };
+  const accounts = { A: integerDivide(state.cash + 1, 2), B: integerDivide(state.cash, 2) };
+  const alive = { A: true, B: true };
   const results = {} as Record<Person, ParentResult>;
-  let child = childResult(s, 20, career);
-  for (let k = 1; k <= 8; k++) {
-    const old = clone({ parents: s.parents, child: s.child }),
-      wasAlive = { ...alive };
-    const money: Money[] = [],
-      lines: string[] = [],
-      events: History["events"] = [];
-    const event = (id: string, p: string, text: string) =>
+  let childOutcome = childResult(state, 20, career);
+  for (let adultStep = 1; adultStep <= 8; adultStep++) {
+    const previousState = clone({ parents: state.parents, child: state.child });
+    // 同じ期間に二人とも亡くなる場合も、互いの配偶者を期首の生存状態で評価する。
+    const wasAlive = { ...alive };
+    const money: Money[] = [];
+    const lines: string[] = [];
+    const events: History["events"] = [];
+    const addEvent = (id: string, subject: string, text: string) =>
       events.push({
-        instance_id: `a${String(k).padStart(2, "0")}:${id}:${p}`,
+        instance_id: `a${String(adultStep).padStart(2, "0")}:${id}:${subject}`,
         event_id: id,
         option_id: null,
         text,
       });
-    for (const p of PEOPLE) {
-      if (!alive[p]) continue;
-      const before = accounts[p],
-        income =
-          5 *
-          (k <= 3
-            ? { reduced: 90, normal: 130, heavy: 180 }[s.previous_plan.parents[p].work] * 2
-            : 200),
-        wanted = 5 * (k <= 3 ? 240 : 220),
-        shortfall = before + income < wanted,
-        expense = Math.min(wanted, before + income),
-        overflow = Math.max(0, before + income - expense - 99999);
-      accounts[p] = before + income - expense - overflow;
-      money.push({ scope: p, before, income, expense, cap_overflow: overflow, after: accounts[p] });
-      if (shortfall) lines.push(`親${p}：暮らしを${wanted - expense}万円縮小して調整した。`);
-      if (overflow) lines.push(`親${p}：保有上限による計上外${overflow}万円。`);
-      const v = old.parents[p],
-        t = old.child.trust[p];
-      Object.assign(s.parents[p], {
-        stress: c(v.stress - 8 + 4 * Number(shortfall)),
+    for (const parentId of PEOPLE) {
+      if (!alive[parentId]) continue;
+      const before = accounts[parentId];
+      const income =
+        5 *
+        (adultStep <= 3
+          ? { reduced: 90, normal: 130, heavy: 180 }[state.previous_plan.parents[parentId].work] * 2
+          : 200);
+      const plannedExpense = 5 * (adultStep <= 3 ? 240 : 220);
+      const shortfall = before + income < plannedExpense;
+      const expense = Math.min(plannedExpense, before + income);
+      const overflow = Math.max(0, before + income - expense - 99999);
+      accounts[parentId] = before + income - expense - overflow;
+      money.push({
+        scope: parentId,
+        before,
+        income,
+        expense,
+        cap_overflow: overflow,
+        after: accounts[parentId],
+      });
+      if (shortfall)
+        lines.push(`親${parentId}：暮らしを${plannedExpense - expense}万円縮小して調整した。`);
+      if (overflow) lines.push(`親${parentId}：保有上限による計上外${overflow}万円。`);
+      const previousParent = previousState.parents[parentId];
+      const previousTrust = previousState.child.trust[parentId];
+      Object.assign(state.parents[parentId], {
+        stress: clampStat(previousParent.stress - 8 + 4 * Number(shortfall)),
         health: Math.max(
           0,
-          v.health - (k <= 3 ? 5 : 10) - 3 * Number(v.stress >= 60) - 2 * Number(shortfall),
+          previousParent.health -
+            (adultStep <= 3 ? 5 : 10) -
+            3 * Number(previousParent.stress >= 60) -
+            2 * Number(shortfall),
         ),
-        fulfillment: c(v.fulfillment + (v.social >= 50 ? 3 : -3) - 3 * Number(v.health < 30)),
-        social: c(v.social - 2),
-        regret: c(
-          v.regret + Number(t < 30 || v.fulfillment < 25) - Number(t >= 60 && v.fulfillment >= 50),
+        fulfillment: clampStat(
+          previousParent.fulfillment +
+            (previousParent.social >= 50 ? 3 : -3) -
+            3 * Number(previousParent.health < 30),
         ),
-        age_months: (50 + 5 * k) * 12,
+        social: clampStat(previousParent.social - 2),
+        regret: clampStat(
+          previousParent.regret +
+            Number(previousTrust < 30 || previousParent.fulfillment < 25) -
+            Number(previousTrust >= 60 && previousParent.fulfillment >= 50),
+        ),
+        age_months: (50 + 5 * adultStep) * 12,
       });
-      ch.trust[p] = c(t + (t >= 50 ? 2 : -1));
+      child.trust[parentId] = clampStat(previousTrust + (previousTrust >= 50 ? 2 : -1));
     }
-    ch.stress = c(old.child.stress - 5 + 5 * Number(success < 40));
-    ch.autonomy = c(old.child.autonomy + Number(route !== "supported"));
-    for (const p of PEOPLE) {
-      if (!alive[p]) continue;
-      if (k === 1) {
-        if (ch.trust[p] >= 50) s.parents[p].fulfillment = c(s.parents[p].fulfillment + 2);
-        event(
+    child.stress = clampStat(previousState.child.stress - 5 + 5 * Number(success < 40));
+    child.autonomy = clampStat(previousState.child.autonomy + Number(route !== "supported"));
+    for (const parentId of PEOPLE) {
+      if (!alive[parentId]) continue;
+      if (adultStep === 1) {
+        if (child.trust[parentId] >= 50)
+          state.parents[parentId].fulfillment = clampStat(state.parents[parentId].fulfillment + 2);
+        addEvent(
           "A-01",
-          p,
-          `親${p}：${ch.trust[p] >= 50 ? "近況の連絡が届いた。" : "連絡は用件が中心だった。"}`,
+          parentId,
+          `親${parentId}：${child.trust[parentId] >= 50 ? "近況の連絡が届いた。" : "連絡は用件が中心だった。"}`,
         );
       }
-      if (k === 3) {
-        if (s.parents[p].social >= 50) s.parents[p].fulfillment = c(s.parents[p].fulfillment + 3);
-        event(
+      if (adultStep === 3) {
+        if (state.parents[parentId].social >= 50)
+          state.parents[parentId].fulfillment = clampStat(state.parents[parentId].fulfillment + 3);
+        addEvent(
           "A-02",
-          p,
-          `親${p}：${s.parents[p].social >= 50 ? "退職後にも会う人と予定がある。" : "仕事の外の過ごし方を探し始めた。"}`,
+          parentId,
+          `親${parentId}：${state.parents[parentId].social >= 50 ? "退職後にも会う人と予定がある。" : "仕事の外の過ごし方を探し始めた。"}`,
         );
       }
-      if (k >= 4 && draw(s, "adult", k, `health-${p}`) < 20) {
-        s.parents[p].health = Math.max(0, s.parents[p].health - 5);
-        event("A-03", p, `親${p}：体調を崩し、しばらく休んだ。`);
+      if (adultStep >= 4 && draw(state, "adult", adultStep, `health-${parentId}`) < 20) {
+        state.parents[parentId].health = Math.max(0, state.parents[parentId].health - 5);
+        addEvent("A-03", parentId, `親${parentId}：体調を崩し、しばらく休んだ。`);
       }
-      if (k === 5 && s.repaired && ch.trust[p] >= 60) {
-        s.parents[p].regret = c(s.parents[p].regret - 3);
-        event("A-04", p, `親${p}：昔の言い争いを、今は一緒に振り返れた。`);
+      if (adultStep === 5 && state.repaired && child.trust[parentId] >= 60) {
+        state.parents[parentId].regret = clampStat(state.parents[parentId].regret - 3);
+        addEvent("A-04", parentId, `親${parentId}：昔の言い争いを、今は一緒に振り返れた。`);
       }
     }
-    if (k === 6 && s.oddity_count > 0) event("A-05", "family", "妙な作品が、まだ家に残っている。");
-    child = childResult(s, 20 + 5 * k, career);
+    if (adultStep === 6 && state.oddity_count > 0)
+      addEvent("A-05", "family", "妙な作品が、まだ家に残っている。");
+    childOutcome = childResult(state, 20 + 5 * adultStep, career);
     const deaths = PEOPLE.filter(
-      (p) => alive[p] && (k === 8 || (k >= 3 && s.parents[p].health === 0)),
+      (parentId) =>
+        alive[parentId] &&
+        (adultStep === 8 || (adultStep >= 3 && state.parents[parentId].health === 0)),
     );
-    const thisResults: Record<Person, ParentResult | null> = { A: null, B: null };
-    for (const p of deaths) {
-      const result = parentResult(s, p, accounts[p], wasAlive[p === "A" ? "B" : "A"], child);
-      results[p] = result;
-      thisResults[p] = clone(result);
-      alive[p] = false;
-      const a = result.axes;
+    const stepResults: Record<Person, ParentResult | null> = { A: null, B: null };
+    for (const parentId of deaths) {
+      const result = parentResult(
+        state,
+        parentId,
+        accounts[parentId],
+        wasAlive[parentId === "A" ? "B" : "A"],
+        childOutcome,
+      );
+      results[parentId] = result;
+      stepResults[parentId] = clone(result);
+      alive[parentId] = false;
+      const axes = result.axes;
       lines.push(
-        `親${p}は${result.death_age}歳で最期を迎えた。幸福${result.happiness}。関係${a.relationship}／安心${a.security}／充実${a.fulfillment}／子への安心${a.child_assurance}／後悔${a.regret}。`,
+        `親${parentId}は${result.death_age}歳で最期を迎えた。幸福${result.happiness}。関係${axes.relationship}／安心${axes.security}／充実${axes.fulfillment}／子への安心${axes.child_assurance}／後悔${axes.regret}。`,
       );
     }
     if (deaths.length === 1) {
       const survivor = deaths[0] === "A" ? "B" : "A";
       if (alive[survivor]) {
-        s.parents[survivor].stress = c(s.parents[survivor].stress + 10);
+        state.parents[survivor].stress = clampStat(state.parents[survivor].stress + 10);
         lines.push(`親${survivor}は伴侶を見送った。残る日々をたどる。`);
       }
     }
-    events.sort((a, b) => (a.instance_id < b.instance_id ? -1 : 1));
-    lines.push(
-      ...events.map((e) => e.text),
-      `子ども${child.age}歳：幸福${child.happiness}、主体性${child.autonomy}。`,
+    events.sort((leftEvent, rightEvent) =>
+      leftEvent.instance_id < rightEvent.instance_id ? -1 : 1,
     );
-    s.history.push({
-      index: s.history.length,
+    lines.push(
+      ...events.map((event) => event.text),
+      `子ども${childOutcome.age}歳：幸福${childOutcome.happiness}、主体性${childOutcome.autonomy}。`,
+    );
+    state.history.push({
+      index: state.history.length,
       kind: "adult",
       turn: null,
-      adult_step: k,
+      adult_step: adultStep,
       ages: {
-        child_months: child.age * 12,
-        A_months: s.parents.A.age_months,
-        B_months: s.parents.B.age_months,
+        child_months: childOutcome.age * 12,
+        A_months: state.parents.A.age_months,
+        B_months: state.parents.B.age_months,
       },
       actions: null,
       events,
@@ -223,11 +261,13 @@ export function finish(
       observations: [],
       text: lines,
       related: [],
-      adult_result: { alive: { ...alive }, parents: thisResults, child: clone(child) },
+      adult_result: { alive: { ...alive }, parents: stepResults, child: clone(childOutcome) },
     });
     if (!alive.A && !alive.B) break;
   }
-  const story = PEOPLE.map((p) => `親${p}：幸福${results[p].happiness}／${results[p].label}。`);
+  const story = PEOPLE.map(
+    (parentId) => `親${parentId}：幸福${results[parentId].happiness}／${results[parentId].label}。`,
+  );
   const routes = {
     specialist: domain === "study" ? "学びを生かす専門の道" : "作ることを仕事にする道",
     explorer: "試しながら自分の道を探す",
@@ -236,17 +276,25 @@ export function finish(
   story.push(
     `子どもは${routes[route]}へ。社会的成果${success}。`,
     career.residence === "far" ? "遠方で暮らす。" : "近くで暮らす。",
-    `子どもの幸福${child.happiness}／主体性${child.autonomy}。`,
+    `子どもの幸福${childOutcome.happiness}／主体性${childOutcome.autonomy}。`,
   );
-  for (const p of PEOPLE) {
-    if (s.repaired && ch.trust[p] >= 60) story.push(`親${p}：関係を修復したあとの会話が続いた。`);
-    if (success >= 70 && ch.trust[p] < 40)
-      story.push(`親${p}：成果は大きかったが、会話は少なかった。`);
-    if (career.residence === "far" && ch.trust[p] >= 60)
-      story.push(`親${p}：距離があっても連絡が続いた。`);
-    if (s.parents[p].social >= 60) story.push(`親${p}：家族以外とのつながりも支えになった。`);
+  for (const parentId of PEOPLE) {
+    if (state.repaired && child.trust[parentId] >= 60)
+      story.push(`親${parentId}：関係を修復したあとの会話が続いた。`);
+    if (success >= 70 && child.trust[parentId] < 40)
+      story.push(`親${parentId}：成果は大きかったが、会話は少なかった。`);
+    if (career.residence === "far" && child.trust[parentId] >= 60)
+      story.push(`親${parentId}：距離があっても連絡が続いた。`);
+    if (state.parents[parentId].social >= 60)
+      story.push(`親${parentId}：家族以外とのつながりも支えになった。`);
   }
-  if (s.oddity_count > 0) story.push("回覧板を飾った作品は、家族の思い出になった。");
-  for (const p of PEOPLE) story.push(`親${p}の最期は${results[p].death_age}歳。`);
-  s.result = { parents: results, child, ending: ending(s, child), story };
+  if (state.oddity_count > 0) story.push("回覧板を飾った作品は、家族の思い出になった。");
+  for (const parentId of PEOPLE)
+    story.push(`親${parentId}の最期は${results[parentId].death_age}歳。`);
+  state.result = {
+    parents: results,
+    child: childOutcome,
+    ending: ending(state, childOutcome),
+    story,
+  };
 }

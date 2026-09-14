@@ -17,7 +17,8 @@ TypeScriptエンジン       Repository
 - `src/storage/indexeddb.ts`：Dexieのreadwriteトランザクション内で読み取り・計算・保存。計算・ハッシュは同期処理で、IndexedDB以外の非同期処理をトランザクション中に挟まない。
 - `src/storage/file.ts`：CLI用JSON保存。実行単位のロックディレクトリと一時ファイルからのrenameで、競合と部分書き込みを防ぐ。プロセスの強制終了で残るロックは、実行中プロセスがないことを確認後に手動除去する。
 - `src/stores/game.ts`：画面用の公開応答、編集案、保存処理中・エラー。通常UIには隠しsnapshotを渡さない。
-- `src/main.tsx`：ホームとゲーム画面、TanStack RouterのURL。方針・選択・予測は共通サービスの契約を利用。`src/lib/scene.ts` は年代・季節だけで情景文を表示。
+- `src/main.tsx`：ホームとゲーム画面の組み立て、TanStack RouterのURL。方針・選択・予測は共通サービスの契約を利用。
+- `src/components/game/`：方針編集（PlanEditor）、家族の状態（Family）、履歴（Timeline）、結末（Ending）。公開応答の表示と操作を担当する。`src/lib/labels.ts` は共通の表示名、`src/lib/scene.ts` は年代・季節だけで情景文を表示。
 - `src/components/ui/8bit/`：公式レジストリから取り込んだ8bitcnコンポーネント。出典・変更点・ライセンスは[外部ライセンス](../THIRD_PARTY_NOTICES.md)。
 - `scripts/cli.ts`：Bunで動く単発JSON / JSON LinesのCLI。UIと同じサービスを呼ぶ。
 

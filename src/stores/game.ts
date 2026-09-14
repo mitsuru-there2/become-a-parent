@@ -6,30 +6,31 @@ import type { Plan } from "../engine/types";
 import { clone, canonical } from "../engine/shared";
 export const repository = new IndexedRepository();
 const service = new Service(repository);
-export const $response = atom<Response | null>(null),
-  $busy = atom(false),
-  $error = atom(""),
-  $notice = atom(""),
-  $draft = atom<Plan | null>(null),
-  $extra = atom<Payload>({});
+export const $response = atom<Response | null>(null);
+export const $busy = atom(false);
+export const $error = atom("");
+export const $notice = atom("");
+export const $draft = atom<Plan | null>(null);
+export const $extra = atom<Payload>({});
 export const $dirty = computed(
   [$draft, $response],
   (draft, response) => !!draft && canonical(draft) !== canonical(response?.public?.plan),
 );
 let generation = 0;
-export async function loadRun(id: string) {
-  const token = ++generation;
+export async function loadRun(runId: string) {
+  const loadGeneration = ++generation;
   $busy.set(true);
   $error.set("");
   try {
-    const response = await service.execute({ command: "observe", run: id });
-    if (token !== generation) return;
+    const response = await service.execute({ command: "observe", run: runId });
+    // 別の保存へ移動した後に届いた、古い読み込み結果を捨てる。
+    if (loadGeneration !== generation) return;
     $response.set(response);
     $draft.set(clone(response.public?.plan ?? null));
     $extra.set({});
     if (!response.ok) $error.set(response.error!.message);
   } finally {
-    if (token === generation) $busy.set(false);
+    if (loadGeneration === generation) $busy.set(false);
   }
 }
 export async function update(command: Command, input?: unknown) {
@@ -49,11 +50,13 @@ export async function update(command: Command, input?: unknown) {
     });
     if (!response.ok) {
       $error.set(
-        response.error!.message + response.error!.details.map((d) => " " + d.reason).join(""),
+        response.error!.message +
+          response.error!.details.map((detail) => " " + detail.reason).join(""),
       );
       return false;
     }
     $response.set(response);
+    // 出来事への回答は、まだ保存していない方針の編集案を上書きしない。
     if (command !== "choose") $draft.set(clone(response.public?.plan ?? null));
     $notice.set("このブラウザに保存しました");
     if (response.phase === "finished") {
@@ -66,11 +69,11 @@ export async function update(command: Command, input?: unknown) {
   }
 }
 export async function readExtra(command: "history" | "result") {
-  const id = $response.get()?.run_id;
-  if (!id) return;
+  const runId = $response.get()?.run_id;
+  if (!runId) return;
   const response = await service.execute({
     command,
-    run: id,
+    run: runId,
     ...(command === "history" ? { limit: 200 } : {}),
   });
   if (response.ok) $extra.set(response.payload ?? {});
@@ -81,37 +84,37 @@ export async function createRun(scenario: string, seed: number) {
   $busy.set(true);
   $error.set("");
   try {
-    const id = crypto.randomUUID(),
-      r = await service.execute({
-        command: "new",
-        run: id,
-        scenario,
-        seed,
-        request_id: crypto.randomUUID(),
-      });
-    if (!r.ok) {
-      $error.set(r.error!.message);
+    const runId = crypto.randomUUID();
+    const response = await service.execute({
+      command: "new",
+      run: runId,
+      scenario,
+      seed,
+      request_id: crypto.randomUUID(),
+    });
+    if (!response.ok) {
+      $error.set(response.error!.message);
       return null;
     }
-    $response.set(r);
-    $draft.set(clone(r.public!.plan));
-    return id;
+    $response.set(response);
+    $draft.set(clone(response.public!.plan));
+    return runId;
   } finally {
     $busy.set(false);
   }
 }
-export async function downloadSave(id: string) {
+export async function downloadSave(runId: string) {
   try {
-    const run = await repository.read(id);
+    const run = await repository.read(runId);
     if (!run) throw new Error("保存が見つかりません");
-    const blob = new Blob([exportRun(run)], { type: "application/json" }),
-      url = URL.createObjectURL(blob),
-      a = document.createElement("a");
-    a.href = url;
-    a.download = `parent-${id}.json`;
-    a.click();
+    const blob = new Blob([exportRun(run)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `parent-${runId}.json`;
+    anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } catch (e) {
-    $error.set(e instanceof Error ? e.message : "書き出せませんでした");
+  } catch (error) {
+    $error.set(error instanceof Error ? error.message : "書き出せませんでした");
   }
 }

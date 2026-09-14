@@ -11,23 +11,27 @@ export class GameDatabase extends Dexie {
 }
 export class IndexedRepository implements Repository {
   constructor(public db = new GameDatabase()) {}
-  read(id: string) {
-    return this.db.runs.get(id);
+  read(runId: string) {
+    return this.db.runs.get(runId);
   }
-  transact<T>(id: string, fn: (run: Run | undefined) => { run: Run; value: T }): Promise<T> {
+  transact<T>(
+    runId: string,
+    applyTransaction: (run: Run | undefined) => { run: Run; value: T },
+  ): Promise<T> {
     return this.db.transaction("rw", this.db.runs, async () => {
-      const result = fn(await this.db.runs.get(id));
+      // 更新関数は同期処理のみ。外部IOをawaitするとIndexedDBのトランザクションが閉じる。
+      const result = applyTransaction(await this.db.runs.get(runId));
       await this.db.runs.put(result.run);
       return result.value;
     });
   }
   async list() {
-    return (await this.db.runs.orderBy("updated_at").reverse().toArray()).map((r) => ({
-      id: r.id,
-      revision: r.revision,
-      turn: r.state.n,
-      phase: r.state.phase,
-      updated_at: r.updated_at,
+    return (await this.db.runs.orderBy("updated_at").reverse().toArray()).map((run) => ({
+      id: run.id,
+      revision: run.revision,
+      turn: run.state.n,
+      phase: run.state.phase,
+      updated_at: run.updated_at,
     }));
   }
   async restore(text: string) {

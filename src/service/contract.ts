@@ -26,54 +26,71 @@ export const RANGES: Record<string, [number, number]> = {
   self: [0, 2],
   level: [0, 2],
 };
-export function bounded(v: unknown, lo: number, hi: number, path: string): asserts v is number {
-  if (typeof v !== "number" || !Number.isInteger(v) || v < lo || v > hi)
-    invalid(`${lo}〜${hi}の整数が必要です`, path);
+export function bounded(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+  path: string,
+): asserts value is number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < minimum || value > maximum)
+    invalid(`${minimum}〜${maximum}の整数が必要です`, path);
 }
-export function object(v: unknown): asserts v is Record<string, unknown> {
-  if (!v || typeof v !== "object" || Array.isArray(v)) invalid("オブジェクトが必要です");
+export function object(value: unknown): asserts value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    invalid("オブジェクトが必要です");
 }
-export function requestId(v: unknown): asserts v is string {
-  if (typeof v !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(v))
+export function requestId(value: unknown): asserts value is string {
+  if (typeof value !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(value))
     invalid("IDは英数字・下線・ハイフンの1〜64文字です", "request_id");
 }
 export function mergePlan(plan: Plan, patch: unknown): Plan {
-  const walk = (obj: unknown, allowed: string[], path: string) => {
-    object(obj);
-    if (!Object.keys(obj).length) invalid("空の編集はできません", path);
-    for (const [k, v] of Object.entries(obj)) {
-      const loc = path ? path + "." + k : k;
-      if (!allowed.includes(k)) invalid("未知の項目です", loc);
-      if (k === "parents") walk(v, ["A", "B"], loc);
-      else if (k === "A" || k === "B") walk(v, ["work", "care", "bond", "rest", "self"], loc);
-      else if (k === "activity") walk(v, ["domain", "level", "sponsor"], loc);
-      else if (ENUMS[k]) {
-        if (typeof v !== "string" || !ENUMS[k].includes(v)) invalid("選択値が不正です", loc);
-      } else bounded(v, ...RANGES[k], loc);
+  const validatePatch = (candidate: unknown, allowed: string[], path: string) => {
+    object(candidate);
+    if (!Object.keys(candidate).length) invalid("空の編集はできません", path);
+    for (const [key, value] of Object.entries(candidate)) {
+      const fieldPath = path ? path + "." + key : key;
+      if (!allowed.includes(key)) invalid("未知の項目です", fieldPath);
+      switch (key) {
+        case "parents":
+          validatePatch(value, ["A", "B"], fieldPath);
+          break;
+        case "A":
+        case "B":
+          validatePatch(value, ["work", "care", "bond", "rest", "self"], fieldPath);
+          break;
+        case "activity":
+          validatePatch(value, ["domain", "level", "sponsor"], fieldPath);
+          break;
+        default:
+          if (ENUMS[key]) {
+            if (typeof value !== "string" || !ENUMS[key].includes(value))
+              invalid("選択値が不正です", fieldPath);
+          } else bounded(value, ...RANGES[key], fieldPath);
+      }
     }
   };
-  walk(patch, ["parents", "activity", "style", "help"], "");
+  validatePatch(patch, ["parents", "activity", "style", "help"], "");
   const result = clone(plan);
-  const merge = (dst: Record<string, unknown>, src: Record<string, unknown>) => {
-    for (const [k, v] of Object.entries(src)) {
-      if (v && typeof v === "object")
-        merge(dst[k] as Record<string, unknown>, v as Record<string, unknown>);
-      else dst[k] = v;
+  const mergeFields = (destination: Record<string, unknown>, source: Record<string, unknown>) => {
+    for (const [key, value] of Object.entries(source)) {
+      if (value && typeof value === "object")
+        mergeFields(destination[key] as Record<string, unknown>, value as Record<string, unknown>);
+      else destination[key] = value;
     }
   };
-  merge(result as unknown as Record<string, unknown>, patch as Record<string, unknown>);
+  mergeFields(result as unknown as Record<string, unknown>, patch as Record<string, unknown>);
   if ((result.activity.domain === "none") !== (result.activity.level === 0))
     invalid("活動なしは強度0、活動ありは強度1か2です", "activity");
   return result;
 }
 export function validateChoice(
-  v: unknown,
-): asserts v is { event_instance: string; option_id: string } {
-  object(v);
+  value: unknown,
+): asserts value is { event_instance: string; option_id: string } {
+  object(value);
   if (
-    Object.keys(v).sort().join(",") !== "event_instance,option_id" ||
-    typeof v.event_instance !== "string" ||
-    typeof v.option_id !== "string"
+    Object.keys(value).sort().join(",") !== "event_instance,option_id" ||
+    typeof value.event_instance !== "string" ||
+    typeof value.option_id !== "string"
   )
     invalid("event_instanceとoption_idの2文字列が必要です");
 }
@@ -94,35 +111,42 @@ export const COMMANDS = [
   "debug-state",
 ] as const;
 export type Command = (typeof COMMANDS)[number];
+function requiredArguments(command: Command): string[] {
+  switch (command) {
+    case "scenarios":
+      return [];
+    case "new":
+      return ["run", "scenario", "seed", "request_id"];
+    case "plan":
+    case "choose":
+      return ["run", "revision", "request_id", "input"];
+    case "reset-plan":
+    case "advance":
+      return ["run", "revision", "request_id"];
+    default:
+      return ["run"];
+  }
+}
+
 export function actions(choices: Choice[]) {
   const paths = ["A", "B"]
-    .flatMap((p) => ["work", "care", "bond", "rest", "self"].map((k) => `parents.${p}.${k}`))
+    .flatMap((parentId) =>
+      ["work", "care", "bond", "rest", "self"].map((key) => `parents.${parentId}.${key}`),
+    )
     .concat(["activity.domain", "activity.level", "activity.sponsor", "style", "help"]);
   return {
     commands: COMMANDS.map((id) => ({
       id,
-      required_args:
-        id === "scenarios"
-          ? []
-          : id === "new"
-            ? ["run", "scenario", "seed", "request_id"]
-            : (UPDATES as readonly string[]).includes(id)
-              ? [
-                  "run",
-                  "revision",
-                  "request_id",
-                  ...(["plan", "choose"].includes(id) ? ["input"] : []),
-                ]
-              : ["run"],
+      required_args: requiredArguments(id),
     })),
     plan_fields: paths.map((path) => {
-      const k = path.split(".").at(-1)!;
+      const key = path.split(".").at(-1)!;
       return {
         path,
-        type: ENUMS[k] ? "string" : "integer",
-        enum: ENUMS[k] ?? null,
-        min: RANGES[k]?.[0] ?? null,
-        max: RANGES[k]?.[1] ?? null,
+        type: ENUMS[key] ? "string" : "integer",
+        enum: ENUMS[key] ?? null,
+        min: RANGES[key]?.[0] ?? null,
+        max: RANGES[key]?.[1] ?? null,
       };
     }),
     input_examples: {

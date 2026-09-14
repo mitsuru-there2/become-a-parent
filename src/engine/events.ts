@@ -1,5 +1,5 @@
 import type { EventData } from "./types";
-export const FIXED: Record<number, string> = {
+export const FIXED_EVENTS: Record<number, string> = {
   1: "E-01",
   7: "E-02",
   13: "E-03",
@@ -9,7 +9,7 @@ export const FIXED: Record<number, string> = {
   37: "E-07",
   40: "E-08",
 };
-export const DATA: Record<string, EventData> = {
+export const EVENT_DATA: Record<string, EventData> = {
   "E-01": [
     "夜中。赤ちゃんが天井に向かって拍手している。観客は眠い。",
     [
@@ -81,5 +81,5 @@ export const DATA: Record<string, EventData> = {
     ],
   ],
 };
-export const option = (event: string, id: string) =>
-  DATA[event][1].find((o) => `${event}:${o[0]}` === id)!;
+export const findEventOption = (eventId: string, optionId: string) =>
+  EVENT_DATA[eventId][1].find((option) => `${eventId}:${option[0]}` === optionId)!;

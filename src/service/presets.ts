@@ -6,9 +6,9 @@ export const PRESETS = {
   "3": "余白を作る",
   "4": "親の時間も",
 };
-export function preset(pub: PublicState, name: keyof typeof PRESETS): Plan {
-  const plan = clone(pub.plan!),
-    care = pub.forecast!.fallback_plan.parents;
+export function preset(publicState: PublicState, name: keyof typeof PRESETS): Plan {
+  const plan = clone(publicState.plan!);
+  const care = publicState.forecast!.fallback_plan.parents;
   const layouts: Record<keyof typeof PRESETS, [Work, number, number, number][]> = {
     "1": [
       ["normal", 1, 2, 1],
@@ -27,17 +27,17 @@ export function preset(pub: PublicState, name: keyof typeof PRESETS): Plan {
       ["normal", 0, 1, 2],
     ],
   };
-  for (const [i, p] of PEOPLE.entries()) {
-    const [work, bond, rest, self] = layouts[name][i];
-    plan.parents[p] = { work, care: care[p].care, bond, rest, self };
+  for (const [index, parentId] of PEOPLE.entries()) {
+    const [work, bond, rest, self] = layouts[name][index];
+    plan.parents[parentId] = { work, care: care[parentId].care, bond, rest, self };
   }
-  const active = (name === "1" || name === "2") && pub.time.stage !== "baby";
+  const hasActivity = (name === "1" || name === "2") && publicState.time.stage !== "baby";
   plan.activity = {
-    domain: active ? "craft" : "none",
-    level: active ? (name === "2" ? 2 : 1) : 0,
+    domain: hasActivity ? "craft" : "none",
+    level: hasActivity ? (name === "2" ? 2 : 1) : 0,
     sponsor: name === "2" ? "B" : "A",
   };
-  plan.style = name === "2" && active ? "coach" : "respect";
+  plan.style = name === "2" && hasActivity ? "coach" : "respect";
   plan.help = "none";
   return plan;
 }

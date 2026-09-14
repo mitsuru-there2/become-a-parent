@@ -42,7 +42,13 @@ export interface GameEvent {
   text: string;
   target: Domain;
 }
-export type EventData = [string, [string, string, number, Record<string, number | string>][]];
+export type EventOption = [
+  id: string,
+  label: string,
+  cost: number,
+  effects: Record<string, number | string>,
+];
+export type EventData = [text: string, options: EventOption[]];
 export interface Reason {
   code: string;
   path: string;
@@ -128,6 +134,7 @@ export interface State extends NumericState {
   scenario: string;
   seed: number;
   phase: "childhood" | "finished";
+  /** 育児編の確定済みターン数（0〜40）。save-2との互換性のためキー名を維持する。 */
   n: number;
   plan: Plan;
   previous_plan: Plan;
