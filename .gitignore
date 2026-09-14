@@ -1,8 +1,13 @@
-.godot/
-.tools/
-__pycache__/
-*.pyc
 *.sqlite
 *.sqlite-journal
 playtests-local/
 .DS_Store
+node_modules/
+dist/
+.vite/
+.wrangler/
+.vite-plus/
+coverage/
+.saves/
+playwright-report/
+test-results/

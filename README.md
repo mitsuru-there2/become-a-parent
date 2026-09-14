@@ -1,80 +1,36 @@
 # 親伝説 — Become a Parent
 
-![親伝説 — Become a Parent HERO](assets/marketing/hero.png)
+0歳から20歳まで半年ずつ選択し、親ごとの老後と最期まで振り返る、Reactのブラウザゲーム。5種類の結末があります。
 
-子育てのあるあると予想外の人生を楽しむ、Godot製のテキストゲーム。0歳から20歳まで半年ずつ選択し、親それぞれの老後と最期まで振り返ります。選択と状態に応じた5種類のエンディングがあります。
+## 起動
 
-CLIを基本に、情景テキストを読みながらマウスで遊べるGUIを追加しました。今後もゲーム機能はCLIで実装・検証し、必要なUI・ビジュアルを後から付けます。イラスト制作の基準は[アートディレクション](docs/art-direction.md)にまとめています。
-
-## 遊ぶ
-
-macOSでは **[play-gui.command](play-gui.command) をFinderでダブルクリック**すると、ブラウザにゲーム画面が開きます。初回は「この家族ではじめる」を押し、次回は保存したところから再開します。起動したターミナルは遊んでいる間そのままにしてください。
-
-コマンドで起動する場合：
+Bun 1.3.14以上とNode.js 22.12以上を用意します。
 
 ```sh
-python3 -m kosodate gui --run ./my-family.sqlite
+bun install --frozen-lockfile
+bun run dev
 ```
 
-CLIと同じ保存先を指定すれば、その続きから遊べます。方針・回答は保存され、**「この方針で半年を進める」**で時間が進みます。個別編集は「方針を保存」を押してください。詳しくは[GUIの遊び方](docs/gui-guide.md)。
+表示されたローカルURLをブラウザで開きます。React / TanStack Router（SPA）/ 8bitcn / Motion / Nano Stores / Dexie / IndexedDBを使用。VitePlusが開発・ビルド・静的検査を担当します。Godot・Pythonは不要です。
 
-## CLIで遊ぶ
+保存はブラウザごとに保持されます。別の端末への移動は、画面の「書き出し」と「保存ファイルを取り込む」を使います。旧SQLite保存の取り込みには対応していません。
 
-このフォルダで実行します。
+## 検証とデプロイ
 
 ```sh
-python3 -m kosodate play --run ./my-family.sqlite
+bun run check
+bun run test
+bun run build
+bun run deploy:check
 ```
 
-macOSでは [play.command](play.command) をターミナルで実行しても起動できます。初回は開始、次回は同じ保存から再開します。`q` で中断できます。
-
-| 操作 | 内容 |
-| --- | --- |
-| 1〜4 | 方針をまとめて変更 |
-| e | 仕事・関わり・休息・活動などを個別編集 |
-| c | 年代に合わせて世話を配分 |
-| n / Enter | 出来事を選び、半年を確定 |
-| h / ? / q | 履歴／遊び方／中断 |
-
-別の人生を始めるときは保存名を変えます。詳細は[遊び方・CLIガイド](docs/cli-guide.md)。
-
-## 必要環境
-
-- Godot 4.5.1（GDScript版、.NET不要）
-- Python 3.9以上。追加パッケージ不要
-- 動作確認：macOS / Apple Silicon
-
-この作業環境にはGodotを `.tools/Godot.app` に導入済みです。別の環境では[公式アーカイブ](https://godotengine.org/download/archive/4.5.1-stable/)から導入し、`godot` / `godot4` をPATHに置くか、実行ファイルを指定します。
+Cloudflare Workers Static Assetsの設定は `wrangler.jsonc`。公開先は `become-a-parent` です。認証後にデプロイできます。
 
 ```sh
-export GODOT_BIN="/Applications/Godot.app/Contents/MacOS/Godot"
+bunx wrangler login
+bun run deploy
 ```
 
-`.tools/Godot.app/Contents/MacOS/Godot` も自動検出します。導入後のプレイにネットワーク接続は不要です。
+2026-09-15の作業ではdry-runまで確認済み。Cloudflareの既存認証が期限切れのため、公開URLは未作成です。
 
-## CLIとテストプレイ
-
-```sh
-python3 -m kosodate new --run ./trial.sqlite --scenario home-01 --seed 0 --request-id start
-python3 -m kosodate actions --run ./trial.sqlite
-python3 -m kosodate observe --run ./trial.sqlite
-python3 -m kosodate --help
-```
-
-エージェントはJSONの公開状態・選択肢から `plan` / `choose` / `advance` を操作します。保存再開、request-idによる再送、確定操作の `replay` に対応しています。
-
-```sh
-python3 -m unittest discover -s tests -v
-python3 scripts/public_player.py --out ./playtests-local/my-comparison --seeds 3
-```
-
-50プレイ・2,000ターンと全件の再生一致、5種類の結末への到達を検証済み。記録は[検証報告](docs/playtests/2026-09-14.md)。独立LLMや人の面白さ評価はこれから行います。
-
-## 開発文書
-
-- [文書運用](docs/README.md) / [ゲーム企画](docs/game-concept.md)
-- [SPECと実装対応表](docs/SPEC.md) / [技術構成](docs/architecture.md)
-- [開発計画](docs/development-plan.md) / [仕様策定の記録](docs/specification-plan.md)
-- [意思決定](docs/decisions.md) / [未決事項と調整課題](docs/open-questions.md)
-
-実装担当者は最初に [AGENTS.md](AGENTS.md) と文書運用を確認してください。ゲームの数値は作品内のルールであり、現実の育児・寿命・幸福を予測するモデルではありません。
+CLIは `bun run cli --help`。[操作例](docs/cli-guide.md)、[ゲーム画面の使い方](docs/gui-guide.md)、[構成](docs/architecture.md)、[移植の検証記録](docs/playtests/2026-09-15-web.md)、[仕様](docs/SPEC.md)を参照してください。

@@ -1,0 +1,9 @@
+/* 8bitcn retro typography adapted to the local Japanese system font; no remote font request. */
+.retro {
+  font-family: ui-monospace, "Hiragino Kaku Gothic ProN", Meiryo, monospace;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+}
+.pixelated {
+  image-rendering: pixelated;
+}

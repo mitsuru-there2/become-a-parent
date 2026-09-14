@@ -1,65 +1,54 @@
 # CLI・保存・公開情報の契約
 
-[SPEC索引](../SPEC.md)のS-007・S-008・S-011を担当する規範仕様。2026-09-14にGodot版を実装。[構成](../architecture.md)と[検証記録](../playtests/2026-09-14.md)を参照。
+[SPEC索引](../SPEC.md)のS-007・S-008・S-011を担当する。2026-09-15、cli-2 / save-2。D-023・[S-014](web.md)により旧Godot・Python・SQLiteの実装契約を置き換える。育児規則は[core](core.md)、成人後は[ending](ending.md)。
 
-## S-008：技術構成
+## S-008：技術構成と抽選
 
-Godot 4.5.1（GDScript）をゲームエンジンとする。Python 3.9以上の標準ライブラリはCLI・SQLite保存・Godotとのローカル通信を担当する。ゲーム進行、観察、出来事、抽選、成人後、評価はGodotで計算し、Pythonへ複製しない。Godot導入後は外部AI API・ネットワーク接続はゲーム実行に不要。起動形は `python3 -m kosodate`。macOSで検証する。対応OSの製品保証と配布形式はP-RELEASEで決める。
+計算はTypeScriptの同期状態遷移。サービスが検査・保存・公開情報の整形を担う。ReactとCLIが同じサービスを呼ぶ。[構成](../architecture.md)を参照。
 
-計算は入出力を持たない状態遷移、イベントはID付きデータ、CLIは入力検査・保存・公開情報の整形を担当する。Python/JSONの辞書順・組込みhash・randomの内部状態にゲームの抽選を依存させない。描画を含めず、後に共通の状態遷移をビジュアル版から呼べる構造にする。
+版はrules-1 / data-1 / ending-1を維持し、cli-2 / save-2へ更新。旧SQLiteと未知版は自動で読み替えない。
 
-抽選関数は次のバイト列をUTF-8化してSHA-256を計算し、先頭8バイトを符号なしbig-endian整数として100の剰余を取る。
+抽選は下記文字列のUTF-8 SHA-256の先頭8バイトを符号なしbig-endian整数として100の剰余を取る。末尾改行なし。数値計算では旧整数除算を `Math.trunc(a/b)` で再現する。
 
 ```text
 rules-1|data-1|{seed}|{phase}|{index}|{slot}
 ```
 
-seedは0〜4294967295の十進整数、phase/index/slotは仕様に指定された文字列・十進整数。前後の空白・末尾改行なし。育児のphaseはchild、index=t、slot=oddity。成人のphase=adult、index=0ではcareer/distance、index=kではhealth-A/health-B。読み取りでは抽選関数を呼ばず、保存済みの観察・結果を返す。抽選を使ったキーとRは内部履歴に記録する。抽選は呼出回数に依存せず、編集・イベント分岐が独立した珍事をずらさない。
+seedは0〜4294967295。育児はphase=child、index=期、slot=oddity。成人はphase=adult、index=0のcareer/distance、index=節目のhealth-A/health-B。読み取りや編集で抽選を呼ばない。抽選キー・結果は内部履歴に記録し、通常の公開応答に含めない。
 
-版は `rules-1`、`data-1`、`cli-1`、`save-1`。5種類の結末は既存の加点・抽選を変えない追加表示で、`ending-1` としてresult.endingに独立の版を持つ。初版では未知の版の読込を拒否し、自動移行・古いルールへの黙った読替えはしない。規則を変えたらrules、初期値・係数・イベント文を変えたらdata、公開契約の破壊的変更はcli、保存構造の破壊的変更はsaveを増分する。
+## S-011：操作
 
-## S-011：コマンド
+`bun run cli COMMAND --run ID`。保存ディレクトリは `--dir PATH`（既定 `.saves`）。標準出力にJSON1個を返す。`--help` は日本語の説明。人向けの対話端末はReact画面で置き換える。
 
-下表のコマンドは非対話、既定出力はJSON。`--format text` で公開情報を日本語に整形する。標準出力はJSON1個と改行、診断は標準エラー。色・TTY・プロンプト・ページャーは不要。`--help` はテキストの使用方法を返し、終了コード0。
+| command            | 引数                             | 効果                                                                  |
+| ------------------ | -------------------------------- | --------------------------------------------------------------------- |
+| scenarios          | なし                             | 家庭のID・表示名・説明                                                |
+| new                | run, scenario, seed, request_id  | 初期revision=0で開始。既存保存を上書きしない                          |
+| observe / forecast | run                              | 公開状態と確定可否                                                    |
+| actions            | run                              | payload.actionsに全編集パス・値域・操作・入力例                       |
+| plan               | run, revision, request_id, input | 部分編集を現在案にマージ                                              |
+| choose             | 同上                             | 現在の出来事に対する回答案を保存                                      |
+| reset-plan         | run, revision, request_id        | 前期の確定案へ戻す。回答は維持                                        |
+| advance            | 同上                             | 全回答・資源条件を検査して半年を確定。40期で成人後まで一括計算        |
+| history            | run, offset=0, limit=50          | 公開履歴を昇順に返す。limitは1〜200                                   |
+| result             | run                              | finishedのみpayload.resultに最終結果                                  |
+| replay             | run                              | 確定列をメモリで再計算しdigestを照合。元保存を変更しない              |
+| debug-state        | run                              | 内部検証専用。snapshotをpayload.stateへ返す。通常プレイ・UIで呼ばない |
 
-人向けに `play --run PATH [--scenario ID --seed INT]` を追加する。新規なら開始し、既存なら再開する。方針プリセット・項目編集・イベント回答・確定・履歴・中断を日本語で操作する。同じ保存契約を使い、案の編集時には効果を適用しない。プリセットと世話再配分は明示操作であり、年代が変わっただけでは引継ぎ案を自動で変えない。
+`input` はCLIではJSON文字列、JSON Linesではオブジェクト。planは空でない部分オブジェクト、chooseは `{event_instance,option_id}` の2文字列。値域・enumは[S-004](core.md)。小数、bool、NaN、範囲外、未知の編集項目を拒否する。活動なしはlevel=0、活動ありは1か2。資源不足の編集案も保存でき、確定時に止める。run/request_idはASCII英数字・ハイフン・下線の1〜64文字。
 
-対話プレイ開始時、CLIのヘルプ、Godotのプロジェクト名には[ゲーム企画](../game-concept.md)の正式タイトルを表示する（D-019）。タイトルの変更はゲームルール・既存の結末名・保存形式に影響しない。
+`serve` は1行1要求のJSON Lines。各要求は上表のオブジェクトとcommand。各出力は `{response,exit_code}`。1要求64KiBまで。EOFで終了する。JSONの重複キーはJavaScript標準パーサーに従い最後の値となるため、クライアントは重複キーを送らない。
 
-大量操作用に引数なしの `serve` を追加する。JSON Linesの各入力は `{command,run,...}`、更新の引数は `request_id` と `revision`、inputはJSONオブジェクト。各出力は `{response:下記の共通応答,exit_code:下記の終了コード}`。1要求64KiBまで。EOFでプロセスを終了し、各要求の失敗は応答内に記録して次の要求を受ける。実行中のGodotを再利用するが、すべてのゲーム状態を要求ごとに保存から読む。新しいゲーム操作は追加しない。操作例は[CLIガイド](../cli-guide.md)。
-
-| コマンド | 必須・任意引数 | 効果・返す固有データ |
-| --- | --- | --- |
-| scenarios | なし | home-01/02のIDと表示名。隠し初期値・BPの推奨手順は出さない |
-| new | --run PATH --scenario ID --seed INT --request-id ID | 新規DB作成、t=1の観察と出来事を開く。初期revision=0 |
-| observe | --run PATH | 公開状態・観察・現在のplan |
-| actions | --run PATH | 編集可能な項目、値域、イベント選択肢、必要引数 |
-| forecast | --run PATH | 現在案の収支・時間・確定可否・公開の違反理由 |
-| plan | --run PATH --revision INT --request-id ID --input FILE | JSONの部分案をマージ。依存する費用・時間を再計算 |
-| choose | 上記のrun/revision/request-id/input | event_instanceとoption_idの回答案を保存。回答変更可 |
-| reset-plan | --run PATH --revision INT --request-id ID | planを前期の確定案へ戻す。イベント回答は維持 |
-| advance | --run PATH --revision INT --request-id ID | 現在案と全回答を一度確定。40期では成人後と最期まで計算 |
-| history | --run PATH [--offset INT] [--limit INT] | 既定offset=0,limit=50、limitは1〜200。公開履歴を昇順で返す |
-| result | --run PATH | finishedなら最終結果。途中ならNOT_FINISHED |
-| replay | --run SOURCE --out NEW_PATH --request-id ID | 保存された確定操作列を別DBへ再生して照合。元DBは変更しない |
-| debug-state | --run PATH | 内部状態・抽選キー・効果差分。通常プレイ用には使わない |
-
-PATHはローカルSQLiteファイル、親ディレクトリは既存でなければならない。FILEはUTF-8 JSONファイル、`-` なら標準入力。入力上限64KiB、未知のキー・重複JSONキー・NaN・小数・boolを整数として渡すことを拒否。IDはASCII英数字と `_-`、1〜64文字（request-id）。イベントID内のコロンは別のID型として許可する。
-
-`plan --input` のルートは `{"parents":...,"activity":...,"style":...,"help":...}`。いずれも省略可だが最低1フィールド必須。parentsにはA/Bを部分指定でき、work/care/bond/rest/selfも部分指定。activityはdomain/level/sponsorの部分指定。マージ後の整合性（noneとlevel等）は必須。nullでの削除は不可。全enumと値域は[S-004](core.md)を正本とする。
-
-`choose --input` は `{"event_instance":"t01:E-01","option_id":"E-01:watch"}` の2文字列のみ。現在提示されたinstanceと、そのinstanceに属するoptionのみ受理する。
+CLI補助 `export --run ID --file PATH` と `import --file PATH` はブラウザと同じsave-2交換形式を扱う。importはファイル中のIDを使い、既存IDは拒否する。CLI補助の出力は `{ok,file}` または `{ok,run_id}`。
 
 ## 公開JSONの共通形
 
-全コマンド・成功失敗とも、以下の10キーを必ず返す。該当しない値はnullまたは指定の空配列で、キーを黙って省略しない。数値は特記したもの以外すべて整数。
-
 ```json
 {
-  "api_version": "cli-1",
+  "api_version": "cli-2",
   "ok": true,
   "command": "observe",
-  "run_id": "UUID文字列",
+  "run_id": "ID",
   "revision": 0,
   "phase": "childhood",
   "public": {},
@@ -69,99 +58,40 @@ PATHはローカルSQLiteファイル、親ディレクトリは既存でなけ�
 }
 ```
 
-- commandは上表のコマンド名。構文解析前の不明コマンドは渡された文字列、コマンド自体なしは空文字。
-- run_idはnewでUUID4を生成。ゲームの結果には使わない。runを読めない場合null。
-- revisionは0以上、保存された更新成功ごとに+1。読めなければnull。phaseはchildhood/finished、読めなければnull。成人の中間状態を入力待ち状態として保存しない。
-- publicは下記の完全な公開状態、runがなければnull。replayの応答は新しい実行のrun_id/revision/phase/publicを使う。エラーでもrunが正常なら最新の公開状態を返す。内部情報は含めない。
-- choicesは現在のイベント配列。各要素は `{instance_id,event_id,text,options}`。optionsは `{option_id,label,cost,income,available,reasons}` の配列。cost/incomeは万円、availableは今期案にその回答を置いた場合の公開資源による可否。reasonsは `{code,path,message}` の配列。余裕不足でもchooseで案として選べるが、確定はできない。
-- payloadはコマンド固有データ。エラーならnull。
-- errorは成功ならnull、失敗なら `{code,message,details}`。detailsは `{path,reason}` の配列。例外スタックや保存内容は含めない。
+正常・ゲーム操作の失敗とも10キーを持つ。保存を開けない場合はrun_id/revision/phase/public=null、choices=[]。errorは `{code,message,details:[{path,reason}]}`、失敗時のpayloadはnull。
 
-publicの型は次で固定する。
+publicはversions、time、cash、parents、couple、grandparents、observations、plan、answers、forecast。timeはcompleted_turns / next_turn / child_months / season / stage / school_label。finishedではcash/plan/forecastと次期情報がnull、answers=[]。育児の到達月齢は240で、親の年齢は最期の値。
 
-| キー | 型・内容 |
-| --- | --- |
-| versions | `{rules:string,data:string,save:string}` |
-| time | `{completed_turns:int,next_turn:intまたはnull,child_months:int,season:stringまたはnull,stage:stringまたはnull,school_label:stringまたはnull}`。finishedではnext_turn/season/stage/school_label=null、child_months=240（育児の到達点） |
-| cash | 育児中はM、finishedではnull。最終の口座はresultに示す |
-| parents | A/Bそれぞれ `{age_months,stress,health,fulfillment,social,regret}`。finishedでは各最期の値 |
-| couple | K |
-| grandparents | `{health,relation,funds,network}`。finishedでは20歳時点の記録 |
-| observations | `{code,subject,text}` の配列。subjectはchild/A/B/study/craft、codeはS-003の名前。finishedでは20歳時点の最後の公開観察 |
-| plan | S-004の全項目を持つ現在案。finishedではnull |
-| answers | `{event_instance,option_id}` の配列、instance順。finishedでは[] |
-| forecast | 下記、finishedではnull |
+観察は `{code,subject,text}`。子の適性・能力・信頼の真値・疲れの真値・抽選結果は公開しない。親はage_months/stress/health/fulfillment/social/regretを公開する。祖父母はhealth/relation/funds/networkを公開する。
 
-forecastは `{income,cost,projected_cash,time_used:{A,B},time_limit:12,care_required,care_allocated,can_advance,reasons,uncertain_expense_cap:8,fallback_plan}`。incomeは既知の援助込み。未回答のイベントの費用・収入は0として暫定表示し、未回答を理由にcan_advance=false。負のprojected_cashも表示する。fallback_planは世話をceil/floorで分けたS-004の無料修正案で、他の選択肢の指定はせず、未回答イベントには費用0の選択が必要と理由を出す。forecastを読むだけでは適用しない。
+choicesは `{instance_id,event_id,text,options}`。optionsは `{option_id,label,cost,income,available,reasons}`。availableは現在の案でその回答を置いたときの資源制限を表し、他イベントの未回答は除外する。配分調整が必要でも回答案として保存できる。
 
-payloadの型：
+forecastはincome / cost / projected_cash / time_used（A/B）/ time_limit=12 / care_required / care_allocated / can_advance / reasons / uncertain_expense_cap=8 / fallback_plan。reasonsは `{code,path,message}`。未回答費用は0の暫定予測、未回答なら確定不可。fallback_planは読むだけでは適用されない。
 
-| コマンド | payload |
-| --- | --- |
-| scenarios | `{scenarios:[{id,label,description}]}`。home-01「基本の家庭」、home-02「もう一つの家庭」。両方とも「子ども1人の人生を通す」。気質の数値やhome-02の攻略は非公開 |
-| new / plan / choose / reset-plan / advance | `{receipt:{request_id,applied_revision,duplicate:falseまたはtrue},history_added:[公開履歴要素]}`。編集ではhistory_added=[] |
-| observe / forecast | `{}`。必要情報はpublic |
-| actions | `{commands:[{id,required_args}],plan_fields:[{path,type,enum,min,max,required_with}],input_examples:{plan,choose}}`。該当しないenum/min/max/required_withはnull。公開の値域のみ。全編集フィールドとchooseの形式を発見できること |
-| history | `{items:[公開履歴要素],next_offset:intまたはnull,total:int}` |
-| result | `{parents:{A:親の結果,B:親の結果},child:子の結果,ending:{version,id,title,text},story:[string]}`。分類は[S-009](ending.md) |
-| replay | `{source_run_id,new_run_id,matched:bool,compared_turns:int,compared_adult_steps:int,receipt:{request_id,applied_revision,duplicate}}`。不一致はREPLAY_MISMATCHのエラーで内部差分はdebugのみ |
-| debug-state | `{debug_only:true,state:内部snapshot,draws:[{phase,index,slot,value}],effects:[内部差分]}`。このコマンドだけは非公開項目を許可 |
-
-親の結果は `{death_age,happiness,axes:{relationship,security,fulfillment,child_assurance,regret},cash,health,label}`。子の結果は `{age,domain,route,social_success,residence,happiness,autonomy}`。子の最終年齢は最後の節目。各親死亡時の子の評価は対応する履歴にも残す。
+更新のpayloadはreceiptとhistory_added。receiptはrequest_id / applied_revision / duplicate。resultはpayload.resultに[親別・子・結末・story](ending.md)を返す。historyはitems / next_offset / total。replayはmatched / compared_turns。
 
 ## S-007：履歴
 
-公開履歴の各要素は `{index,kind,turn,adult_step,ages,actions,events,money,observations,text,related}`。indexは0始まり連番、kindはturn/adult、turnは育児なら1〜40で成人ならnull、adult_stepは育児ならnullで成人なら1〜8。agesは `{child_months:int,A_months:int,B_months:int}` の月齢。亡くなった親の月齢は最期で固定。
+履歴はindex / kind（turnまたはadult）/ turn / adult_step / ages / actions / events / money / observations / text / related / adult_result。
 
-actionsは育児では `{plan,answers}`、成人ではnull。eventsは `{instance_id,event_id,option_idまたはnull,text}` の配列。moneyは育児 `{scope:"household",before,income,expense,cap_overflow,after}` を1要素、成人は生存親ごとの同形（scope=A/B）を持つ配列。before+income−expense−cap_overflow=afterを満たす。成人の不足分はexpenseを実際の口座支出に制限し、縮小額はtextに書く。observationsは公開観察配列、textは文字列配列、relatedは過去のinstance IDの配列。
-
-成人のtextにはS-009の節目結果と死亡した親の点・内訳を含む。JSONで数値を再解析しなくてよいよう、成人要素に `adult_result`（育児はnull）を追加し、`{alive:{A:bool,B:bool},parents:{A:親の結果またはnull,B:親の結果またはnull},child:子の結果}` を持たせる。parentsは今期死亡した親だけ非null。
-
-子どもの変化は観察として示し、内部式や真値の差を説明文に混ぜない。遅延効果はrelatedで過去の選択を参照し、「ゲーム内でのつながり」として示す。historyの再読・ページ切替は状態を進めない。
+- 育児actionsはplanとanswers（event_instance順）。成人はnull。
+- agesはchild_months/A_months/B_months。親は最期で固定。
+- moneyはscope / before / income / expense / cap_overflow / after。before + income − expense − cap_overflow = after。成人は生存親別の口座。
+- eventsはinstance_id/event_id/option_id/text。relatedは遅延効果の元のinstance ID。
+- adult_resultはalive / 今期最期を迎えた親の結果 / 子の結果。育児はnull。
 
 ## 保存・排他・再送
 
-一実行一SQLiteファイル。保存形式save-1は次の3テーブル。JSONは `ensure_ascii=false,sort_keys=true,separators=(',',':'),allow_nan=false` 相当の正規化UTF-8文字列で保持する。
+Runはid / revision / state / digest / commits / receipts / updated_at。stateに種・版・未確定案・前期案・回答・出来事・観察・予約・公開履歴・内部抽選・効果差分・最終結果を保持する。digestはstateをキー順に正規化したJSONのSHA-256。改ざん防止署名ではなく破損検出。
 
-- `run(id TEXT PRIMARY KEY, save_version TEXT, revision INTEGER, snapshot_json TEXT)`：1行。snapshot_jsonは `{state:全状態辞書,sha256:stateの正規化JSONのSHA-256}`。stateにseed、各版、phase、初期scenario、前期案、編集案、未回答・回答、観察、予約、内部抽選記録・差分、公開履歴、成人節目の結果・最終結果を含む。外部キャッシュを再開の前提にしない。SHA-256は破損検出用であり認証用の署名ではない。
-- `receipts(request_id TEXT PRIMARY KEY, request_json TEXT, response_json TEXT)`：成功更新の入力と出力。newとreplayも含む。
-- `commits(turn INTEGER PRIMARY KEY, plan_json TEXT, answers_json TEXT, digest TEXT)`：確定済みの育児期1〜40。確定直後・次期を開いた状態（40期はfinished）のstate全体を正規化してSHA-256。ゲーム値、次期案、前期案、予約、観察、出来事・抽選・計算履歴、成人結果を含む。run_id/revision/編集操作台帳/時刻/ファイルパスはstateに含めない。
+commitsはturn / plan / answers / 確定直後のstateのdigest。再生では新規初期状態へ確定列を適用し、各期のdigestを検査する。40期では老後・最期を含む。途中の編集案は再生対象外。
 
-更新は `BEGIN IMMEDIATE`、busy_timeout=5000ms、synchronous=FULL、journal_mode=DELETE。検査・履歴・台帳・snapshot更新を一トランザクションでCOMMIT。中断前にCOMMITしなければ再開時に前の状態、していれば新しい状態。readは読取専用接続でスナップショットを得て、保存や新規ファイル作成をしない。
+receiptsはrequest_idをキーに正規化要求と元応答を保存。同ID・同入力なら元応答のduplicateだけtrueにする。同ID・異入力はREQUEST_ID_CONFLICT。新ID・古いrevisionはSTALE_REVISION。失敗は成功台帳に残さない。
 
-同じrequest-idの検索をrevision検査より先に行う。正規化入力（command・期待revision・入力JSON・newのscenario/seed、replayの元run_idを含む。出力formatとパス表記は除く）が同じなら、保存済み応答をreceipt.duplicate=trueに変えて返す。古い応答のrevision/publicを最新と偽らない。異なる入力で同じIDならREQUEST_ID_CONFLICT。未知IDでrevisionが古ければSTALE_REVISION。失敗は台帳に成功として保存しない。内容を修正する再試行は新しいIDを使う。
+ブラウザはDexieのreadwriteトランザクションでRunを読み、検査・計算・台帳を1レコードとして書き込む。複数タブの更新はトランザクションとrevisionで排他。保存失敗・中断では中間状態を確定しない。CLIはファイルロックと原子的rename。ブラウザとCLIは同じsave-2書き出しを交換できるが、保存領域を直接共有しない。
 
-new/replayは新規ファイルを排他的に作成し、既存DBを上書きしない。同じ保存先で同じ成功request-id・同じ入力の再送だけ例外として元の応答を返す。DB作成途中に中断され、有効なrun行もreceiptもないファイルはINCOMPLETE_RUNとして拒否。自動削除せず新しい保存先を使える。ゲーム状態があるDBを壊して作り直す操作は設けない。
+## エラーと受け入れ
 
-replayは元DBを一貫した読取スナップショットとして読み、初期条件とcommitsを新しい実行へ順に適用する。tごとにdigest一致を検査し、40まであれば成人結果も含める。途中のSOURCEならその確定期までを再生し、未確定の編集案は再生しない。元のid/revisionと一致することを要求しない。保存形式・版の不一致は計算前に拒否。不一致の新DBは診断用として残すが、matched=trueにはしない。
+終了コード：0=成功、2=入力・未知操作、3=資源・未回答・finished/not-finished、4=revision/ID/既存保存/ロック競合、5=保存・版・IO、6=再生不一致。終了後の更新はFINISHED（既成功の同一再送を除く）。
 
-## エラーと終了コード
-
-| 終了コード | error.code | 条件 |
-| ---: | --- | --- |
-| 0 | null | 成功・同一再送 |
-| 2 | INVALID_INPUT / UNKNOWN_COMMAND / UNKNOWN_ACTION | JSON、型、値域、未提示instance、知らない選択肢 |
-| 3 | RESOURCE_LIMIT / ANSWER_REQUIRED / FINISHED / NOT_FINISHED | 確定時の資源不足、未回答、終了後更新、未終了result |
-| 4 | STALE_REVISION / REQUEST_ID_CONFLICT / RUN_EXISTS / RUN_LOCKED | 競合・既存保存先・ロックタイムアウト |
-| 5 | RUN_NOT_FOUND / INCOMPLETE_RUN / CORRUPT_SAVE / VERSION_MISMATCH / IO_ERROR | 保存・版・読書き失敗 |
-| 6 | REPLAY_MISMATCH / INTERNAL_ERROR | 再生差異・内部不整合 |
-
-複数エラー時は、構文→保存・版→request-id再送→revision→phase→回答→資源の順。資源の理由はすべて返し、pathで特定する。low幸福や親の死亡は正常終了0。
-
-## 操作例と受け入れ条件
-
-```text
-python -m kosodate new --run ./trial.sqlite --scenario home-01 --seed 0 --request-id start-01
-python -m kosodate actions --run ./trial.sqlite
-python -m kosodate choose --run ./trial.sqlite --revision 0 --request-id choose-01 --input choice.json
-python -m kosodate advance --run ./trial.sqlite --revision 1 --request-id advance-01
-python -m kosodate observe --run ./trial.sqlite
-```
-
-choice.jsonは先述のE-01:watch。choose後revision=1、advance後=2。次のobserveのrevisionを使って編集する。同じadvance-01/revision1を再送してもrevision=2の元応答を返し、2期目には進まない。3期目などに進んでから同じ再送をしても元応答を返すので、最新値が必要ならobserveする。
-
-AC-007：履歴の金額恒等式、操作・instance・遅延参照を追える。textとJSONで公開情報が一致し、JSON文字列からパラメータを推測する必要がない。
-
-AC-008：同一条件・確定操作列の再生digest一致。読み取り10回、再送、中断の前後で変わらない。新ID・古いrevisionは失敗。保存不完全・不明版の読込で元DBを変更しない。
-
-AC-011：new→actions→plan/choose→advance→resultまでJSONだけで完走。2つの更新が同revisionで競合した場合、一方だけ受理。40期確定中に中断しても育児完了だけが保存された中間状態を作らない。終了後のplan/choose/reset-plan/advanceはFINISHED（既に成功した同一ID再送を除く）。
+AC-007：履歴の金額恒等式と操作・遅延元を追える。AC-008：同じ確定列の再生一致、再送と読み取りで進行が変わらない。AC-011：公開CLIで40期と成人後まで完走、競合は一方だけ成功、40期の途中状態を残さない。移植の追加条件は[S-014](web.md)。
