@@ -54,7 +54,7 @@ export function Ending({ result }: { result: Result }) {
               <dd>{result.child.autonomy}</dd>
             </div>
             <div>
-              <dt>社会的成果</dt>
+              <dt>社会的な成果</dt>
               <dd>{result.child.social_success}</dd>
             </div>
           </dl>
@@ -65,7 +65,9 @@ export function Ending({ result }: { result: Result }) {
           <p key={index}>{line}</p>
         ))}
       </div>
-      <p className="fine">家族それぞれの幸せを振り返る、このゲームの評価です。</p>
+      <p className="fine">
+        この評価は、家族それぞれがどんな幸せを感じたかを振り返るための、ゲーム内の指標です。
+      </p>
     </motion.section>
   );
 }

@@ -28,8 +28,10 @@ export function Timeline({ items }: { items: History[] }) {
               <p className="ledger" key={transaction.scope}>
                 {transaction.scope === "household" ? "家計" : `親${transaction.scope}`}：
                 {transaction.before} ＋ {transaction.income} − {transaction.expense}
-                {transaction.cap_overflow ? ` − 計上外${transaction.cap_overflow}` : ""} ＝{" "}
-                {transaction.after}万円
+                {transaction.cap_overflow
+                  ? ` − 保有上限を超えた分 ${transaction.cap_overflow}`
+                  : ""}{" "}
+                ＝ {transaction.after}万円
               </p>
             ))}
             {entry.observations.length > 0 && (

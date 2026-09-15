@@ -89,7 +89,9 @@ export function Home() {
       .list()
       .then(setSaves)
       .catch(() => {
-        $error.set("保存領域を開けません。ブラウザのストレージ設定をご確認ください。");
+        $error.set(
+          "保存データを開けません。ブラウザでデータの保存が許可されているか確認してください。",
+        );
       });
   }, []);
   return (
@@ -119,7 +121,7 @@ export function Home() {
                 await navigate({ to: "/play/$runId", params: { runId: id } });
               }}
             />
-            <p className="fine">途中の選択は、このブラウザに保存されます。</p>
+            <p className="fine">ゲームの進み具合は、このブラウザに自動保存されます。</p>
           </div>
           <div className="continue">
             <span className="eyebrow">YOUR STORIES</span>
@@ -195,7 +197,7 @@ export function Play({ runId }: { runId: string }) {
       <>
         <Header />
         <main id="main" className="loading">
-          <p>{busy ? "予定表を開いています…" : "保存を開けませんでした。"}</p>
+          <p>{busy ? "予定表を開いています…" : "保存データを開けませんでした。"}</p>
           <ErrorNotice />
           <Link to="/">保存一覧へ戻る</Link>
         </main>
@@ -259,20 +261,20 @@ export function Play({ runId }: { runId: string }) {
             <ol>
               <li>子どもと家族のようすを読む。</li>
               <li>仕事、世話、休息などの方針を決めて保存する。</li>
-              <li>出来事に回答する。確定するまでは選び直せる。</li>
+              <li>出来事への対応を選ぶ。半年を進めるまでは選び直せる。</li>
               <li>収支と時間を確認し「半年を進める」。</li>
             </ol>
             <p>
-              各親の時間は12単位。世話は必要量ちょうどに配分します。年代が変わると必要な世話も変わります。活動は3歳から始められます。
+              親一人につき、半年で使える時間は12単位です。世話の時間は、支援でまかなう分も含めて必要な単位数に合わせます。子どもの年齢によって、必要な世話の時間は変わります。学習や創作の活動は3歳から始められます。
             </p>
             <p>
-              40期で20歳になり、その後は老後と親ごとの最期まで自動で進みます。「家族の記録」で全期間を振り返れます。
+              半年を40回進めると子どもが20歳になり、その後は親の老後から、それぞれの最期まで自動で進みます。「家族の記録」で全期間を振り返れます。
             </p>
             <p>
-              方針・回答・確定はこのブラウザへ保存されます。ブラウザのデータ削除で保存も消えます。別の端末やブラウザへ移る場合は、書き出したファイルを保存一覧から取り込んでください。同じ保存の上書きは行いません。
+              方針や出来事への対応、半年ごとの結果は、このブラウザに保存されます。ブラウザのデータを削除すると、ゲームの保存データも消えます。別の端末やブラウザへ移る場合は、書き出したファイルを保存一覧から取り込んでください。同じ保存データがすでにある場合は取り込めません。
             </p>
             <p>
-              同じシードと同じ選択で、同じ人生を再現できます。親の幸福、子どもの幸福、社会的な成果は、それぞれ別に振り返ります。
+              シードは、偶然の出来事を決めるための番号です。家庭・難易度・追加パック・シードが同じなら、同じ選択で同じ人生を再現できます。親の幸福、子どもの幸福、社会的な成果は、それぞれ別に振り返ります。
             </p>
           </section>
         ) : tab === "history" ? (
@@ -340,7 +342,7 @@ export function Play({ runId }: { runId: string }) {
                 </AnimatePresence>
                 {last && (
                   <section className="recap">
-                    <h3>ひとつ前の半年</h3>
+                    <h3>前の半年の振り返り</h3>
                     {last.text.map((line, index) => (
                       <p key={index}>{line}</p>
                     ))}
@@ -420,7 +422,7 @@ export function Play({ runId }: { runId: string }) {
                         <dd>−{projection.cost}万円</dd>
                       </div>
                       <div className="balance">
-                        <dt>予測残金</dt>
+                        <dt>半年後に残るお金</dt>
                         <dd>
                           {projection.projected_cash}
                           <small> 万円</small>
@@ -435,10 +437,10 @@ export function Play({ runId }: { runId: string }) {
                     </p>
                     <p className="fine">
                       予期せぬ出費は最大{projection.uncertain_expense_cap}
-                      万円。未回答の出来事の費用は未計上。
+                      万円です。まだ選んでいない出来事への対応費用は含まれていません。
                     </p>
                     {dirty && (
-                      <p className="warning">編集中の方針を保存すると、見通しを更新します。</p>
+                      <p className="warning">方針を保存すると、その内容で見通しが更新されます。</p>
                     )}
                     {projection.reasons.map((reason, index) => (
                       <p className="warning" key={index}>
@@ -466,7 +468,7 @@ export function Play({ runId }: { runId: string }) {
           onClick={(event) => {
             if (dirty) {
               event.preventDefault();
-              $error.set("方針を保存するか編集を取り消してください。");
+              $error.set("方針を保存するか、編集を取り消してください。");
             }
           }}
         >

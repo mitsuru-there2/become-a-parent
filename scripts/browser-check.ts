@@ -23,7 +23,7 @@ try {
   await expect(page.getByLabel("難易度")).toHaveValue("normal");
   await page.getByLabel("難易度").selectOption("hard");
   await expect(
-    page.getByText("少ない資金と高めの生活費で、配分を工夫する", { exact: true }),
+    page.getByText("少ない資金と高めの生活費のなかで、やりくりを工夫する", { exact: true }),
   ).toBeVisible();
   await page.screenshot({ path: out + "/home.png", fullPage: true });
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
@@ -47,7 +47,7 @@ try {
   await expect(
     page.getByRole("button", { name: "✓ 交代で見守る 費用 0万円", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "好きに付き合う", exact: true }).click();
+  await page.getByRole("button", { name: "子どもの「好き」に付き合う", exact: true }).click();
   await expect(page.getByRole("button", { name: "半年を進める →", exact: true })).toBeDisabled();
   await page.locator('input[name="parents.A.rest"]').press("Enter");
   await expect(page.getByRole("button", { name: "方針を保存", exact: true })).toBeDisabled();
@@ -60,7 +60,7 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   const log: { turn: number; heading: string }[] = [];
   for (let t = 1; t <= 40; t++) {
-    await page.getByRole("button", { name: "好きに付き合う", exact: true }).click();
+    await page.getByRole("button", { name: "子どもの「好き」に付き合う", exact: true }).click();
     const save = page.getByRole("button", { name: "方針を保存", exact: true });
     if (await save.isEnabled()) {
       await save.click();
@@ -106,7 +106,7 @@ try {
   await page.getByRole("link", { name: "保存一覧へ", exact: true }).click();
   await expect(page.locator(".save-list a")).toHaveCount(1);
   await page.goto(baseUrl + "/play/missing-save");
-  await expect(page.getByText("保存を開けませんでした。", { exact: true })).toBeVisible();
+  await expect(page.getByText("保存データを開けませんでした。", { exact: true })).toBeVisible();
   await page.goto(savedUrl);
   await expect(page.locator(".ending h1")).toHaveText(ending);
   expect(errors).toEqual([]);

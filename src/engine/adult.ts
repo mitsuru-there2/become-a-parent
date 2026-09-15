@@ -153,8 +153,23 @@ export function finish(
         after: accounts[parentId],
       });
       if (shortfall)
-        lines.push(`親${parentId}：暮らしを${plannedExpense - expense}万円縮小して調整した。`);
-      if (overflow) lines.push(`親${parentId}：保有上限による計上外${overflow}万円。`);
+        lines.push(
+          (
+            contentFor(state).text.adult_expense_adjustment ??
+            "親{parent}：暮らしを{amount}万円縮小して調整した。"
+          )
+            .replace("{parent}", parentId)
+            .replace("{amount}", String(plannedExpense - expense)),
+        );
+      if (overflow)
+        lines.push(
+          (
+            contentFor(state).text.adult_money_overflow ??
+            "親{parent}：保有上限による計上外{amount}万円。"
+          )
+            .replace("{parent}", parentId)
+            .replace("{amount}", String(overflow)),
+        );
       const previousParent = previousState.parents[parentId];
       const previousTrust = previousState.child.trust[parentId];
       Object.assign(state.parents[parentId], {

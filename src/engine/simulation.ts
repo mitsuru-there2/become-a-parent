@@ -279,7 +279,7 @@ export function forecast(state: State, answers = state.answers): Forecast {
       state.n + 1 < extra.min_turn ||
       state.n + 1 > extra.max_turn)
   )
-    addReason("ACTION_UNAVAILABLE", "extra_action", "この期には選べない追加行動です");
+    addReason("ACTION_UNAVAILABLE", "extra_action", "この半年では選べない追加行動です");
   if (extra) cost += extra.cost;
   for (const parentId of PEOPLE) {
     const allocation = plan.parents[parentId];
@@ -298,7 +298,7 @@ export function forecast(state: State, answers = state.answers): Forecast {
       addReason(
         "TIME_LIMIT",
         "parents." + parentId,
-        `親${parentId}の配分が12時間単位を超えています`,
+        `親${parentId}の時間の配分が、使える12単位を超えています`,
       );
   }
   const requiredCare = Math.max(
@@ -306,7 +306,11 @@ export function forecast(state: State, answers = state.answers): Forecast {
     lifeStage.care - (plan.help !== "none" ? content.balance.help_care : 0),
   );
   if (allocatedCare !== requiredCare)
-    addReason("CARE_MISMATCH", "parents", `今期の世話は合計${requiredCare}単位に配分してください`);
+    addReason(
+      "CARE_MISMATCH",
+      "parents",
+      `親二人の世話の時間を、合計${requiredCare}単位にしてください`,
+    );
   if (plan.help === "grand" && (state.grandparents.health < 40 || state.grandparents.relation < 30))
     addReason("HELP_UNAVAILABLE", "help", contentFor(state).text.simulation_029);
   if (lifeStage.id === "baby" && plan.activity.domain !== "none")
@@ -613,7 +617,7 @@ export function applyOddity(
   });
   if (!oddity) return;
   const expense = Math.min(state.cash, oddity.cost);
-  if (expense < oddity.cost) lines.push("残金の範囲に修理を縮小した。負債はない。");
+  if (expense < oddity.cost) lines.push(contentFor(state).text.simulation_038);
   money.expense += expense;
   money.income += oddity.income;
   money.cap_overflow += Math.max(0, state.cash - expense + oddity.income - 99999);
@@ -649,7 +653,12 @@ export function advance(state: State, forcedDraw = -1) {
   const extra = contentFor(state).actions[state.plan.extra_action ?? "none"];
   if (extra) {
     applyEffect(state, extra.effects, extra.target);
-    lines.push(`『${extra.label}』に取り組んだ。`);
+    lines.push(
+      (contentFor(state).text.simulation_extra_action ?? "『{action}』に取り組んだ。").replace(
+        "{action}",
+        () => extra.label,
+      ),
+    );
   }
   state.last_repair = false;
   for (const event of state.events) {
@@ -706,7 +715,12 @@ export function advance(state: State, forcedDraw = -1) {
     events,
   );
   money.after = state.cash;
-  if (money.cap_overflow > 0) lines.push(`保有上限による計上外：${money.cap_overflow}万円。`);
+  if (money.cap_overflow > 0)
+    lines.push(
+      (
+        contentFor(state).text.simulation_money_overflow ?? "保有上限による計上外：{amount}万円。"
+      ).replace("{amount}", String(money.cap_overflow)),
+    );
   state.n = turn;
   for (const parentId of PEOPLE) state.parents[parentId].age_months += 6;
   state.deltas.push(state.child.stress - before.child.stress);

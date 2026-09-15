@@ -34,7 +34,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
         <strong>{publicState.grandparents.health}</strong>
         <span>祖父母との関係</span>
         <strong>{publicState.grandparents.relation}</strong>
-        <span>援助の余裕</span>
+        <span>援助に使えるお金</span>
         <strong>{publicState.grandparents.funds}万円</strong>
         <span>地域とのつながり</span>
         <strong>{publicState.grandparents.network ? "あり" : "なし"}</strong>

@@ -1,10 +1,10 @@
 import type { PublicState, Work, Plan } from "../engine/types";
 import { PEOPLE, clone } from "../engine/shared";
 export const PRESETS = {
-  "1": "好きに付き合う",
-  "2": "目標を目指す",
-  "3": "余白を作る",
-  "4": "親の時間も",
+  "1": "子どもの「好き」に付き合う",
+  "2": "目標に向かって取り組む",
+  "3": "ゆとりを持って過ごす",
+  "4": "親も自分の時間を大切に",
 };
 export function preset(publicState: PublicState, name: keyof typeof PRESETS): Plan {
   const plan = clone(publicState.plan!);

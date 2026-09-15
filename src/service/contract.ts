@@ -49,7 +49,10 @@ export function mergePlan(plan: Plan, patch: unknown, extraIds: string[] = []): 
   };
   mergeFields(result as unknown as Record<string, unknown>, patch as Record<string, unknown>);
   if ((result.activity.domain === "none") !== (result.activity.level === 0))
-    invalid("活動なしは強度0、活動ありは強度1か2です", "activity");
+    invalid(
+      "活動を「なし」にする場合は取り組み方を0、活動を選ぶ場合は1か2にしてください",
+      "activity",
+    );
   return result;
 }
 export function validateChoice(

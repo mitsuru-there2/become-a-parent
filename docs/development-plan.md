@@ -145,3 +145,16 @@ D-027・[S-014 / AC-014-F](specs/web.md)を実装。`@tanstack/react-start` 1.16
 - `bun run lefthook validate`・`bun run lefthook check-install`成功。フックは[lefthook.yml](../lefthook.yml)、JSON検査は[check-json.ts](../scripts/check-json.ts)。手順は[README](../README.md#コミット前の検査)。
 
 これは開発コマンド・フックの技術検証。ゲーム規則・保存・描画は変更していない。
+
+## 日本語の文章の見直し（2026-09-15）
+
+D-028・[S-013 / AC-013-G](specs/gui.md#日本語の文章2026-09-15)に従い、本編のイベント・選択肢・観察・年代別の情景・結末、追加パックのサンプル、画面の操作名・説明・エラー案内を通読して改稿した。進路文の「探すへ」という接続、疲れの変化、生活費の調整などを自然な表現にした。第40期の出来事は表示時点の19歳6か月に合わせて「もうすぐ20歳」とした。
+
+検証済み：
+
+- `bun run check`成功。7ファイル47テスト成功。フォームの文言を参照する既存テスト・ブラウザ検証の期待値を更新した。
+- `bun run test:public /tmp/parent-japanese-public-final 1`：7実行が全40期と成人後を完走し、5結末と全件の再生一致を確認。
+- 改稿前の本編設定（Git HEAD）と改稿後の設定を共通エンジンへ渡し、3難易度×2家庭×3シードの18実行・720期で数値状態、親子の最終評価値、結末IDの一致を確認。公開プレイとは別の内部比較。比較スクリプトは作業環境の`/tmp/compare-japanese.ts`。
+- `GAME_URL=http://127.0.0.1:5176 BROWSER_ARTIFACTS=/tmp/parent-japanese-browser bun run test:browser`成功。Chromeで40期・結末・48件の履歴・方針編集・再読込・再開・書き出し／取り込み・未知URL・保存不在を確認。1280×900と390×844で画面を確認し、横はみ出し・consoleのerror/warningなし。画面証跡は作業環境の`/tmp/parent-japanese-browser`。agent-browser未導入のため、既存のPlaywright検証を使用した。
+
+設定に保存する改稿は新規開始から適用する。既存の保存に含まれる本文と旧data-1は保持する。履歴用テンプレートは旧文面へのフォールバックを持ち、既存保存の再生に対応する。人による読み心地の評価と公開デプロイは未実施。

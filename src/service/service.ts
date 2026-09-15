@@ -93,7 +93,7 @@ export function validateRun(run: Run) {
   const current =
     version?.save === "save-3" && version.rules === "rules-2" && version.data === "data-2";
   if (!legacy && !current)
-    throw new Failure("VERSION_MISMATCH", "この保存の版には対応していません。");
+    throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
     if (current) validateSettings(run.state.settings);
     else if (run.state.settings !== undefined) throw new Error("旧保存に設定があります");
@@ -213,7 +213,7 @@ export class Service {
           }
           let run: Run;
           if (request.command === "new") {
-            if (existing) throw new Failure("RUN_EXISTS", "この保存は存在しています。");
+            if (existing) throw new Failure("RUN_EXISTS", "同じ保存データがすでにあります。");
             const settings = this.contentCatalog.resolve(request.difficulty, request.packs);
             if (!settings.content.scenarios.some((s) => s.id === request.scenario))
               invalid("家庭を選んでください", "scenario");
@@ -273,7 +273,7 @@ export class Service {
                   projection.reasons.some((reason) => reason.code === "ANSWER_REQUIRED")
                     ? "ANSWER_REQUIRED"
                     : "RESOURCE_LIMIT",
-                  "回答・方針の配分を確認してください。",
+                  "出来事への対応と、方針の時間・お金の配分を確認してください。",
                   projection.reasons.map((reason) => ({
                     path: reason.path,
                     reason: reason.message,
@@ -390,7 +390,7 @@ export function importRun(text: string): Run {
     if (
       parsed.format !== (run.state.versions.save === "save-3" ? "parent-save-3" : "parent-save-2")
     )
-      throw new Failure("VERSION_MISMATCH", "書き出し形式と保存版が一致しません。");
+      throw new Failure("VERSION_MISMATCH", "書き出し形式と保存データのバージョンが一致しません。");
     requestId(run.id);
     bounded(run.state.seed, 0, 4294967295, "seed");
     if (!contentFor(run.state).scenarios.some((scenario) => scenario.id === run.state.scenario))

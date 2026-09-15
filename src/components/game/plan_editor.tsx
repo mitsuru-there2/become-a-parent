@@ -29,7 +29,7 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
       onSubmit: ({ value }) =>
         v.is(planPatchSchema(publicState.extra_actions.map((action) => action.id)), value)
           ? undefined
-          : "方針の入力が不正です",
+          : "方針の入力内容を確認してください",
     },
     onSubmit: async ({ value }) => {
       await update("plan", value);
@@ -114,7 +114,7 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
         <form.Subscribe selector={(state) => state.isDefaultValue}>
           {(unchanged) => (
             <span className="muted">
-              {unchanged ? "前期の方針を引き継ぎます" : "未保存の編集があります"}
+              {unchanged ? "保存済みの方針で進めます" : "未保存の編集があります"}
             </span>
           )}
         </form.Subscribe>
@@ -173,7 +173,7 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
                           ...publicState.extra_actions.map((action) => ({
                             value: action.id,
                             disabled: !action.available,
-                            label: `${action.label}（${action.cost}万円・親${action.parent} ${action.time}単位）${!action.available ? "：対象の時期ではありません" : ""}`,
+                            label: `${action.label}（${action.cost}万円・親${action.parent} ${action.time}単位）${!action.available ? "：今の年齢では選べません" : ""}`,
                           })),
                         ]}
                       />
@@ -198,13 +198,13 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
                     form.setFieldValue("parents.B.care", Math.floor(care / 2));
                   }}
                 >
-                  世話の配分を合わせる
+                  世話を必要な分だけ振り分ける
                 </button>
                 <button
                   type="button"
                   onClick={() => replaceDraft(publicState.forecast!.fallback_plan)}
                 >
-                  無理のない案
+                  無理のない方針にする
                 </button>
                 <button type="button" onClick={() => void update("reset-plan")}>
                   前期の方針に戻す

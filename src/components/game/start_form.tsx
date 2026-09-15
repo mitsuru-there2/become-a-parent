@@ -126,7 +126,7 @@ export function StartForm({ onCreated }: { onCreated: (id: string) => Promise<vo
               <form.Field name="seed">
                 {(field) => (
                   <label>
-                    人生のシード
+                    人生のシード（偶然を決める番号）
                     <input
                       name={field.name}
                       type="number"
@@ -146,7 +146,7 @@ export function StartForm({ onCreated }: { onCreated: (id: string) => Promise<vo
               {(count) =>
                 count > 0 && (
                   <p role="alert">
-                    家庭・難易度と、0〜4294967295の整数のシードを指定してください。
+                    家庭と難易度を選び、シードには0〜4294967295の整数を入力してください。
                   </p>
                 )
               }

@@ -72,7 +72,7 @@ describe("TanStack Formの方針編集", () => {
     expect(input("activity.domain").value).toBe("craft");
     fireEvent.click(screen.getByText("編集を取り消す"));
     expect($dirty.get()).toBe(false);
-    fireEvent.click(screen.getByText("好きに付き合う"));
+    fireEvent.click(screen.getByText("子どもの「好き」に付き合う"));
     expect($dirty.get()).toBe(true);
     fireEvent.click(screen.getByText("編集を取り消す"));
     expect($dirty.get()).toBe(false);
