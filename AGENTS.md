@@ -1,17 +1,41 @@
-# このリポジトリで作業するエージェントへ
+# Repository Guidelines
 
-- ユーザー向け文書と説明は日本語を基本とする。
-- Reactコンポーネントを含む `.tsx` ファイル名は `lower_snake_case.tsx` に統一する。コンポーネントの識別子はPascalCaseとする。
-- 作業前に `docs/README.md` を読み、対象に応じて企画・開発計画・SPECを確認する。
-- イラスト制作では `docs/art-direction.md` と正式HERO `assets/marketing/hero.png` を確認し、画像生成にこのHEROを参照画像として渡す。今後の画風の基準はD-020で採用済み。
-- 開発順序は仕様作成 → テキスト版PoC → ビジュアル化 → バリエーション追加。PoCは人生全体を通し、イベントや初期パターンの種類を絞る。小学校期など特定の年代だけに限定しない。
-- テキスト版はAIエージェントがテストプレイできるCLIとする。操作契約とテストプレイの詳細はSPEC S-011、S-012を参照する。通常プレイの検証では内部状態やデバッグ情報を判断に使わず、プレイヤーに公開された情報だけで選ぶ。内部状態を調べる検証は別の記録にする。
-- 今後のゲーム開発・機能拡張は仕様 → CLIの実装・検証 → 必要なUI・ビジュアルの追加の順に進める。GUIはCLIの公開操作に対するインターフェースとし、ゲームルールや保存処理を複製しない（D-021、S-013）。
-- 文書ごとの正本を守る。同じ仕様を複数文書に複製せず、リンクや仕様IDで参照する。
-- 合意済みの方針、設計案、未決事項、検証済みの事実を混同しない。仮の数値や挙動を確定仕様として扱わない。
-- 実装する振る舞いと受け入れ条件は `docs/SPEC.md` に残し、実装変更時に同時に更新する。実装済み・検証済みの記載には根拠を添える。
-- 重要な方針変更は `docs/decisions.md` に理由を残す。旧決定を黙って削除せず、置き換えた決定を参照する。
-- 未決事項は `docs/open-questions.md` で管理し、解決したら決定先へのリンクを残す。通常の可逆的な実装判断まで一律にユーザー確認待ちにしない。
-- 現段階はTypeScriptの共通エンジン・CLIとReactのWEBブラウザゲーム（2026-09-15の移植依頼、D-023）。保存はDexie / IndexedDB、デプロイ先はCloudflare Workers Static Assets。実装範囲と検証状況は開発計画を参照する。計画を記録するだけの依頼から、アプリ構築やデプロイまで自動的に範囲を広げない。
-- 検証のための仮定・結果と、現実の育児に関する実証的な主張を区別する。この作品の数式を現実の因果関係として説明しない。
-- フォームの作成・改修には原則TanStack Formを使用する（D-026、S-013）。入力値はフィールド単位で購読し、フォーム全体を親のReact stateやNano Storesへ複製しない。共通サービスのゲームルール・保存検査は維持する。
+## Project Structure & Architecture
+
+This TypeScript game uses React and TanStack Start (SPA). `src/engine/` contains rules; `src/service/` exposes shared operations; `src/storage/` provides IndexedDB and CLI JSON adapters. `src/routes/`, `src/components/`, and `src/stores/` organize navigation, UI, and public state. Never duplicate game rules or persistence in React.
+
+`config/` holds content; `tests/` contains tests; `scripts/` provides CLI/verification tools; `assets/` contains artwork. Cloudflare Workers Static Assets serves `dist/client`.
+
+## Development Commands
+
+Use Bun 1.3.14+ and Node.js 22.12+.
+
+- `bun install --frozen-lockfile`: install dependencies and Lefthook hooks.
+- `bun run dev`: start development server.
+- `bun run build`: generate assets and SPA shell; requires a listening port.
+- `bun run preview`: preview the build.
+- `bun run check`: check formatting, lint, types, JSON schemas, and content.
+- `bun run format`: apply VitePlus formatting.
+- `bun run test`: run Vitest tests.
+- `bun run cli --help`: inspect CLI operations.
+- `bun run deploy:check`: build and validate deployment without publishing.
+
+## Coding Style & Naming
+
+Use strict TypeScript, two-space indentation, double quotes, and semicolons; VitePlus enforces formatting. Name React files `lower_snake_case.tsx` and components `PascalCase`. Prefer Japanese for user-facing text.
+
+Use TanStack Form with field-level subscriptions; never mirror entire forms into parent state or Nano Stores. Do not hand-edit `src/route_tree.gen.ts` or `config/schemas/`; regenerate schemas with `bun run schema:generate`. Consult `.agents/skills/react-start/SKILL.md` for Start changes; vendored examples are excluded from application conventions.
+
+## Testing Guidelines
+
+Name tests `tests/*.test.ts`. Use Vitest, React Testing Library, jsdom, and fake-indexeddb. No numeric coverage threshold is configured; verify affected SPEC acceptance conditions, deterministic replay, and save integrity.
+
+Run `bun run test:browser` against a running server; `GAME_URL` overrides its URL. Use `bun run test:public` for CLI playthroughs. Public playtests must use only player-visible information; record internal debugging separately.
+
+## Workflow, Commits & Pull Requests
+
+Read `docs/README.md`, relevant plans, and `docs/SPEC.md` first. Follow specification → CLI implementation/verification → UI; retain the full lifespan in reduced-scope prototypes. Update behavior and acceptance conditions in SPEC, rationale in `docs/decisions.md`, and unresolved questions in `docs/open-questions.md`. Link specifications; avoid duplication. Distinguish proposals, verified results, and real-world parenting claims.
+
+History uses action-oriented subjects, e.g. `Adopt TanStack Start for the web game`; Conventional Commits are not established. PRs should explain behavior, reference SPEC/decision IDs and related issues, report checks/limitations, and include screenshots for visual changes. Lefthook formats staged files, then runs lint; warnings fail.
+
+For illustrations, follow `docs/art-direction.md` and supply `assets/marketing/hero.png` as the generation reference. Planning requests authorize documentation only.

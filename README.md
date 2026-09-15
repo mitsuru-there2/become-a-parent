@@ -11,7 +11,7 @@ bun install --frozen-lockfile
 bun run dev
 ```
 
-表示されたローカルURLをブラウザで開きます。React / TanStack Router（SPA）/ TanStack Form / 8bitcn / Motion / Nano Stores / Dexie / IndexedDBを使用。VitePlusが開発・ビルド・静的検査を担当します。Godot・Pythonは不要です。
+表示されたローカルURLをブラウザで開きます。React / TanStack Start（SPAモード、内部でTanStack Routerを使用）/ TanStack Form / 8bitcn / Motion / Nano Stores / Dexie / IndexedDBを使用。VitePlusが開発・ビルド・静的検査を担当します。Godot・Pythonは不要です。
 
 保存はブラウザごとに保持されます。別の端末への移動は、画面の「書き出し」と「保存ファイルを取り込む」を使います。旧SQLite保存の取り込みには対応していません。
 
@@ -28,7 +28,7 @@ bun run deploy:check
 
 `bun install`でLefthookのGitフックを自動設定します。手動で再設定する場合は`bun run hooks:install`を実行します。
 
-コミット時は、ステージ済みの対象ファイルを整形して再ステージし、続けて`bun run lint`を実行します。JSON違反・lintのエラーや警告があればコミットを中止します。部分ステージの未選択変更は保持します。formatの対象外は既存の設定どおり`docs/`・`assets/`です。
+コミット時は、ステージ済みの対象ファイルを整形して再ステージし、続けて`bun run lint`を実行します。JSON違反・lintのエラーや警告があればコミットを中止します。部分ステージの未選択変更は保持します。formatの対象外は`docs/`・`assets/`・取得した公式スキル・自動生成ルートです。
 
 | コマンド               | 内容                                                 |
 | ---------------------- | ---------------------------------------------------- |
@@ -39,6 +39,8 @@ bun run deploy:check
 | `bun run format:check` | 書式の検査のみ                                       |
 
 JSONの検査対象は[エディタの関連付け](.vscode/settings.json)に従います。スキーマ変更後は`bun run schema:generate`を実行してください。検証結果は[開発計画](docs/development-plan.md#コミット前の検査2026-09-15)を参照。
+
+`bun run build`はStartのSPAシェルを`dist/client/index.html`へ生成します。`bun run preview`で確認できます。ビルド時のシェル生成にはローカルポートの待受が必要です。Cloudflareへは`dist/client`のみを配信します。
 
 Cloudflare Workers Static Assetsの設定は `wrangler.jsonc`。公開先は `become-a-parent` です。認証後にデプロイできます。
 
@@ -54,3 +56,7 @@ CLIは `bun run cli --help`。[操作例](docs/cli-guide.md)、[ゲーム画面�
 ## ゲーム設定・難易度・追加パック
 
 イベント、本文、画像参照、確率、主な費用と3段階の難易度はJSONで調整できます。追加家庭・行動・イベントのパックも登録できます。[編集・登録ガイド](config/README.md)と[仕様 S-015](docs/specs/content.md)を参照してください。購入機能は将来の実装対象です。
+
+## TanStack公式スキル
+
+Startの`react-start`と`start-core`を[プロジェクトスキル](.agents/skills/README.md)に導入しました。取得元と固定コミットを記録しています。Formの公式スキルは2026-09-15の確認範囲では見つからず、導入していません。

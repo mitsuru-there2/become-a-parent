@@ -1,17 +1,8 @@
-import { StrictMode, useEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-  RouterProvider,
-  Outlet,
-  Link,
-  useNavigate,
-} from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useStore } from "@nanostores/react";
-import { Button } from "./components/ui/8bit/button";
+import { Button } from "../../components/ui/8bit/button";
 import {
   $response,
   $busy,
@@ -24,19 +15,18 @@ import {
   readExtra,
   downloadSave,
   repository,
-} from "./stores/game";
-import { defaultContent } from "./content/catalog";
-import { ContentImage } from "./components/game/content_image";
-import { StartForm } from "./components/game/start_form";
-import { ImportForm } from "./components/game/import_form";
-import { sceneFor } from "./lib/scene";
+} from "../../stores/game";
+import { defaultContent } from "../../content/catalog";
+import { ContentImage } from "../../components/game/content_image";
+import { StartForm } from "../../components/game/start_form";
+import { ImportForm } from "../../components/game/import_form";
+import { sceneFor } from "../../lib/scene";
 
-import { PlanEditor } from "./components/game/plan_editor";
-import { Family } from "./components/game/family";
-import { Timeline } from "./components/game/timeline";
-import { Ending } from "./components/game/ending";
-import "./styles.css";
-function Root() {
+import { PlanEditor } from "../../components/game/plan_editor";
+import { Family } from "../../components/game/family";
+import { Timeline } from "../../components/game/timeline";
+import { Ending } from "../../components/game/ending";
+export function GameLayout({ children }: { children: ReactNode }) {
   const dirty = useStore($dirty);
   useEffect(() => {
     const guard = (event: BeforeUnloadEvent) => {
@@ -50,7 +40,7 @@ function Root() {
       <a className="skip" href="#main">
         本文へ
       </a>
-      <Outlet />
+      {children}
     </MotionConfig>
   );
 }
@@ -89,7 +79,7 @@ function ErrorNotice() {
     </>
   );
 }
-function Home() {
+export function Home() {
   const navigate = useNavigate();
   const [saves, setSaves] = useState<Awaited<ReturnType<typeof repository.list>>>([]);
   useEffect(() => {
@@ -174,8 +164,7 @@ function Home() {
     </>
   );
 }
-function Play() {
-  const { runId } = playRoute.useParams();
+export function Play({ runId }: { runId: string }) {
   const response = useStore($response);
   const busy = useStore($busy);
   const dirty = useStore($dirty);
@@ -488,29 +477,3 @@ function Play() {
     </>
   );
 }
-const rootRoute = createRootRoute({
-  component: Root,
-  notFoundComponent: () => (
-    <main className="loading">
-      <h1>ページが見つかりません。</h1>
-      <Link to="/">保存一覧へ</Link>
-    </main>
-  ),
-});
-const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: "/", component: Home });
-const playRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/play/$runId",
-  component: Play,
-});
-const router = createRouter({ routeTree: rootRoute.addChildren([homeRoute, playRoute]) });
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
-  }
-}
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
-);

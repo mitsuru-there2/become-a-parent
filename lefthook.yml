@@ -10,6 +10,8 @@ pre-commit:
       exclude:
         - "docs/**"
         - "assets/**"
+        - ".agents/skills/**"
+        - "src/route_tree.gen.ts"
       run: bun run format -- {staged_files}
       stage_fixed: true
     lint:

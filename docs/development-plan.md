@@ -118,6 +118,21 @@ D-026・S-013に従い、新規開始・方針編集・取り込みをTanStack F
 
 Cloudflareの認証を更新して公開し、ブラウザ版を使った人の体験確認を行い、操作量とQ-014の調整仮説を検討する。ゲーム機能の変更は先にCLIへ実装・検証し、必要な画面を追随させる。画像・演出の制作は次の依頼とQ-012の具体化に合わせて進める。
 
+## TanStack StartのSPAモードへの移行（2026-09-15）
+
+D-027・[S-014 / AC-014-F](specs/web.md)を実装。`@tanstack/react-start` 1.168.54を固定し、既存のRouter 1.170.36（Startの依存と同一版）を継続使用する。構成と配信の正本は[技術構成](architecture.md)。公式Startスキル2種と付属資料を導入し、Formの確認結果・取得コミット・ライセンスは[スキル出典](../.agents/skills/README.md)に記録した。
+
+検証済み：
+
+- `bun run check`：書式・lint・型・JSON・設定検査成功。`bun run lint`も成功。取得したスキルの説明用サンプルと自動生成ルートをアプリのlint・format・pre-commit整形から除外した。
+- `bun run test`：7ファイル47テスト成功。既存エンジン、CLIサービス、IndexedDB、フォーム購読、設定・JSON検査の回帰を確認。
+- `bun run deploy:check`：Startが1ページのシェルを`dist/client/index.html`へ生成し、Wranglerが`dist/client`の10ファイルのみを配信対象として検査。公開デプロイは未実施。
+- [公開UI検証スクリプト](../scripts/browser-check.ts)を`GAME_URL=http://127.0.0.1:5174`（Start dev）と`http://127.0.0.1:4174`（`wrangler dev --local`の静的配信）で実行。各40期から結末「それぞれの予定表」へ到達。48件の履歴、フォームの保存／取消、再読込、保存一覧から再開、書き出し／別コンテキストへの取り込み、直リンク、未知URL、保存不在を確認。初期HTMLがゲーム画面を含まないシェルであることも検査。
+- Chrome headless / Playwright、1280×900と390×844。ページタイトル、画面表示、操作、エラーoverlay不在、consoleのerror・warning 0、横はみ出しなしを確認。Browser plugin not availableのため既存Playwright検証を使用。スクリーンショットを確認済み。結果・画面証跡は作業環境の`/tmp/parent-start-dev`・`/tmp/parent-start-static`（一時ファイル）に保存。
+- `bun run preview --port 4175`でもホーム・未知URL・保存不在の案内を確認し、consoleエラーなし。
+
+検証中に未知URLを静的シェルから開く際のhydration不一致を発見し、`ssr: false`のcatch-allルートを追加して解消。開発・静的配信の両方で修正後の全操作を再検証した。認証・購入検査・リクエストごとの部分SSRは[Q-017](open-questions.md#q-017ログイン購入検査と部分ssr)で後続仕様として管理する。Safari・Firefox、公開環境、人による面白さの評価は今回未実施。
+
 ## コミット前の検査（2026-09-15）
 
 [S-015](specs/content.md#コマンドコミット時の検査)に従い、`lint`・`check`に生成スキーマ同期、JSON本体、コンテンツ整合性・画像参照の検査を統合した。Lefthook 2.1.14を固定し、pre-commitでステージ済みファイルのformat・再ステージ→lintを順に実行する。lintは警告も失敗扱いとする。`bun install --frozen-lockfile`のprepareでフックを自動設定でき、現在のリポジトリでも有効化済み。

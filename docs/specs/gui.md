@@ -1,6 +1,6 @@
 # S-013：共通の公開操作に対するGUI
 
-2026-09-15。D-023によりReact / TanStack RouterのSPAへ更新。ゲームと保存の仕様は[S-011](cli.md)、移植の条件は[S-014](web.md)。実装は[React画面](../../src/main.tsx)と[公開状態ストア](../../src/stores/game.ts)。
+2026-09-15。D-023・D-027によりReact / TanStack StartのSPAモードへ更新。ゲームと保存の仕様は[S-011](cli.md)、移植の条件は[S-014](web.md)。実装は[React画面](../../src/components/game/screens.tsx)と[公開状態ストア](../../src/stores/game.ts)。
 
 ## 画面と境界
 

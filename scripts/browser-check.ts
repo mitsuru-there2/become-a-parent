@@ -11,7 +11,12 @@ try {
   page.on("console", (message) => {
     if (["error", "warning"].includes(message.type())) errors.push(message.text());
   });
-  await page.goto(process.env.GAME_URL ?? "http://127.0.0.1:5173");
+  const baseUrl = process.env.GAME_URL ?? "http://127.0.0.1:5173";
+  const initialDocument = await page.goto(baseUrl);
+  // Startの初期HTMLはシェル。ゲーム画面はブラウザで描画する。
+  const shell = await initialDocument!.text();
+  expect(shell).toContain("予定表を開いています");
+  expect(shell).not.toContain("新しい人生をはじめる");
   await expect(page).toHaveTitle(/親伝説/);
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "新しい人生をはじめる" })).toBeEnabled();
@@ -79,6 +84,12 @@ try {
   await page.reload();
   await expect(page.locator(".ending h1")).toBeVisible();
   const ending = await page.locator(".ending h1").innerText();
+  const savedUrl = page.url();
+  await page.getByRole("link", { name: "← 保存一覧", exact: true }).click();
+  await expect(page.locator(".save-list a")).toHaveCount(1);
+  await page.locator(".save-list a").click();
+  await expect(page).toHaveURL(savedUrl);
+  await expect(page.locator(".ending h1")).toHaveText(ending);
   await page.getByRole("button", { name: "家族の記録", exact: true }).click();
   await expect(page.locator(".timeline article")).toHaveCount(48);
   await expect(page.locator(".timeline")).toContainText("最期を迎えた");
@@ -90,6 +101,14 @@ try {
   await fresh.goto(process.env.GAME_URL ?? "http://127.0.0.1:5173");
   await fresh.getByLabel("保存ファイルを取り込む").setInputFiles(out + "/browser-save.json");
   await expect(fresh.locator(".ending h1")).toHaveText(ending);
+  await page.goto(baseUrl + "/page-that-does-not-exist");
+  await expect(page.getByRole("heading", { name: "ページが見つかりません。" })).toBeVisible();
+  await page.getByRole("link", { name: "保存一覧へ", exact: true }).click();
+  await expect(page.locator(".save-list a")).toHaveCount(1);
+  await page.goto(baseUrl + "/play/missing-save");
+  await expect(page.getByText("保存を開けませんでした。", { exact: true })).toBeVisible();
+  await page.goto(savedUrl);
+  await expect(page.locator(".ending h1")).toHaveText(ending);
   expect(errors).toEqual([]);
   await Bun.write(
     out + "/result.json",
@@ -100,6 +119,11 @@ try {
         ending,
         history: 48,
         reload: true,
+        spaShell: true,
+        savedListResume: true,
+        directLink: true,
+        unknownRoute: true,
+        missingSave: true,
         exportImport: true,
         mobileOverflow: false,
         errors,

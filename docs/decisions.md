@@ -262,3 +262,12 @@ ID、日付、状態、決定内容、理由、代替案または主なトレー
 - 決定：フォームの作成・改修はTanStack Formを原則とする。入力はフィールド単位で購読し、フォーム全体をReactの親stateやNano Storesへ同期しない。
 - 理由：入力に伴う無関係なコンポーネントの再描画を抑え、値・検証・送信の扱いを統一するため。TanStack Formの採用だけで速度向上を保証せず、購読範囲をテストする。
 - 範囲：新規開始・方針編集・ファイル取り込み。タブ選択などフォーム以外の画面状態は対象外。ゲームルールと保存は既存の共通サービスを維持する。詳細と受け入れ条件は[S-013](specs/gui.md)。
+
+## D-027：TanStack StartのSPAモードへ移行する
+
+- 日付：2026-09-15。状態：ユーザー指定の実装依頼。
+- 決定：D-023のRouter単体の起動・ビルドをTanStack Startへ置き換え、当面は公式のSPAモードを使用する。Startが利用するRouterは継続する。
+- 理由：将来、ログインや有料DLCの購入確認で部分SSRを導入できる構成にするため。今回は認証・決済の機能追加や公開デプロイを行わない。
+- 実装判断：Cloudflare Workers Static Assetsを維持するため、SPAシェルの出力を`index.html`とし、配信対象を`dist/client`へ変更する。既存ゲーム画面はクライアント実行とし、ルートのdocument shellをゲーム状態から分離する。
+- スキル：TanStack公式リポジトリのStartスキルをプロジェクトへ導入する。Formは公式スキルの存在を確認できた場合のみ導入する。取得元・コミット・確認範囲を記録する。
+- 正本：[S-014](specs/web.md)。参考：[公式SPAモード](https://tanstack.com/start/latest/docs/framework/react/guide/spa-mode)。
