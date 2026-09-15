@@ -1,4 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { labels } from "../../lib/labels";
+import { DecisionPlay } from "./decision_play";
+import { useEffect, useState, lazy, Suspense, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useStore } from "@nanostores/react";
@@ -22,7 +24,9 @@ import { StartForm } from "../../components/game/start_form";
 import { ImportForm } from "../../components/game/import_form";
 import { sceneFor } from "../../lib/scene";
 
-import { PlanEditor } from "../../components/game/plan_editor";
+const PlanEditor = lazy(() =>
+  import("./plan_editor").then((module) => ({ default: module.PlanEditor })),
+);
 import { Family } from "../../components/game/family";
 import { Timeline } from "../../components/game/timeline";
 import { Ending } from "../../components/game/ending";
@@ -139,9 +143,11 @@ export function Home() {
                     <Link to="/play/$runId" params={{ runId: savedRun.id }}>
                       <span>人生の記録 {saves.length - index}</span>
                       <strong>
-                        {savedRun.phase === "finished"
-                          ? "人生を振り返る"
-                          : `${Math.floor(savedRun.turn / 2)}歳${savedRun.turn % 2 ? "6か月" : ""}から再開`}{" "}
+                        {savedRun.phase === "game_over"
+                          ? "ゲームオーバーの記録"
+                          : savedRun.phase === "finished"
+                            ? "人生を振り返る"
+                            : `${Math.floor(savedRun.turn / 2)}歳${savedRun.turn % 2 ? "6か月" : ""}から再開`}{" "}
                         →
                       </strong>
                       <small>{new Date(savedRun.updated_at).toLocaleString("ja-JP")}</small>
@@ -181,6 +187,7 @@ export function Play({ runId }: { runId: string }) {
     if (
       response?.run_id === runId &&
       response.phase === "finished" &&
+      !response.public?.decision_turn &&
       !extra.result &&
       tab === "play"
     )
@@ -201,6 +208,13 @@ export function Play({ runId }: { runId: string }) {
           <ErrorNotice />
           <Link to="/">保存一覧へ戻る</Link>
         </main>
+      </>
+    );
+  if (publicState.decision_turn)
+    return (
+      <>
+        <Header />
+        <DecisionPlay key={runId} response={response!} />
       </>
     );
   const projection = publicState.forecast;
@@ -332,7 +346,7 @@ export function Play({ runId }: { runId: string }) {
                         <p key={observation.code}>
                           <span aria-hidden="true">·</span>{" "}
                           {observation.subject === "A" || observation.subject === "B"
-                            ? `親${observation.subject}へ：`
+                            ? `${labels[observation.subject]}へ：`
                             : ""}
                           {observation.text}
                         </p>
@@ -400,7 +414,9 @@ export function Play({ runId }: { runId: string }) {
                     ))
                   )}
                 </section>
-                <PlanEditor key={runId} publicState={publicState} />
+                <Suspense fallback={<p>方針を開いています…</p>}>
+                  <PlanEditor key={runId} publicState={publicState} />
+                </Suspense>
               </div>
               <div>
                 <Family publicState={publicState} />
@@ -430,7 +446,7 @@ export function Play({ runId }: { runId: string }) {
                       </div>
                     </dl>
                     <p>
-                      時間：親A {projection.time_used.A}/12 · 親B {projection.time_used.B}/12
+                      時間：父 {projection.time_used.A}/12 · 母 {projection.time_used.B}/12
                     </p>
                     <p>
                       世話：{projection.care_allocated} / 必要 {projection.care_required}単位

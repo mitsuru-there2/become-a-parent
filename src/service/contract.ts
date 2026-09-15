@@ -94,18 +94,24 @@ function requiredArguments(command: Command): string[] {
   }
 }
 
-export function actions(choices: Choice[], extraActions: PublicState["extra_actions"] = []) {
+export function actions(
+  choices: Choice[],
+  extraActions: PublicState["extra_actions"] = [],
+  decisions = false,
+) {
   const paths = ["A", "B"]
     .flatMap((parentId) =>
       ["work", "care", "bond", "rest", "self"].map((key) => `parents.${parentId}.${key}`),
     )
     .concat(["activity.domain", "activity.level", "activity.sponsor", "style", "help"]);
   return {
-    commands: COMMANDS.map((id) => ({
-      id,
-      required_args: requiredArguments(id),
-    })),
-    plan_fields: paths.map((path) => {
+    commands: COMMANDS.filter((id) => !decisions || (id !== "plan" && id !== "reset-plan")).map(
+      (id) => ({
+        id,
+        required_args: requiredArguments(id),
+      }),
+    ),
+    plan_fields: (decisions ? [] : paths).map((path) => {
       const key = path.split(".").at(-1)!;
       const enums = ENUMS as Record<string, readonly string[]>;
       const ranges = RANGES as Record<string, readonly [number, number]>;
@@ -119,7 +125,7 @@ export function actions(choices: Choice[], extraActions: PublicState["extra_acti
     }),
     extra_actions: extraActions,
     input_examples: {
-      plan: { parents: { A: { rest: 2 } } },
+      plan: decisions ? null : { parents: { A: { rest: 2 } } },
       choose: choices[0]
         ? { event_instance: choices[0].instance_id, option_id: choices[0].options[0].option_id }
         : null,

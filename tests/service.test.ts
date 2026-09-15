@@ -1,3 +1,5 @@
+import base from "../config/base.json";
+import { Catalog } from "../src/content/catalog";
 import "fake-indexeddb/auto";
 import { describe, it, expect } from "vite-plus/test";
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
@@ -6,7 +8,13 @@ import { clone } from "../src/engine/shared";
 import { preset } from "../src/service/presets";
 const create = () => {
   const repo = new IndexedRepository(new GameDatabase("test-" + crypto.randomUUID()));
-  return { repo, service: new Service(repo) };
+  return {
+    repo,
+    service: new Service(
+      repo,
+      new Catalog(JSON.parse(JSON.stringify({ ...base, decision_game: undefined }))),
+    ),
+  };
 };
 const initial: Request = {
   command: "new",

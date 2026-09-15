@@ -1,7 +1,10 @@
 import "fake-indexeddb/auto";
 import { describe, it, expect } from "vite-plus/test";
 import legacySave from "./fixtures/legacy-save-2.json";
-import base from "../config/base.json";
+import currentBase from "../config/base.json";
+// 旧方式の保存済み設定を引き続き検証する。
+const base = { ...currentBase, decision_game: undefined };
+delete (base as Partial<typeof base>).decision_game;
 import sample from "../config/examples/community.json";
 import { Catalog } from "../src/content/catalog";
 import { start, publicView, advance, openTurn } from "../src/engine/simulation";
@@ -16,7 +19,7 @@ const initial: Request = {
   seed: 7,
   request_id: "start",
 };
-const create = (catalog = new Catalog()) => {
+const create = (catalog = new Catalog(base)) => {
   const repo = new IndexedRepository(new GameDatabase("config-" + crypto.randomUUID()));
   return { repo, service: new Service(repo, catalog) };
 };

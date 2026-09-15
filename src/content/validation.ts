@@ -50,6 +50,40 @@ function condition(c: Condition, content: Content) {
 }
 // 型検査後に、パック合成やゲーム規則に依存する参照整合性を検査する。
 function references(c: Content) {
+  if (c.decision_game) {
+    const game = c.decision_game;
+    ensure(
+      new Set([...game.themes, ...game.events].map((t) => t.id)).size ===
+        game.themes.length + game.events.length,
+      "decision_game.ids",
+    );
+    ensure(
+      game.themes.every((t) => t.slot >= 0 && t.options.every((o) => !o.end)) &&
+        game.events.every((t) => t.slot === -1),
+      "decision_game.slots",
+    );
+    for (let turn = 1; turn <= 40; turn++) {
+      for (const slot of [-1, 0, 1, 2]) {
+        const pool = slot < 0 ? game.events : game.themes;
+        ensure(
+          pool.some(
+            (t) =>
+              t.slot === slot &&
+              t.condition === "always" &&
+              t.min_turn <= turn &&
+              t.max_turn >= turn,
+          ),
+          `decision_game.coverage.${turn}.${slot}`,
+        );
+      }
+    }
+    ensure(
+      game.income >=
+        Math.max(...Object.values(c.difficulties).map((d) => d.living_cost)) +
+          Math.max(...c.stages.map((s) => s.cost)),
+      "decision_game.income",
+    );
+  }
   const visual = (id: string | null) => id === null || Object.hasOwn(c.visuals, id);
   for (const [id, action] of Object.entries(c.actions))
     ensure(visual(action.visual), `actions.${id}.visual`);

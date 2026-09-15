@@ -19,7 +19,7 @@ export function Ending({ result }: { result: Result }) {
           return (
             <div key={parentId}>
               <span className="eyebrow">
-                親{parentId}の人生 · {parentResult.death_age}歳
+                {labels[parentId]}の人生 · {parentResult.death_age}歳
               </span>
               <h2>
                 幸福 <strong>{parentResult.happiness}</strong>

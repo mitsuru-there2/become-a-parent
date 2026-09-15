@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { decisionGameSchema } from "./decision_schema";
 import { integer, contentIdSchema, dictionary, unique } from "../validation/primitives";
 export const difficultyIdSchema = v.picklist(["easy", "normal", "hard"]);
 const domain = v.picklist(["study", "craft"]);
@@ -186,6 +187,7 @@ const odditiesSchema = v.pipe(
 );
 // 構造と値域のスキーマ。参照先の実在等はvalidation.tsで合成後に検査する。
 export const contentSchema = v.strictObject({
+  decision_game: v.optional(decisionGameSchema),
   schema_version: v.literal(1),
   data_version: v.literal("data-2"),
   scenarios: v.pipe(scenariosSchema, v.minLength(1)),

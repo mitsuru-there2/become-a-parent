@@ -144,7 +144,7 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
                 {PEOPLE.map((id) => (
                   <div key={id}>
                     <h3>
-                      親{id}
+                      {labels[id]}
                       <span>使える時間：12単位</span>
                     </h3>
                     <div className="fields">
@@ -173,7 +173,7 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
                           ...publicState.extra_actions.map((action) => ({
                             value: action.id,
                             disabled: !action.available,
-                            label: `${action.label}（${action.cost}万円・親${action.parent} ${action.time}単位）${!action.available ? "：今の年齢では選べません" : ""}`,
+                            label: `${action.label}（${action.cost}万円・${labels[action.parent]} ${action.time}単位）${!action.available ? "：今の年齢では選べません" : ""}`,
                           })),
                         ]}
                       />

@@ -1,3 +1,4 @@
+import { decisionView, decisionForecast, advanceDecisions } from "./decisions";
 import type {
   State,
   Plan,
@@ -257,6 +258,7 @@ export const answerList = (answers: Record<string, string>) =>
     .sort()
     .map((id) => ({ event_instance: id, option_id: answers[id] }));
 export function forecast(state: State, answers = state.answers): Forecast {
+  if (state.decisions) return decisionForecast(state);
   const content = contentFor(state);
   const plan = state.plan;
   const lifeStage = stage(state.n, state);
@@ -358,8 +360,9 @@ export function forecast(state: State, answers = state.answers): Forecast {
   };
 }
 export function publicView(state: State): { public: PublicState; choices: Choice[] } {
+  if (state.decisions) return decisionView(state);
   // 公開項目を列挙する境界。Stateを展開すると、子どもの隠し数値がUIへ漏れる。
-  const finished = state.phase === "finished";
+  const finished = state.phase !== "childhood";
   const lifeStage = stage(state.n, state);
   const content = contentFor(state);
   const scene = content.scenes[lifeStage.id];
@@ -633,6 +636,7 @@ export function applyOddity(
   });
 }
 export function advance(state: State, forcedDraw = -1) {
+  if (state.decisions) return advanceDecisions(state);
   const turn = state.n + 1;
   const before = numericState(state);
   const projection = forecast(state);

@@ -1,3 +1,4 @@
+import type { DecisionTheme } from "../content/decision_schema";
 import type { Settings, Visual } from "../content/types";
 export type Person = "A" | "B";
 export type Domain = "study" | "craft";
@@ -108,7 +109,8 @@ export interface Result {
 }
 export interface History {
   index: number;
-  kind: "turn" | "adult";
+  kind: "turn" | "adult" | "special";
+  decisions?: { title: string; label: string }[];
   turn: number | null;
   adult_step: number | null;
   ages: { child_months: number; A_months: number; B_months: number };
@@ -131,12 +133,31 @@ export interface NumericState {
   child: Child;
   grandparents: { health: number; relation: number; funds: number; network: boolean };
 }
+export interface DecisionTurn {
+  skills: Record<Person, { dialogue: number; planning: number; learning: number }>;
+  fatigue: Record<Person, number>;
+  special: DecisionTheme;
+  special_answer: string | null;
+  themes: DecisionTheme[];
+  selections: Record<string, string>;
+  contract: { label: string; cost: number } | null;
+  crisis: { divorce: number; separation: number };
+  event_history: History | null;
+}
+export interface GameOver {
+  reason: "divorce" | "separation";
+  title: string;
+  text: string;
+  turn: number;
+}
 export interface State extends NumericState {
+  decisions?: DecisionTurn;
+  game_over?: GameOver;
   settings?: Settings;
   versions: { rules: string; data: string; save: string };
   scenario: string;
   seed: number;
-  phase: "childhood" | "finished";
+  phase: "childhood" | "finished" | "game_over";
   /** 育児編の確定済みターン数（0〜40）。save-2との互換性のためキー名を維持する。 */
   n: number;
   plan: Plan;
@@ -158,6 +179,17 @@ export interface State extends NumericState {
   result: Result | null;
 }
 export interface PublicState {
+  decision_turn?: {
+    step: "special" | "decisions" | "ended";
+    skills: DecisionTurn["skills"];
+    fatigue: DecisionTurn["fatigue"];
+    contract: DecisionTurn["contract"];
+    answered: number;
+    event_result: string[];
+    previous_result: History | null;
+  };
+  family_status?: { level: number; label: string; description: string };
+  game_over?: GameOver;
   content: {
     difficulty: string;
     difficulty_label: string;
@@ -194,6 +226,7 @@ export interface PublicState {
   forecast: Forecast | null;
 }
 export interface Choice {
+  kind?: "special" | "decision";
   visual: Visual | null;
   instance_id: string;
   event_id: string;
@@ -203,6 +236,7 @@ export interface Choice {
     label: string;
     cost: number;
     income: number;
+    description?: string;
     available: boolean;
     reasons: Reason[];
   }[];

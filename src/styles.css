@@ -1162,3 +1162,128 @@ meter::-moz-meter-bar {
   margin: 0;
   min-width: 0;
 }
+
+/* 選択中心のターンと必須イベント */
+.decision-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0 1rem;
+}
+.decision-heading h2 {
+  margin: 0.5rem 0 0;
+}
+.decision-heading > b {
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+.decision-card {
+  border-top: 2px solid var(--ink, #222);
+  padding: 1.5rem 0;
+}
+.decision-card h3 {
+  margin: 0.5rem 0 1rem;
+  font-size: 1.25rem;
+}
+.decision-options button {
+  width: 100%;
+  text-align: left;
+}
+.decision-options strong {
+  display: block;
+  font-weight: 600;
+}
+.decision-effects {
+  line-height: 1.7;
+  opacity: 0.78;
+}
+.decision-options button[aria-pressed="true"] {
+  border-color: #222;
+  background: #e6e6dc;
+  box-shadow: inset 4px 0 #222;
+}
+.child-observations,
+.special-result {
+  margin: 1rem 0;
+  line-height: 1.8;
+}
+.child-observations summary,
+.special-result summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.family-summary {
+  padding: 1rem 0;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #c9c8c0;
+}
+.family-summary strong {
+  display: block;
+  font-size: 1.45rem;
+}
+.family-summary > span {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+}
+.family-summary p {
+  font-size: 0.8rem;
+  line-height: 1.8;
+}
+.parent-skills {
+  font-size: 0.75rem;
+  line-height: 1.9;
+  margin: 0.5rem 0;
+}
+.event-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(20 22 19 / 65%);
+  backdrop-filter: blur(3px);
+}
+.event-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 101;
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  background: #191918;
+  color: #efeee8;
+  border: 2px solid #aaa99f;
+  box-shadow: 8px 8px 0 rgb(0 0 0 / 30%);
+  padding: clamp(20px, 4vw, 36px);
+}
+.event-dialog h2 {
+  margin: 0.8rem 0 1rem;
+  font-size: 1.7rem;
+}
+.event-dialog > p {
+  line-height: 1.9;
+}
+.event-pause {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  text-underline-offset: 4px;
+}
+.game-over > a {
+  display: inline-block;
+  margin: 2rem;
+}
+@media (max-width: 720px) {
+  .decision-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+  .event-dialog .choices button {
+    padding: 0.75rem;
+  }
+  .decision-card h3 {
+    font-size: 1.1rem;
+  }
+}

@@ -1,3 +1,5 @@
+import { start } from "../src/engine/simulation";
+import { digest } from "../src/service/service";
 // @vitest-environment jsdom
 import "fake-indexeddb/auto";
 import { createElement, type ComponentProps } from "react";
@@ -13,7 +15,7 @@ import {
   $error,
   $response,
   $savedPlan,
-  createRun,
+  loadRun,
   repository,
   update,
 } from "../src/stores/game";
@@ -39,7 +41,21 @@ beforeEach(async () => {
   $busy.set(false);
   $dirty.set(false);
   $error.set("");
-  await createRun("home-01", 0);
+  const id = crypto.randomUUID();
+  const state = start("home-01", 0);
+  await repository.transact(id, () => ({
+    run: {
+      id,
+      revision: 0,
+      state,
+      digest: digest(state),
+      commits: [],
+      receipts: {},
+      updated_at: new Date().toISOString(),
+    },
+    value: null,
+  }));
+  await loadRun(id);
   renders.clear();
 });
 afterEach(() => {

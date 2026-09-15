@@ -1,3 +1,4 @@
+import { startDecisions, chooseDecision } from "../engine/decisions";
 import { Catalog, catalog, contentFor } from "../content/catalog";
 import { ContentError, validateSettings } from "../content/validation";
 import type { State, Plan, PublicState, Choice, History, Result } from "../engine/types";
@@ -35,6 +36,7 @@ export interface Payload {
   total?: number;
   next_offset?: number | null;
   result?: Result;
+  game_over?: State["game_over"];
   scenarios?: ReturnType<Catalog["list"]>["scenarios"];
   difficulties?: ReturnType<Catalog["list"]>["difficulties"];
   packs?: ReturnType<Catalog["list"]>["packs"];
@@ -58,6 +60,8 @@ export interface Request {
   limit?: number;
 }
 export interface Commit {
+  kind?: "special";
+  choice?: { event_instance: string; option_id: string };
   turn: number;
   plan: Plan;
   answers: State["answers"];
@@ -92,11 +96,16 @@ export function validateRun(run: Run) {
     version?.save === "save-2" && version.rules === "rules-1" && version.data === "data-1";
   const current =
     version?.save === "save-3" && version.rules === "rules-2" && version.data === "data-2";
-  if (!legacy && !current)
+  const decisions =
+    version?.save === "save-4" && version.rules === "rules-3" && version.data === "data-3";
+  if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
-    if (current) validateSettings(run.state.settings);
-    else if (run.state.settings !== undefined) throw new Error("旧保存に設定があります");
+    if (current || decisions) {
+      validateSettings(run.state.settings);
+      if (decisions && (!run.state.settings!.content.decision_game || !run.state.decisions))
+        throw new Error("選択ゲームの状態がありません");
+    } else if (run.state.settings !== undefined) throw new Error("旧保存に設定があります");
   } catch {
     throw new Failure("CORRUPT_SAVE", "保存された設定が不正です。");
   }
@@ -130,10 +139,20 @@ function envelope(
 }
 export function replayRun(run: Run) {
   validateRun(run);
-  const state = start(run.state.scenario, run.state.seed, run.state.settings ?? null);
+  const state = run.state.decisions
+    ? startDecisions(run.state.scenario, run.state.seed, run.state.settings!)
+    : start(run.state.scenario, run.state.seed, run.state.settings ?? null);
   for (const commit of run.commits) {
+    if (commit.kind === "special") {
+      if (!commit.choice) throw new Failure("REPLAY_MISMATCH", "イベントの記録がありません。");
+      chooseDecision(state, commit.choice.event_instance, commit.choice.option_id);
+      if (digest(state) !== commit.digest)
+        throw new Failure("REPLAY_MISMATCH", "イベントの再生が一致しません。");
+      continue;
+    }
     state.plan = clone(commit.plan);
-    state.answers = clone(commit.answers);
+    if (state.decisions) state.decisions.selections = clone(commit.answers);
+    else state.answers = clone(commit.answers);
     if (!publicView(state).public.forecast?.can_advance)
       throw new Failure("REPLAY_MISMATCH", "確定条件が一致しません。");
     advance(state);
@@ -217,7 +236,9 @@ export class Service {
             const settings = this.contentCatalog.resolve(request.difficulty, request.packs);
             if (!settings.content.scenarios.some((s) => s.id === request.scenario))
               invalid("家庭を選んでください", "scenario");
-            const state = start(request.scenario!, request.seed!, settings);
+            const state = settings.content.decision_game
+              ? startDecisions(request.scenario!, request.seed!, settings)
+              : start(request.scenario!, request.seed!, settings);
             run = {
               id: runId,
               revision: 0,
@@ -235,7 +256,7 @@ export class Service {
                 "STALE_REVISION",
                 "別の画面で更新されました。最新の保存を読み直してください。",
               );
-            if (run.state.phase === "finished")
+            if (run.state.phase !== "childhood")
               throw new Failure("FINISHED", "この人生は終了しています。");
           }
           // 検証・更新・応答の記録まで同じ保存トランザクションで行う。例外時は確定しない。
@@ -243,6 +264,8 @@ export class Service {
           const state = run.state;
           switch (request.command) {
             case "plan":
+              if (state.decisions)
+                throw new Failure("UNKNOWN_ACTION", "今期の3件の判断に回答してください。");
               state.plan = mergePlan(
                 state.plan,
                 request.input,
@@ -260,10 +283,29 @@ export class Service {
                 )
               )
                 throw new Failure("UNKNOWN_ACTION", "現在の出来事と選択肢を指定してください。");
-              state.answers[choice.event_instance] = choice.option_id;
+              if (state.decisions) {
+                const option = publicView(state)
+                  .choices.find((e) => e.instance_id === choice.event_instance)!
+                  .options.find((o) => o.option_id === choice.option_id)!;
+                if (!option.available)
+                  throw new Failure("RESOURCE_LIMIT", option.reasons[0].message);
+                const special = !state.decisions.special_answer;
+                chooseDecision(state, choice.event_instance, choice.option_id);
+                if (special)
+                  run.commits.push({
+                    kind: "special",
+                    choice: clone(choice),
+                    turn: state.n,
+                    plan: clone(state.plan),
+                    answers: {},
+                    digest: digest(state),
+                  });
+              } else state.answers[choice.event_instance] = choice.option_id;
               break;
             }
             case "reset-plan":
+              if (state.decisions)
+                throw new Failure("UNKNOWN_ACTION", "今期の3件の判断を選び直してください。");
               state.plan = clone(state.previous_plan);
               break;
             case "advance": {
@@ -273,14 +315,16 @@ export class Service {
                   projection.reasons.some((reason) => reason.code === "ANSWER_REQUIRED")
                     ? "ANSWER_REQUIRED"
                     : "RESOURCE_LIMIT",
-                  "出来事への対応と、方針の時間・お金の配分を確認してください。",
+                  state.decisions
+                    ? "必須の回答と、半年の支出を確認してください。"
+                    : "出来事への対応と、方針の時間・お金の配分を確認してください。",
                   projection.reasons.map((reason) => ({
                     path: reason.path,
                     reason: reason.message,
                   })),
                 );
               const plan = clone(state.plan);
-              const answers = clone(state.answers);
+              const answers = clone(state.decisions?.selections ?? state.answers);
               advance(state);
               run.commits.push({ turn: state.n, plan, answers, digest: digest(state) });
               break;
@@ -314,7 +358,11 @@ export class Service {
       switch (request.command) {
         case "actions":
           payload = {
-            actions: actions(publicView(state).choices, publicView(state).public.extra_actions),
+            actions: actions(
+              publicView(state).choices,
+              publicView(state).public.extra_actions,
+              !!state.decisions,
+            ),
           };
           break;
         case "history": {
@@ -328,6 +376,10 @@ export class Service {
           break;
         }
         case "result": {
+          if (state.game_over) {
+            payload = { game_over: clone(state.game_over) };
+            break;
+          }
           if (!state.result) throw new Failure("NOT_FINISHED", "まだ育児編の途中です。");
           payload = { result: clone(state.result) };
           break;
@@ -373,7 +425,7 @@ export class Service {
 export function exportRun(run: Run) {
   validateRun(run);
   return canonical({
-    format: run.state.versions.save === "save-3" ? "parent-save-3" : "parent-save-2",
+    format: `parent-${run.state.versions.save}`,
     run,
     checksum: hash(canonical(run)),
   });
@@ -381,15 +433,13 @@ export function exportRun(run: Run) {
 export function importRun(text: string): Run {
   try {
     const parsed = JSON.parse(text);
-    if (!["parent-save-2", "parent-save-3"].includes(parsed.format))
+    if (!["parent-save-2", "parent-save-3", "parent-save-4"].includes(parsed.format))
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");
     if (hash(canonical(parsed.run)) !== parsed.checksum)
       throw new Failure("CORRUPT_SAVE", "書き出しデータが破損しています。");
     const run = parsed.run as Run;
     validateRun(run);
-    if (
-      parsed.format !== (run.state.versions.save === "save-3" ? "parent-save-3" : "parent-save-2")
-    )
+    if (parsed.format !== `parent-${run.state.versions.save}`)
       throw new Failure("VERSION_MISMATCH", "書き出し形式と保存データのバージョンが一致しません。");
     requestId(run.id);
     bounded(run.state.seed, 0, 4294967295, "seed");

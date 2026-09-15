@@ -13,7 +13,11 @@ export function Timeline({ items }: { items: History[] }) {
           <div className="date">
             {Math.floor(entry.ages.child_months / 12)}歳
             {entry.ages.child_months % 12 ? "6か月" : ""}
-            <small>{entry.kind === "turn" ? `第${entry.turn}期` : "成人後の節目"}</small>
+            <small>
+              {entry.kind === "adult"
+                ? "成人後の節目"
+                : `第${entry.turn}期${entry.kind === "special" ? "・特殊イベント" : ""}`}
+            </small>
           </div>
           <div>
             {entry.events.map((event) => (
@@ -26,7 +30,7 @@ export function Timeline({ items }: { items: History[] }) {
             ))}
             {entry.money.map((transaction) => (
               <p className="ledger" key={transaction.scope}>
-                {transaction.scope === "household" ? "家計" : `親${transaction.scope}`}：
+                {transaction.scope === "household" ? "家計" : labels[transaction.scope]}：
                 {transaction.before} ＋ {transaction.income} − {transaction.expense}
                 {transaction.cap_overflow
                   ? ` − 保有上限を超えた分 ${transaction.cap_overflow}`
@@ -43,7 +47,7 @@ export function Timeline({ items }: { items: History[] }) {
                 {entry.actions &&
                   PEOPLE.map((parentId) => (
                     <p key={parentId}>
-                      親{parentId}：
+                      {labels[parentId]}：
                       {Object.entries(entry.actions!.plan.parents[parentId])
                         .map(([axis, score]) => `${labels[axis]} ${labels[String(score)] ?? score}`)
                         .join(" ／ ")}
