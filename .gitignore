@@ -11,3 +11,4 @@ coverage/
 .saves/
 playwright-report/
 test-results/
+.tanstack/
