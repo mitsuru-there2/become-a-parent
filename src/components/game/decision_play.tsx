@@ -1,17 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Dialog } from "radix-ui";
 import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
 import type { Response } from "../../service/service";
 import { $busy, $error, $notice, $extra, update, readExtra, downloadSave } from "../../stores/game";
 import { Family } from "./family";
+import { PartyStatus } from "./party_status";
 import { Timeline } from "./timeline";
 import { Ending } from "./ending";
-import { Button } from "../ui/8bit/button";
-import { labels } from "../../lib/labels";
-
-function Options({ choice, state }: { choice: Choice; state: PublicState }) {
+import familyRoom from "../../../assets/scenes/family-room.png";
+function Options({
+  choice,
+  state,
+  onChosen,
+}: {
+  choice: Choice;
+  state: PublicState;
+  onChosen: () => void;
+}) {
   const busy = useStore($busy);
   return (
     <div className="choices decision-options">
@@ -24,12 +30,13 @@ function Options({ choice, state }: { choice: Choice; state: PublicState }) {
             key={option.option_id}
             disabled={busy || !option.available}
             aria-pressed={choice.kind === "decision" ? selected : undefined}
-            onClick={() =>
-              void update("choose", {
+            onClick={async () => {
+              const saved = await update("choose", {
                 event_instance: choice.instance_id,
                 option_id: option.option_id,
-              })
-            }
+              });
+              if (saved) onChosen();
+            }}
           >
             <span className="choice-number">
               {selected ? "✓" : String(index + 1).padStart(2, "0")}
@@ -58,258 +65,321 @@ export function DecisionPlay({ response }: { response: Response }) {
   const error = useStore($error);
   const notice = useStore($notice);
   const extra = useStore($extra);
-  const [tab, setTab] = useState<"play" | "history" | "help">("play");
-  const special = response.choices.find((c) => c.kind === "special");
+  const [tab, setTab] = useState<"play" | "family" | "history" | "help">("play");
+  const [editing, setEditing] = useState<string | null>(null);
+  const [eventResult, setEventResult] = useState(false);
+  const special = response.choices.find((choice) => choice.kind === "special");
+  const decisions = response.choices.filter((choice) => choice.kind === "decision");
+  const answered = (choice: Choice) =>
+    state.answers.some((answer) => answer.event_instance === choice.instance_id);
+  const choice =
+    special ??
+    decisions.find((item) => item.instance_id === editing) ??
+    decisions.find((item) => !answered(item));
   const projection = state.forecast;
   const ended = response.phase !== "childhood";
-  const recap = turn.previous_result;
+  const showingResult = eventResult && !special && !ended;
+  const stageKey = `${tab}:${state.time.next_turn}:${ended ? response.phase : showingResult ? "result" : (choice?.instance_id ?? "review")}`;
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    heading.current?.focus({ preventScroll: true });
+  }, [stageKey]);
   useEffect(() => {
     if (response.phase === "finished" && tab === "play" && !extra.result) void readExtra("result");
   }, [response.phase, tab, extra.result]);
   return (
-    <>
-      <div className="game-nav">
-        <div>
-          <span className="eyebrow">FAMILY FILE</span>
-          <span className="run-id">
-            {response.run_id!.slice(0, 8)} · {state.content.difficulty_label}
-          </span>
+    <div className="rpg-shell">
+      <header className="rpg-header">
+        <Link to="/" className="brand">
+          親伝説 <span>BECOME A PARENT</span>
+        </Link>
+        <span className="rpg-save" role="status">
+          {busy ? "保存中…" : notice ? "保存済み" : "自動保存"}
+        </span>
+        <Link to="/" className="rpg-exit" aria-label="← 保存一覧">
+          保存一覧 ↗
+        </Link>
+      </header>
+      <main id="main" className="rpg-main">
+        <div className="rpg-hud">
+          <div className="rpg-age">
+            <strong>
+              {Math.floor(state.time.child_months / 12)}
+              <small>歳{state.time.child_months % 12 ? "6か月" : ""}</small>
+            </strong>
+            <span>
+              {state.time.season} · {state.time.school_label}
+            </span>
+          </div>
+          <div className="rpg-family-status">
+            <span>家族の様子</span>
+            <strong>{state.family_status?.label}</strong>
+          </div>
+          <div className="rpg-cash">
+            <span>いまの資金</span>
+            <strong>
+              {state.cash}
+              <small> 万円</small>
+            </strong>
+          </div>
         </div>
-        <nav aria-label="ゲーム内">
-          <button aria-current={tab === "play" ? "page" : undefined} onClick={() => setTab("play")}>
-            {ended ? "人生の結末" : "いまの暮らし"}
-          </button>
-          <button
-            aria-current={tab === "history" ? "page" : undefined}
-            onClick={() => {
-              setTab("history");
-              void readExtra("history");
-            }}
-          >
-            家族の記録
-          </button>
-          <button aria-current={tab === "help" ? "page" : undefined} onClick={() => setTab("help")}>
-            遊び方
-          </button>
-          <button disabled={busy} onClick={() => void downloadSave(response.run_id!)}>
-            書き出し
-          </button>
-        </nav>
-      </div>
-      <main id="main" className="game decision-game">
-        {!special && error && (
-          <p role="alert" className="error">
-            {error}
-          </p>
-        )}
-        <p role="status" className="save-notice">
-          {notice}
-        </p>
-        {tab === "history" ? (
-          <Timeline items={extra.items ?? []} />
-        ) : tab === "help" ? (
-          <section className="help">
-            <span className="eyebrow">HOW TO PLAY</span>
-            <h1>半年ごとに、3つの判断。</h1>
-            <ol>
-              <li>最初に、その期の特殊イベントへの対応を選びます。対応はその場で確定します。</li>
-              <li>
-                子どもの年齢や家族の状況に合わせて、3つの判断が出ます。それぞれ1つずつ選んでください。
-              </li>
-              <li>「何もしない」も回答のひとつ。3つとも回答すると「半年を進める」を押せます。</li>
-            </ol>
-            <p>
-              父と母の得意なことや疲労によって、同じ選択でも成果が変わります。各選択の費用や負担と、半年後の家計を確かめましょう。通常の判断は半年を進めるまで選び直せます。
-            </p>
-            <p>
-              入園先などは継続費用がかかります。新たな行動をしなくても、生活費と継続費用は発生します。
-            </p>
-            <p>
-              家族の様子は5段階。危機の間は修復できますが、離婚・一家離散が起きるとゲームオーバーです。家族の記録から、それまでの選択を振り返れます。
-            </p>
-            <p>
-              育児は0歳から20歳までの40期。その後は父母の老後から最期までを自動でたどります。選択は自動保存され、中断したところから再開できます。
-            </p>
-          </section>
-        ) : state.game_over ? (
-          <section className="ending game-over">
-            <span className="eyebrow">END OF THIS FAMILY STORY</span>
-            <h1>ゲームオーバー — {state.game_over.title}</h1>
-            <p className="ending-story">{state.game_over.text}</p>
-            <p>第{state.game_over.turn}期までの選択は「家族の記録」に残っています。</p>
-            <button
-              onClick={() => {
-                setTab("history");
-                void readExtra("history");
-              }}
-            >
-              家族の記録を振り返る
-            </button>
-            <Link to="/">新しい人生をはじめる →</Link>
-          </section>
-        ) : ended ? (
-          extra.result ? (
-            <Ending result={extra.result} />
-          ) : (
-            <p>人生を振り返っています…</p>
-          )
-        ) : (
-          <>
-            <div className="timebar">
-              <div>
-                <span className="eyebrow">LIFE, SIX MONTHS AT A TIME</span>
-                <h1>
-                  {Math.floor(state.time.child_months / 12)}
-                  <small>歳{state.time.child_months % 12 ? "6か月" : ""}</small>
-                  <span>{state.time.season}</span>
-                </h1>
-              </div>
-              <div className="progress">
-                <span>
-                  第 {state.time.next_turn} 期 / 40 <b>{state.time.school_label}</b>
-                </span>
-                <progress value={state.time.completed_turns} max={40} aria-label="育児の進捗" />
-              </div>
+        <PartyStatus state={state} />
+        <div className="rpg-stage">
+          <div className="rpg-scenery" aria-hidden="true">
+            <img src={familyRoom} alt="" fetchPriority="high" />
+          </div>
+          <div className="rpg-caption">
+            <span>第 {state.time.next_turn} 期 / 40</span>
+            <p>{state.scene?.title}</p>
+          </div>
+          <section className="rpg-window" aria-label="家族の物語">
+            <div className="rpg-window-bar">
+              <span>
+                {tab === "play"
+                  ? ended
+                    ? "人生の結末"
+                    : special
+                      ? "今期の特殊イベント"
+                      : showingResult
+                        ? "イベントの結果"
+                        : choice
+                          ? `判断 ${decisions.indexOf(choice) + 1} / 3`
+                          : "この半年の確認"
+                  : tab === "family"
+                    ? "家族の様子"
+                    : tab === "history"
+                      ? "家族の記録"
+                      : "遊び方"}
+              </span>
+              <span>{turn.answered} / 3 回答済み</span>
             </div>
-            <div className="game-columns">
-              <div className="play-main">
-                <section className="scene">
-                  <span className="eyebrow">TODAY, AT HOME</span>
-                  <h2>{state.scene?.title}</h2>
-                  <p className="scene-text">{state.scene?.text}</p>
-                  <details className="child-observations">
-                    <summary>子どもの様子を読む</summary>
-                    {state.observations.map((o) => (
-                      <p key={o.code}>
-                        {labels[o.subject] ? `${labels[o.subject]}へ：` : ""}
-                        {o.text}
-                      </p>
-                    ))}
-                  </details>
-                </section>
-                {recap && (
-                  <section className="recap">
-                    <h3>前の半年の振り返り</h3>
-                    {recap.text.map((line, i) => (
-                      <p key={i}>{line}</p>
-                    ))}
-                  </section>
-                )}
-                {turn.event_result.length > 0 && (
-                  <details className="special-result">
-                    <summary>今期の特殊イベントへの対応</summary>
-                    {turn.event_result.map((line, i) => (
-                      <p key={i}>{line}</p>
-                    ))}
-                  </details>
-                )}
-                <section className="decision-list" aria-label="今期の3つの判断">
-                  <div className="decision-heading">
-                    <div>
-                      <span className="eyebrow">THREE DECISIONS</span>
-                      <h2>この半年、どう過ごす？</h2>
-                    </div>
-                    <b aria-live="polite">{turn.answered} / 3 回答済み</b>
-                  </div>
-                  {special ? (
-                    <p>特殊イベントに対応すると、今期の3つの判断が届きます。</p>
-                  ) : (
-                    response.choices.map((choice, index) => (
-                      <article className="decision-card" key={choice.instance_id}>
-                        <span className="eyebrow">
-                          判断 {String(index + 1).padStart(2, "0")} · 必須
-                        </span>
-                        <h3>{choice.text}</h3>
-                        <Options choice={choice} state={state} />
-                      </article>
-                    ))
-                  )}
-                </section>
-              </div>
-              <div className="decision-sidebar">
-                <Family publicState={state} />
-                {projection && (
-                  <section className="forecast">
-                    <span className="eyebrow">HOUSEHOLD BUDGET</span>
-                    <h2>半年の見通し</h2>
-                    <dl>
-                      <div>
-                        <dt>いまの資金</dt>
-                        <dd>{state.cash}万円</dd>
-                      </div>
-                      <div>
-                        <dt>収入</dt>
-                        <dd>＋{projection.income}万円</dd>
-                      </div>
-                      <div>
-                        <dt>支出</dt>
-                        <dd>−{projection.cost}万円</dd>
-                      </div>
-                      <div className="balance">
-                        <dt>半年後の資金</dt>
-                        <dd>
-                          {projection.projected_cash}
-                          <small> 万円</small>
-                        </dd>
-                      </div>
-                    </dl>
-                    {turn.contract && (
-                      <p className="fine">
-                        現在の継続：{turn.contract.label}（{turn.contract.cost}万円／半年）
-                      </p>
-                    )}
-                    <p className="fine">
-                      支出には生活費と、選択後の継続費用を含みます。未回答の行動の費用は含みません。
-                    </p>
-                    {projection.reasons.map((r) => (
-                      <p className="warning" key={r.path}>
-                        {r.message}
-                      </p>
-                    ))}
-                    <Button
-                      className="advance"
-                      size="lg"
-                      disabled={busy || !projection.can_advance}
-                      onClick={() => void update("advance")}
-                    >
-                      {busy ? "保存しています…" : "半年を進める →"}
-                    </Button>
-                  </section>
-                )}
-              </div>
-            </div>
-          </>
-        )}
-      </main>
-      <footer className="game-footer">
-        <Link to="/">← 保存一覧</Link>
-        <span>選択は、このブラウザに自動保存されます。</span>
-      </footer>
-      <Dialog.Root open={!!special}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="event-overlay" />
-          <Dialog.Content
-            className="event-dialog"
-            onEscapeKeyDown={(e) => e.preventDefault()}
-            onPointerDownOutside={(e) => e.preventDefault()}
-            onInteractOutside={(e) => e.preventDefault()}
-          >
-            <span className="eyebrow">A LITTLE UNEXPECTED · 第{state.time.next_turn}期</span>
-            <Dialog.Title>今期の特殊イベント</Dialog.Title>
-            <Dialog.Description>{special?.text}</Dialog.Description>
-            <p className="fine">対応を1つ選んでください。選択すると、その場で結果が確定します。</p>
             {error && (
               <p role="alert" className="error">
                 {error}
               </p>
             )}
-            {special && <Options choice={special} state={state} />}
-            <Link to="/" className="event-pause">
-              中断して保存一覧へ戻る
-            </Link>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
-    </>
+            <div className="rpg-window-body" key={stageKey}>
+              {tab === "family" ? (
+                <>
+                  <h2 ref={heading} tabIndex={-1}>
+                    いまの家族
+                  </h2>
+                  <Family publicState={state} />
+                  <section className="rpg-observations">
+                    <h3>子どもの様子</h3>
+                    <p>{state.scene?.text}</p>
+                    {state.observations.map((item) => (
+                      <p key={item.code}>{item.text}</p>
+                    ))}
+                    {turn.previous_result && (
+                      <>
+                        <h3>前の半年の振り返り</h3>
+                        {turn.previous_result.text.map((line, index) => (
+                          <p key={index}>{line}</p>
+                        ))}
+                      </>
+                    )}
+                    {turn.event_result.length > 0 && (
+                      <>
+                        <h3>今期の特殊イベントへの対応</h3>
+                        {turn.event_result.map((line, index) => (
+                          <p key={index}>{line}</p>
+                        ))}
+                      </>
+                    )}
+                  </section>
+                </>
+              ) : tab === "history" ? (
+                <>
+                  <h2 ref={heading} tabIndex={-1}>
+                    家族の記録
+                  </h2>
+                  <Timeline items={extra.items ?? []} />
+                </>
+              ) : tab === "help" ? (
+                <section className="rpg-help">
+                  <h2 ref={heading} tabIndex={-1}>
+                    半年ごとに、3つの判断。
+                  </h2>
+                  <ol>
+                    <li>特殊イベントへの対応を選びます。その場で確定します。</li>
+                    <li>3つの判断に、ひとつずつ回答します。「何もしない」も回答です。</li>
+                    <li>最後に選択と家計を確認し、「半年を進める」を押します。</li>
+                  </ol>
+                  <p>
+                    下の「判断1〜3」から、半年を進める前なら選び直せます。家族の様子では父母の能力・疲労と子どもの観察、前の半年の結果を確認できます。
+                  </p>
+                  <p>
+                    20歳までの40期と、その後の人生をたどります。家族の危機は修復できますが、離婚・一家離散が起きるとゲームオーバーです。
+                  </p>
+                  <button
+                    className="rpg-action"
+                    disabled={busy}
+                    onClick={() => void downloadSave(response.run_id!)}
+                  >
+                    書き出し
+                  </button>
+                </section>
+              ) : state.game_over ? (
+                <section className="ending game-over">
+                  <h1 ref={heading} tabIndex={-1}>
+                    ゲームオーバー — {state.game_over.title}
+                  </h1>
+                  <p>{state.game_over.text}</p>
+                  <button
+                    className="rpg-action"
+                    onClick={() => {
+                      setTab("history");
+                      void readExtra("history");
+                    }}
+                  >
+                    家族の記録を振り返る
+                  </button>
+                  <Link to="/">新しい人生をはじめる →</Link>
+                </section>
+              ) : ended ? (
+                extra.result ? (
+                  <Ending result={extra.result} />
+                ) : (
+                  <p>人生を振り返っています…</p>
+                )
+              ) : showingResult ? (
+                <>
+                  <h2 ref={heading} tabIndex={-1}>
+                    家族の時間が、少し動いた。
+                  </h2>
+                  <div className="rpg-result">
+                    {turn.event_result.map((line, index) => (
+                      <p key={index}>{line}</p>
+                    ))}
+                  </div>
+                  <button className="rpg-action" onClick={() => setEventResult(false)}>
+                    3つの判断へ →
+                  </button>
+                </>
+              ) : choice ? (
+                <>
+                  <h2 ref={heading} tabIndex={-1}>
+                    {choice.text}
+                  </h2>
+                  <Options
+                    choice={choice}
+                    state={state}
+                    onChosen={() => {
+                      setEditing(null);
+                      if (special) setEventResult(true);
+                    }}
+                  />
+                  <p className="rpg-hint">
+                    {special
+                      ? "選ぶと、その場で確定します。"
+                      : "選択は自動保存。半年を進めるまでは選び直せます。"}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 ref={heading} tabIndex={-1}>
+                    この半年、これでいこう。
+                  </h2>
+                  <div className="rpg-review">
+                    {decisions.map((item, index) => (
+                      <button key={item.instance_id} onClick={() => setEditing(item.instance_id)}>
+                        <span>判断 {index + 1}</span>
+                        <strong>
+                          {
+                            item.options.find((option) =>
+                              state.answers.some(
+                                (answer) =>
+                                  answer.event_instance === item.instance_id &&
+                                  answer.option_id === option.option_id,
+                              ),
+                            )?.label
+                          }
+                        </strong>
+                        <span>変更 ↗</span>
+                      </button>
+                    ))}
+                  </div>
+                  {projection && (
+                    <>
+                      <div className="rpg-budget">
+                        <span>
+                          収入 ＋{projection.income}万円 / 支出 −{projection.cost}万円
+                        </span>
+                        <strong>半年後 {projection.projected_cash}万円</strong>
+                      </div>
+                      {turn.contract && (
+                        <p className="rpg-hint">
+                          継続：{turn.contract.label}（{turn.contract.cost}万円／半年）
+                        </p>
+                      )}
+                      <p className="rpg-hint">支出には生活費と選択後の継続費用を含みます。</p>
+                      {projection.reasons.map((reason) => (
+                        <p className="warning" key={reason.path}>
+                          {reason.message}
+                        </p>
+                      ))}
+                      <button
+                        className="rpg-action"
+                        disabled={busy || !projection.can_advance}
+                        onClick={() => void update("advance")}
+                      >
+                        半年を進める →
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+            {tab === "play" && !ended && (
+              <nav className="rpg-steps" aria-label="今期の進行">
+                <span aria-current={special ? "step" : undefined}>出来事</span>
+                {[0, 1, 2].map((index) => (
+                  <button
+                    key={index}
+                    disabled={busy || !!special || showingResult || !decisions[index]}
+                    aria-current={
+                      choice === decisions[index] && !showingResult ? "step" : undefined
+                    }
+                    onClick={() => setEditing(decisions[index].instance_id)}
+                  >
+                    {decisions[index] && answered(decisions[index]) ? "✓ " : ""}判断{index + 1}
+                  </button>
+                ))}
+                <button
+                  disabled={busy || !!special || showingResult || turn.answered < 3}
+                  aria-current={!choice && !showingResult ? "step" : undefined}
+                  onClick={() => setEditing(null)}
+                >
+                  確認
+                </button>
+              </nav>
+            )}
+          </section>
+        </div>
+      </main>
+      <nav className="rpg-menu" aria-label="ゲーム内">
+        {(["play", "family", "history", "help"] as const).map((item) => (
+          <button
+            key={item}
+            aria-current={tab === item ? "page" : undefined}
+            onClick={() => {
+              setTab(item);
+              if (item === "history") void readExtra("history");
+            }}
+          >
+            {item === "play"
+              ? ended
+                ? "人生の結末"
+                : "いまの暮らし"
+              : item === "family"
+                ? "家族の様子"
+                : item === "history"
+                  ? "家族の記録"
+                  : "遊び方"}
+          </button>
+        ))}
+      </nav>
+    </div>
   );
 }

@@ -210,13 +210,7 @@ export function Play({ runId }: { runId: string }) {
         </main>
       </>
     );
-  if (publicState.decision_turn)
-    return (
-      <>
-        <Header />
-        <DecisionPlay key={runId} response={response!} />
-      </>
-    );
+  if (publicState.decision_turn) return <DecisionPlay key={runId} response={response!} />;
   const projection = publicState.forecast;
   const scene = sceneFor(publicState);
   const last = response?.payload?.history_added?.find((entry) => entry.kind === "turn");

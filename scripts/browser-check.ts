@@ -17,7 +17,37 @@ try {
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   await page.getByLabel("難易度").selectOption("hard");
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
-  const dialog = page.getByRole("dialog");
+  const dialog = page.locator(".rpg-window");
+  const body = page.locator(".rpg-window-body");
+  const selectEvent = async (last = false) => {
+    await expect(dialog).toContainText("今期の特殊イベント");
+    const options = body.locator(".choices button");
+    await (last ? options.last() : options.first()).click();
+    await expect(dialog).not.toContainText("今期の特殊イベント");
+    const proceed = page.getByRole("button", { name: "3つの判断へ →" });
+    if (!(await page.locator(".game-over").count())) {
+      await expect(proceed).toBeVisible();
+      await proceed.click();
+      await expect(dialog).toContainText("判断 1 / 3");
+    }
+  };
+  const selectDecisions = async (last = false) => {
+    for (let index = 0; index < 3; index++) {
+      await page.getByRole("button", { name: new RegExp(`判断${index + 1}$`) }).click();
+      const options = body.locator(".choices button");
+      await (last ? options.last() : options.first()).click();
+      await expect(page.locator(".rpg-save")).toHaveText("保存済み");
+      await expect(dialog).not.toContainText(`判断 ${index + 1} / 3`);
+    }
+  };
+  const checkViewport = async () => {
+    expect(
+      await page.evaluate(() => ({
+        x: document.documentElement.scrollWidth > innerWidth,
+        y: document.documentElement.scrollHeight > innerHeight,
+      })),
+    ).toEqual({ x: false, y: false });
+  };
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("今期の特殊イベント");
   const eventText = await dialog.innerText();
@@ -30,42 +60,30 @@ try {
   await page.screenshot({ path: out + "/event-desktop.png", fullPage: false });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: out + "/event-mobile.png", fullPage: false });
-  await dialog.locator(".choices button").first().click();
-  await expect(dialog).toBeHidden();
-  await expect(page.locator(".decision-card")).toHaveCount(3);
+  await checkViewport();
+  await selectEvent();
+  await expect(body.locator(".choices")).toHaveCount(1);
   await expect(page.locator(".plan-section")).toHaveCount(0);
   const next = page.getByRole("button", { name: "半年を進める →", exact: true });
-  await expect(next).toBeDisabled();
-  await page.locator(".decision-card").first().getByRole("button").first().click();
-  await expect(page.locator(".decision-heading")).toContainText("1 / 3 回答済み");
-  await expect(next).toBeDisabled();
+  await expect(next).toHaveCount(0);
+  await body.locator(".choices button").first().click();
+  await expect(dialog).toContainText("1 / 3 回答済み");
   await page.reload();
-  await expect(dialog).toBeHidden();
-  await expect(page.locator(".decision-heading")).toContainText("1 / 3 回答済み");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
-    true,
-  );
-  await page.screenshot({ path: out + "/decisions-mobile.png", fullPage: true });
+  await expect(dialog).toContainText("判断 2 / 3");
+  await checkViewport();
+  await page.screenshot({ path: out + "/decisions-mobile.png", fullPage: false });
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.screenshot({ path: out + "/decisions-desktop.png", fullPage: true });
+  await checkViewport();
+  await page.screenshot({ path: out + "/decisions-desktop.png", fullPage: false });
   const log: string[] = [];
   for (let turn = 1; turn <= 40; turn++) {
-    if (turn > 1) {
-      await expect(dialog).toBeVisible();
-      await dialog.locator(".choices button").first().click();
-      await expect(dialog).toBeHidden();
-    }
-    for (let index = 0; index < 3; index++) {
-      const card = page.locator(".decision-card").nth(index);
-      if (!(await card.locator('[aria-pressed="true"]').count())) {
-        await card.getByRole("button").first().click();
-        await expect(card.locator('[aria-pressed="true"]')).toHaveCount(1);
-      }
-    }
+    if (turn > 1) await selectEvent();
+    await selectDecisions();
+    await checkViewport();
     await expect(next).toBeEnabled();
-    log.push(await page.locator(".timebar h1").innerText());
+    log.push(await page.locator(".rpg-age").innerText());
     await next.click();
-    if (turn < 40) await expect(dialog).toContainText(`第${turn + 1}期`);
+    if (turn < 40) await expect(page.locator(".rpg-caption")).toContainText(`第 ${turn + 1} 期`);
   }
   await expect(page.locator(".ending h1")).toBeVisible();
   const ending = await page.locator(".ending h1").innerText();
@@ -80,6 +98,7 @@ try {
   await expect(page.locator(".ending h1")).toHaveText(ending);
   const savedUrl = page.url();
   const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "遊び方", exact: true }).click();
   await page.getByRole("button", { name: "書き出し", exact: true }).click();
   await (await downloadPromise).saveAs(out + "/save.json");
   const fresh = await browser.newPage();
@@ -98,18 +117,11 @@ try {
   await page.goto(url);
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
   for (let turn = 1; turn <= 40; turn++) {
-    await expect(dialog).toBeVisible();
-    const leave = dialog.getByRole("button", { name: /今回は何もせず様子を見る/ });
-    if (await leave.count()) await leave.click();
-    else await dialog.locator(".choices button").first().click();
-    await expect(dialog).toBeHidden();
-    for (let index = 0; index < 3; index++) {
-      const card = page.locator(".decision-card").nth(index);
-      await card.getByRole("button").last().click();
-      await expect(card.locator('[aria-pressed="true"]')).toHaveCount(1);
-    }
+    await selectEvent(true);
+    if (await page.locator(".game-over").count()) break;
+    await selectDecisions(true);
     await next.click();
-    await expect(page.locator(".event-dialog, .game-over")).toHaveCount(1);
+    await expect(next).toHaveCount(0);
     if (await page.locator(".game-over").count()) break;
   }
   await expect(page.locator(".game-over")).toContainText("離婚");
@@ -130,7 +142,7 @@ try {
         turns: log,
         ending,
         history: 88,
-        mandatoryDialog: true,
+        sequentialEvents: true,
         gameOverReload: true,
         partialSave: true,
         exportImport: true,
