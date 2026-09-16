@@ -2452,6 +2452,20 @@
     "fatigue_per_turn": 4,
     "stress_per_turn": 2,
     "couple_per_turn": -2,
-    "trust_per_turn": -1
+    "trust_per_turn": -1,
+    "initial_grandparents": {
+      "grandfather": {
+        "health": 8,
+        "relation": 6,
+        "funds": 50,
+        "network": true
+      },
+      "grandmother": {
+        "health": 8,
+        "relation": 6,
+        "funds": 50,
+        "network": true
+      }
+    }
   }
 }

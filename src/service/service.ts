@@ -1,3 +1,6 @@
+import * as v from "valibot";
+import { grandparentSchema } from "../content/decision_schema";
+import { syncGrandparents } from "../engine/grandparents";
 import { startDecisions, chooseDecision } from "../engine/decisions";
 import { Catalog, catalog, contentFor } from "../content/catalog";
 import { ContentError, validateSettings } from "../content/validation";
@@ -100,15 +103,32 @@ export function validateRun(run: Run) {
     (version?.save === "save-4" && version.rules === "rules-3" && version.data === "data-3") ||
     (version?.save === "save-5" && version.rules === "rules-4" && version.data === "data-4") ||
     (version?.save === "save-6" && version.rules === "rules-5" && version.data === "data-5") ||
-    (version?.save === "save-7" && version.rules === "rules-6" && version.data === "data-6");
+    (version?.save === "save-7" && version.rules === "rules-6" && version.data === "data-6") ||
+    (version?.save === "save-8" && version.rules === "rules-7" && version.data === "data-7");
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
     if (current || decisions) {
       validateSettings(run.state.settings);
+      if (version.rules === "rules-7") {
+        const group = run.state.grandparents;
+        if (
+          !run.state.settings!.content.decision_game?.initial_grandparents ||
+          !group.members ||
+          !v.is(grandparentSchema, group.members.grandfather) ||
+          !v.is(grandparentSchema, group.members.grandmother)
+        )
+          throw new Error("祖父・祖母の状態が不正です");
+        const expected = clone(group);
+        syncGrandparents(expected);
+        if (canonical(expected) !== canonical(group)) throw new Error("祖父母の集計が一致しません");
+      }
       if (decisions && (!run.state.settings!.content.decision_game || !run.state.decisions))
         throw new Error("選択ゲームの状態がありません");
-      if (version.rules === "rules-6" && !run.state.settings!.content.automatic_events)
+      if (
+        ["rules-6", "rules-7"].includes(version.rules) &&
+        !run.state.settings!.content.automatic_events
+      )
         throw new Error("自動イベント設定がありません");
     } else if (run.state.settings !== undefined) throw new Error("旧保存に設定があります");
   } catch {
@@ -451,6 +471,7 @@ export function importRun(text: string): Run {
         "parent-save-5",
         "parent-save-6",
         "parent-save-7",
+        "parent-save-8",
       ].includes(parsed.format)
     )
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");

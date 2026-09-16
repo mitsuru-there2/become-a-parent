@@ -68,6 +68,12 @@
                     "decisions.skills.B.dialogue",
                     "decisions.skills.B.planning",
                     "decisions.skills.B.learning",
+                    "grandparents.members.grandfather.health",
+                    "grandparents.members.grandfather.relation",
+                    "grandparents.members.grandfather.funds",
+                    "grandparents.members.grandmother.health",
+                    "grandparents.members.grandmother.relation",
+                    "grandparents.members.grandmother.funds",
                     "grandparents.health",
                     "grandparents.relation",
                     "grandparents.funds",
@@ -128,6 +134,12 @@
                         "decisions.skills.B.dialogue",
                         "decisions.skills.B.planning",
                         "decisions.skills.B.learning",
+                        "grandparents.members.grandfather.health",
+                        "grandparents.members.grandfather.relation",
+                        "grandparents.members.grandfather.funds",
+                        "grandparents.members.grandmother.health",
+                        "grandparents.members.grandmother.relation",
+                        "grandparents.members.grandmother.funds",
                         "grandparents.health",
                         "grandparents.relation",
                         "grandparents.funds",
@@ -202,6 +214,12 @@
                     "decisions.skills.B.dialogue",
                     "decisions.skills.B.planning",
                     "decisions.skills.B.learning",
+                    "grandparents.members.grandfather.health",
+                    "grandparents.members.grandfather.relation",
+                    "grandparents.members.grandfather.funds",
+                    "grandparents.members.grandmother.health",
+                    "grandparents.members.grandmother.relation",
+                    "grandparents.members.grandmother.funds",
                     "grandparents.health",
                     "grandparents.relation",
                     "grandparents.funds"
@@ -239,6 +257,63 @@
     "decision_game": {
       "type": "object",
       "properties": {
+        "initial_grandparents": {
+          "type": "object",
+          "properties": {
+            "grandfather": {
+              "type": "object",
+              "properties": {
+                "health": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "relation": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "funds": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
+                "network": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["health", "relation", "funds", "network"],
+              "additionalProperties": false
+            },
+            "grandmother": {
+              "type": "object",
+              "properties": {
+                "health": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "relation": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "funds": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
+                "network": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["health", "relation", "funds", "network"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["grandfather", "grandmother"],
+          "additionalProperties": false
+        },
         "initial_grandparent_funds": {
           "type": "integer",
           "minimum": 0,

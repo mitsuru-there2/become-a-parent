@@ -1,3 +1,4 @@
+import { GRANDPARENTS, grandparentNames } from "../../engine/grandparents";
 import type { PublicState } from "../../engine/types";
 import { PEOPLE } from "../../engine/shared";
 import { labels } from "../../lib/labels";
@@ -27,7 +28,9 @@ export function Family({ publicState }: { publicState: PublicState }) {
                 <meter
                   min="0"
                   max={
-                    ["rules-4", "rules-5", "rules-6"].includes(publicState.versions.rules)
+                    ["rules-4", "rules-5", "rules-6", "rules-7"].includes(
+                      publicState.versions.rules,
+                    )
                       ? 10
                       : 100
                   }
@@ -50,7 +53,9 @@ export function Family({ publicState }: { publicState: PublicState }) {
               <meter
                 min="0"
                 max={
-                  ["rules-4", "rules-5", "rules-6"].includes(publicState.versions.rules) ? 10 : 100
+                  ["rules-4", "rules-5", "rules-6", "rules-7"].includes(publicState.versions.rules)
+                    ? 10
+                    : 100
                 }
                 value={publicState.parents[parentId][statKey]}
                 aria-label={`${labels[parentId]}の${labels[statKey]}`}
@@ -63,15 +68,27 @@ export function Family({ publicState }: { publicState: PublicState }) {
       <div className="family-detail">
         <span>夫婦の関係</span>
         <strong>{publicState.couple}</strong>
-        <span>祖父母の体力</span>
-        <strong>{publicState.grandparents.health}</strong>
-        <span>祖父母との関係</span>
-        <strong>{publicState.grandparents.relation}</strong>
-        <span>援助に使えるお金</span>
-        <strong>{publicState.grandparents.funds}万円</strong>
-        <span>地域とのつながり</span>
-        <strong>{publicState.grandparents.network ? "あり" : "なし"}</strong>
       </div>
+      {(publicState.grandparents.members ? GRANDPARENTS : (["shared"] as const)).map((id) => {
+        const member =
+          id === "shared" ? publicState.grandparents : publicState.grandparents.members![id];
+        const name = id === "shared" ? "祖父母（共通）" : grandparentNames[id];
+        return (
+          <div className="parent" key={id}>
+            <h3>{name}</h3>
+            <div className="family-detail">
+              <span>体力</span>
+              <strong>{member.health}</strong>
+              <span>家族との関係</span>
+              <strong>{member.relation}</strong>
+              <span>援助に使えるお金</span>
+              <strong>{member.funds}万円</strong>
+              <span>地域とのつながり</span>
+              <strong>{member.network ? "あり" : "なし"}</strong>
+            </div>
+          </div>
+        );
+      })}
     </aside>
   );
 }

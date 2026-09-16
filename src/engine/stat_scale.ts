@@ -1,8 +1,9 @@
+import { syncGrandparents } from "./grandparents";
 import type { State } from "./types";
 import { PEOPLE, clone } from "./shared";
 
 export const tenPoint = (state: Pick<State, "versions">) =>
-  ["rules-4", "rules-5", "rules-6"].includes(state.versions.rules);
+  ["rules-4", "rules-5", "rules-6", "rules-7"].includes(state.versions.rules);
 export const parentFields = ["stress", "health", "fulfillment", "social", "regret"] as const;
 export const pointEffect = (value: number) => Math.sign(value) * Math.ceil(Math.abs(value) / 5);
 export const pointDrift = (value: number) => Math.sign(value) * Math.ceil(Math.abs(value) / 10);
@@ -15,13 +16,19 @@ export function scaleParents(state: State, factor: number) {
   for (const p of PEOPLE)
     for (const key of parentFields)
       state.parents[p][key] = Math.round(state.parents[p][key] * factor);
+  if (state.grandparents.members)
+    for (const person of Object.values(state.grandparents.members)) {
+      person.health = Math.round(person.health * factor);
+      person.relation = Math.round(person.relation * factor);
+    }
   state.couple = Math.round(state.couple * factor);
   state.grandparents.health = Math.round(state.grandparents.health * factor);
   state.grandparents.relation = Math.round(state.grandparents.relation * factor);
+  syncGrandparents(state.grandparents);
 }
 export function legacyEquivalent(state: State) {
   if (!tenPoint(state)) return state;
-  const copy = { ...state, parents: clone(state.parents), grandparents: { ...state.grandparents } };
+  const copy = { ...state, parents: clone(state.parents), grandparents: clone(state.grandparents) };
   scaleParents(copy, 10);
   return copy;
 }

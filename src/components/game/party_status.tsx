@@ -1,3 +1,4 @@
+import { GRANDPARENTS, grandparentNames } from "../../engine/grandparents";
 import type { PublicState } from "../../engine/types";
 import { PEOPLE } from "../../engine/shared";
 import { labels } from "../../lib/labels";
@@ -23,7 +24,9 @@ function StatusMeter({
 }
 
 export function PartyStatus({ state }: { state: PublicState }) {
-  const max = ["rules-4", "rules-5", "rules-6"].includes(state.versions.rules) ? 10 : 100;
+  const max = ["rules-4", "rules-5", "rules-6", "rules-7"].includes(state.versions.rules)
+    ? 10
+    : 100;
   const turn = state.decision_turn;
   return (
     <section className="rpg-party" aria-label="家族のステータス">
@@ -61,36 +64,35 @@ export function PartyStatus({ state }: { state: PublicState }) {
           )}
         </section>
       ))}
-      {["祖父", "祖母"].map((person) => (
-        <section className="party-member" key={person} aria-label={`${person}のステータス`}>
-          <h2>
-            {person}
-            <span>祖父母共通</span>
-          </h2>
-          <div className="party-grand-stats">
-            <StatusMeter max={max} person={person} label="体力" value={state.grandparents.health} />
-            <StatusMeter
-              max={max}
-              person={person}
-              label="関係"
-              value={state.grandparents.relation}
-            />
-          </div>
-          <dl className="party-support">
-            <div>
-              <dt>援助資金</dt>
-              <dd>
-                {state.grandparents.funds}
-                <small> 万円</small>
-              </dd>
+      {GRANDPARENTS.map((id) => {
+        const person = grandparentNames[id];
+        const member = state.grandparents.members?.[id] ?? state.grandparents;
+        return (
+          <section className="party-member" key={person} aria-label={`${person}のステータス`}>
+            <h2>
+              {person}
+              {!state.grandparents.members && <span>祖父母共通</span>}
+            </h2>
+            <div className="party-grand-stats">
+              <StatusMeter max={max} person={person} label="体力" value={member.health} />
+              <StatusMeter max={max} person={person} label="関係" value={member.relation} />
             </div>
-            <div>
-              <dt>地域のつながり</dt>
-              <dd>{state.grandparents.network ? "あり" : "なし"}</dd>
-            </div>
-          </dl>
-        </section>
-      ))}
+            <dl className="party-support">
+              <div>
+                <dt>援助資金</dt>
+                <dd>
+                  {member.funds}
+                  <small> 万円</small>
+                </dd>
+              </div>
+              <div>
+                <dt>地域のつながり</dt>
+                <dd>{member.network ? "あり" : "なし"}</dd>
+              </div>
+            </dl>
+          </section>
+        );
+      })}
     </section>
   );
 }

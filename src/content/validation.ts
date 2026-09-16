@@ -50,6 +50,14 @@ function condition(c: Condition, content: Content) {
 }
 // 型検査後に、パック合成やゲーム規則に依存する参照整合性を検査する。
 function references(c: Content) {
+  if (
+    c.automatic_events?.some((e) =>
+      [...e.conditions, ...e.modifiers.map((m) => m.condition), ...e.effects].some((item) =>
+        item.path.startsWith("grandparents.members."),
+      ),
+    )
+  )
+    ensure(c.decision_game?.initial_grandparents, "decision_game.initial_grandparents");
   if (c.decision_game) {
     const game = c.decision_game;
     ensure(

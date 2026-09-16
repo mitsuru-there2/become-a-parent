@@ -22,6 +22,7 @@ try {
   const body = page.locator(".rpg-window-body");
   const selectEvent = async () => {
     const proceed = page.getByRole("button", { name: "3つの判断へ →" });
+    await expect(body.locator(".choices").or(proceed)).toHaveCount(1);
     if (await proceed.count()) {
       await expect(page.getByRole("region", { name: "今期の出来事" })).toBeVisible();
       await expect(body.locator(".choices")).toHaveCount(0);
@@ -61,6 +62,8 @@ try {
   await page.mouse.click(5, 5);
   await expect(dialog).toBeVisible();
   await page.reload();
+  // 未回答で再読込した場合は今期の出来事を再表示する（効果は再適用しない）。
+  await selectEvent();
   await expect(dialog).toHaveText(eventText, { useInnerText: true });
   await page.screenshot({ path: out + "/event-desktop.png", fullPage: false });
   await page.setViewportSize({ width: 390, height: 844 });

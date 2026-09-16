@@ -1,3 +1,4 @@
+import { applyGrandparentDelta } from "./grandparents";
 import { decisionView, decisionForecast, advanceDecisions } from "./decisions";
 import type {
   State,
@@ -593,7 +594,9 @@ export function applyEffect(state: State, effect: Record<string, number | string
       case "GM":
       case "GR": {
         const field = key === "GM" ? "funds" : "relation";
-        state.grandparents[field] = clampStat(state.grandparents[field] + amount);
+        if (state.grandparents.members)
+          applyGrandparentDelta(state.grandparents, field, amount, 100);
+        else state.grandparents[field] = clampStat(state.grandparents[field] + amount);
         break;
       }
       default: {

@@ -1,14 +1,14 @@
 [
   {
-    "id": "grandparent-gift",
-    "text": "祖父母から突然の援助。子育てに使ってね、と50万円が届いた。",
+    "id": "grandfather-gift",
+    "text": "祖父から突然の援助。子育てに使ってね、と50万円が届いた。",
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 12,
+    "probability": 6,
     "conditions": [
       {
-        "path": "grandparents.funds",
+        "path": "grandparents.members.grandfather.funds",
         "value": 50,
         "op": "gte"
       }
@@ -16,11 +16,11 @@
     "modifiers": [
       {
         "condition": {
-          "path": "grandparents.relation",
+          "path": "grandparents.members.grandfather.relation",
           "value": 7,
           "op": "gte"
         },
-        "add": 10
+        "add": 5
       }
     ],
     "cooldown": 8,
@@ -31,11 +31,52 @@
         "delta": 50
       },
       {
-        "path": "grandparents.funds",
+        "path": "grandparents.members.grandfather.funds",
         "delta": -50
       },
       {
-        "path": "grandparents.relation",
+        "path": "grandparents.members.grandfather.relation",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "grandmother-gift",
+    "text": "祖母から突然の援助。子育てに使ってね、と50万円が届いた。",
+    "kind": "good",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 6,
+    "conditions": [
+      {
+        "path": "grandparents.members.grandmother.funds",
+        "value": 50,
+        "op": "gte"
+      }
+    ],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "grandparents.members.grandmother.relation",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 5
+      }
+    ],
+    "cooldown": 8,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 50
+      },
+      {
+        "path": "grandparents.members.grandmother.funds",
+        "delta": -50
+      },
+      {
+        "path": "grandparents.members.grandmother.relation",
         "delta": 1
       }
     ]
@@ -424,8 +465,8 @@
     ]
   },
   {
-    "id": "grandparent-care",
-    "text": "祖父母の体調がすぐれず、家族で生活を支える費用が増えた。",
+    "id": "grandfather-care",
+    "text": "祖父の体調がすぐれず、家族で生活を支える費用が増えた。",
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
@@ -434,7 +475,7 @@
     "modifiers": [
       {
         "condition": {
-          "path": "grandparents.health",
+          "path": "grandparents.members.grandfather.health",
           "value": 5,
           "op": "lt"
         },
@@ -446,11 +487,90 @@
     "effects": [
       {
         "path": "cash",
-        "delta": -20
+        "delta": -10
       },
       {
-        "path": "grandparents.health",
+        "path": "grandparents.members.grandfather.health",
         "delta": -1
+      }
+    ]
+  },
+  {
+    "id": "grandmother-care",
+    "text": "祖母の体調がすぐれず、家族で生活を支える費用が増えた。",
+    "kind": "bad",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 5,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "grandparents.members.grandmother.health",
+          "value": 5,
+          "op": "lt"
+        },
+        "add": 20
+      }
+    ],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -10
+      },
+      {
+        "path": "grandparents.members.grandmother.health",
+        "delta": -1
+      }
+    ]
+  },
+  {
+    "id": "grandfather-recovery",
+    "text": "祖父が休養をとり、体調が少し戻った。",
+    "kind": "good",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 10,
+    "conditions": [
+      {
+        "path": "grandparents.members.grandfather.health",
+        "op": "lt",
+        "value": 8
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "grandparents.members.grandfather.health",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "grandmother-recovery",
+    "text": "祖母が休養をとり、体調が少し戻った。",
+    "kind": "good",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 10,
+    "conditions": [
+      {
+        "path": "grandparents.members.grandmother.health",
+        "op": "lt",
+        "value": 8
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "grandparents.members.grandmother.health",
+        "delta": 1
       }
     ]
   }

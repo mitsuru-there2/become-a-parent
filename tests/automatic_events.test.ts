@@ -43,7 +43,7 @@ describe("S-016 自動イベント", () => {
         ],
       }),
     ]);
-    expect(state.versions.rules).toBe("rules-6");
+    expect(state.versions.rules).toBe("rules-7");
     expect(state.cash).toBe(quiet.cash + 30);
     expect(state.parents.A.stress).toBe(quiet.parents.A.stress + 2);
     expect(state.history[0].events).toHaveLength(2);
@@ -197,7 +197,7 @@ describe("S-016 自動イベント", () => {
     repo.db.close();
   }, 30000);
   it("本編の祖父母援助は初期資金から50万円を移し、コンテスト賞金も50万円入る", () => {
-    const gift = bundledEvents.find((e) => e.id === "grandparent-gift") as AutomaticEvent;
+    const gift = bundledEvents.find((e) => e.id === "grandfather-gift") as AutomaticEvent;
     const quiet = start([]);
     const received = start([{ ...gift, probability: 100 }]);
     expect(received.grandparents.funds).toBe(50);

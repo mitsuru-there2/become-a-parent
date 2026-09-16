@@ -42,7 +42,16 @@ export const decisionThemeSchema = v.pipe(
   }),
   v.check((t) => t.min_turn <= t.max_turn, "対象期間が逆です"),
 );
+export const grandparentSchema = v.strictObject({
+  health: integer(0, 10),
+  relation: integer(0, 10),
+  funds: integer(0, 99999),
+  network: v.boolean(),
+});
 export const decisionGameSchema = v.strictObject({
+  initial_grandparents: v.optional(
+    v.strictObject({ grandfather: grandparentSchema, grandmother: grandparentSchema }),
+  ),
   initial_grandparent_funds: v.optional(integer()),
   themes: v.array(decisionThemeSchema),
   events: v.array(decisionThemeSchema),

@@ -126,12 +126,19 @@ export interface History {
     child: ChildResult;
   } | null;
 }
+export interface Grandparent {
+  health: number;
+  relation: number;
+  funds: number;
+  network: boolean;
+}
+export type GrandparentId = "grandfather" | "grandmother";
 export interface NumericState {
   cash: number;
   parents: Record<Person, Parent>;
   couple: number;
   child: Child;
-  grandparents: { health: number; relation: number; funds: number; network: boolean };
+  grandparents: Grandparent & { members?: Record<GrandparentId, Grandparent> };
 }
 export interface DecisionTurn {
   opened_turn?: number;

@@ -1,3 +1,4 @@
+import { applyGrandparentDelta, syncGrandparents } from "./grandparents";
 import type { State, History } from "./types";
 import type { AutomaticEvent } from "../content/automatic_event_schema";
 import { contentFor } from "../content/catalog";
@@ -5,7 +6,8 @@ import { clone } from "./shared";
 import { matches } from "./events";
 import { draw, observeChild } from "./simulation";
 
-export const automaticEventsEnabled = (state: State) => state.versions.rules === "rules-6";
+export const automaticEventsEnabled = (state: State) =>
+  ["rules-6", "rules-7"].includes(state.versions.rules);
 export function applyAutomaticEvents(state: State): History | null {
   const turn = state.n + 1;
   const age = state.n * 6;
@@ -100,19 +102,26 @@ export function applyAutomaticEvents(state: State): History | null {
   return clone(entry);
 }
 function applyStat(state: State, effect: AutomaticEvent["effects"][number]) {
+  if (state.grandparents.members && /^grandparents\.(health|relation|funds)$/.test(effect.path)) {
+    const field = effect.path.split(".")[1] as "health" | "relation" | "funds";
+    const previous = state.grandparents[field];
+    applyGrandparentDelta(state.grandparents, field, effect.delta, 10);
+    return { previous, current: state.grandparents[field] };
+  }
   const keys = effect.path.split(".");
   let object = state as unknown as Record<string, unknown>;
   for (const key of keys.slice(0, -1)) object = object[key] as Record<string, unknown>;
   const key = keys.at(-1)!;
   const previous = object[key] as number;
   const max =
-    effect.path === "cash" || effect.path === "grandparents.funds"
+    effect.path === "cash" || effect.path.endsWith(".funds")
       ? 99999
       : effect.path.startsWith("child.")
         ? 100
         : 10;
   const current = Math.max(0, Math.min(max, previous + effect.delta));
   object[key] = current;
+  syncGrandparents(state.grandparents);
   return { previous, current };
 }
 function statLabel(path: string) {
@@ -121,7 +130,10 @@ function statLabel(path: string) {
     decisions: "",
     A: "父",
     B: "母",
-    grandparents: "祖父母",
+    grandparents: "",
+    members: "",
+    grandfather: "祖父",
+    grandmother: "祖母",
     stress: "ストレス",
     health: "体力",
     fulfillment: "充実",
@@ -136,6 +148,8 @@ function statLabel(path: string) {
     relation: "関係",
     funds: "資金（万円）",
   };
+  if (/^grandparents\.(health|relation|funds)$/.test(path))
+    return `祖父母・${labels[path.split(".")[1]]}`;
   return path
     .split(".")
     .map((part) => labels[part] ?? part)

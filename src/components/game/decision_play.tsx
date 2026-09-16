@@ -84,7 +84,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   const ended = response.phase !== "childhood";
   const eventTurn = `${response.run_id}:${state.time.next_turn}`;
   const automaticResult =
-    state.versions.rules === "rules-6" &&
+    ["rules-6", "rules-7"].includes(state.versions.rules) &&
     turn.event_result.length > 0 &&
     turn.answered === 0 &&
     readEventTurn !== eventTurn;
@@ -213,7 +213,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                   </h2>
                   <ol>
                     <li>
-                      {state.versions.rules === "rules-6"
+                      {["rules-6", "rules-7"].includes(state.versions.rules)
                         ? "出来事は自動で発生し、資金や家族の状態に反映されます。"
                         : "特殊イベントへの対応を選びます。その場で確定します。"}
                     </li>
