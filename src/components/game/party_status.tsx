@@ -2,17 +2,28 @@ import type { PublicState } from "../../engine/types";
 import { PEOPLE } from "../../engine/shared";
 import { labels } from "../../lib/labels";
 
-function StatusMeter({ person, label, value }: { person: string; label: string; value: number }) {
+function StatusMeter({
+  person,
+  label,
+  value,
+  max,
+}: {
+  person: string;
+  label: string;
+  value: number;
+  max: number;
+}) {
   return (
     <div className="party-stat">
       <span>{label}</span>
-      <meter min={0} max={100} value={value} aria-label={`${person}の${label}`} />
+      <meter min={0} max={max} value={value} aria-label={`${person}の${label}`} />
       <b>{value}</b>
     </div>
   );
 }
 
 export function PartyStatus({ state }: { state: PublicState }) {
+  const max = ["rules-4", "rules-5"].includes(state.versions.rules) ? 10 : 100;
   const turn = state.decision_turn;
   return (
     <section className="rpg-party" aria-label="家族のステータス">
@@ -23,10 +34,18 @@ export function PartyStatus({ state }: { state: PublicState }) {
             <span>{Math.floor(state.parents[id].age_months / 12)}歳</span>
           </h2>
           <div className="party-stats">
-            <StatusMeter person={labels[id]} label="健康" value={state.parents[id].health} />
-            {turn && <StatusMeter person={labels[id]} label="疲労" value={turn.fatigue[id]} />}
+            <StatusMeter
+              max={max}
+              person={labels[id]}
+              label="健康"
+              value={state.parents[id].health}
+            />
+            {turn && (
+              <StatusMeter max={max} person={labels[id]} label="疲労" value={turn.fatigue[id]} />
+            )}
             {(["stress", "fulfillment", "social", "regret"] as const).map((key) => (
               <StatusMeter
+                max={max}
                 key={key}
                 person={labels[id]}
                 label={labels[key]}
@@ -49,8 +68,13 @@ export function PartyStatus({ state }: { state: PublicState }) {
             <span>祖父母共通</span>
           </h2>
           <div className="party-grand-stats">
-            <StatusMeter person={person} label="体力" value={state.grandparents.health} />
-            <StatusMeter person={person} label="関係" value={state.grandparents.relation} />
+            <StatusMeter max={max} person={person} label="体力" value={state.grandparents.health} />
+            <StatusMeter
+              max={max}
+              person={person}
+              label="関係"
+              value={state.grandparents.relation}
+            />
           </div>
           <dl className="party-support">
             <div>

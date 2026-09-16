@@ -9,11 +9,20 @@ import {
 } from "../src/engine/decisions";
 import { advance, publicView } from "../src/engine/simulation";
 import { clone } from "../src/engine/shared";
-import { Service, exportRun, importRun, replayRun, type Request } from "../src/service/service";
+import {
+  Service,
+  exportRun,
+  importRun,
+  replayRun,
+  type Request,
+  type Run,
+  digest,
+} from "../src/service/service";
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
 import type { State } from "../src/engine/types";
 import sample from "../config/examples/community.json";
 import base from "../config/base.json";
+import { parentFields } from "../src/engine/stat_scale";
 const start = (seed = 0) => startDecisions("home-01", seed, new Catalog().resolve());
 function answerSpecial(state: State, suffix = ":together") {
   const event = publicView(state).choices[0];
@@ -59,15 +68,15 @@ describe("S-016 選択中心の共通エンジン", () => {
     answerSpecial(low);
     const high = clone(low);
     low.decisions!.skills.A.dialogue = 0;
-    high.decisions!.skills.A.dialogue = 100;
+    high.decisions!.skills.A.dialogue = 10;
     answerAll(low);
     answerAll(high);
     advance(low);
     advance(high);
     expect(high.child.trust.A).toBeGreaterThan(low.child.trust.A);
-    expect(high.decisions!.contract?.cost).toBe(12);
+    expect(high.decisions!.contract?.cost).toBe(24);
     answerSpecial(high);
-    expect(publicView(high).public.forecast!.cost).toBe(236);
+    expect(publicView(high).public.forecast!.cost).toBe(248);
     const education = publicView(high).choices[0];
     chooseDecision(high, education.instance_id, education.options.at(-1)!.option_id);
     expect(publicView(high).public.forecast!.cost).toBe(224);
@@ -81,7 +90,7 @@ describe("S-016 選択中心の共通エンジン", () => {
       [10, 1],
     ]) {
       const state = start();
-      state.couple = score;
+      state.couple = score / 10;
       state.child.trust = { A: score, B: score };
       state.parents.A.stress = state.parents.B.stress = 0;
       state.decisions!.fatigue = { A: 0, B: 0 };
@@ -91,15 +100,15 @@ describe("S-016 選択中心の共通エンジン", () => {
     for (const reason of ["divorce", "separation"] as const) {
       const state = start();
       state.n = 38;
-      state.couple = 5;
-      state.parents.A.stress = state.parents.B.stress = 90;
+      state.couple = 0;
+      state.parents.A.stress = state.parents.B.stress = 9;
       if (reason === "separation") state.child.trust = { A: 5, B: 5 };
       openDecisionTurn(state);
       // 内部境界試験：イベントで改善しても終了条件内になる状態を固定する。
       for (let i = 0; i < 2; i++) {
         answerSpecial(state);
-        state.couple = 5;
-        state.parents.A.stress = state.parents.B.stress = 90;
+        state.couple = 0;
+        state.parents.A.stress = state.parents.B.stress = 9;
         if (reason === "separation") state.child.trust = { A: 5, B: 5 };
         answerAll(state, true);
         advance(state);
@@ -110,7 +119,7 @@ describe("S-016 選択中心の共通エンジン", () => {
       expect(state.history.some((h) => h.kind === "adult")).toBe(false);
     }
     const recovery = start();
-    recovery.couple = 5;
+    recovery.couple = 0;
     recovery.child.trust = { A: 5, B: 5 };
     recovery.decisions!.crisis = { divorce: 1, separation: 1 };
     openDecisionTurn(recovery);
@@ -192,6 +201,26 @@ describe("S-016 保存・公開CLI契約", () => {
         }
         await call("advance");
         expect(r.public!.time.completed_turns).toBe(t + 1);
+        for (const p of ["A", "B"] as const) {
+          const values = [
+            ...parentFields.map((key) => r.public!.parents[p][key]),
+            r.public!.decision_turn!.fatigue[p],
+            ...Object.values(r.public!.decision_turn!.skills[p]),
+          ];
+          for (const value of values) {
+            expect(Number.isInteger(value)).toBe(true);
+            expect(value).toBeGreaterThanOrEqual(0);
+            expect(value).toBeLessThanOrEqual(10);
+          }
+        }
+        for (const value of [
+          r.public!.couple,
+          r.public!.grandparents.health,
+          r.public!.grandparents.relation,
+        ]) {
+          expect(value).toBeGreaterThanOrEqual(0);
+          expect(value).toBeLessThanOrEqual(10);
+        }
       }
       expect(r.phase).toBe("finished");
       const saved = (await repo.read("test"))!;
@@ -230,7 +259,7 @@ describe("S-016 境界と保存整合性", () => {
     answerSpecial(b);
     expect(a).toEqual(b);
     const tired = clone(a);
-    tired.decisions!.fatigue.A = 90;
+    tired.decisions!.fatigue.A = 9;
     answerAll(a);
     answerAll(tired);
     advance(a);
@@ -288,4 +317,65 @@ describe("S-016 境界と保存整合性", () => {
     expect(await repo.read("test")).toEqual(saved);
     repo.db.close();
   }, 30000);
+});
+
+describe("S-016 10点スケール", () => {
+  it("一つのイベントで1点以上動き、結果に実際の差分を残し、上限・下限で止まる", () => {
+    const state = start();
+    state.decisions!.special.options[0].parent = "both";
+    state.decisions!.special.options[0].skill = null;
+    state.decisions!.special.options[0].effects = { fatigue: 6, stress: -6, couple: 6 };
+    state.decisions!.fatigue = { A: 9, B: 3 };
+    state.parents.A.stress = 1;
+    state.parents.B.stress = 5;
+    state.couple = 9;
+    const special = publicView(state).choices[0];
+    chooseDecision(state, special.instance_id, special.options[0].option_id);
+    expect(state.decisions!.fatigue.A).toBe(10);
+    expect(state.decisions!.fatigue.B).toBeGreaterThan(3);
+    expect(state.parents.A.stress).toBe(0);
+    expect(state.parents.B.stress).toBe(3);
+    expect(state.couple).toBe(10);
+    expect(state.history.at(-1)!.text.join("\n")).toContain("5→3（−2）".replace("−", "-"));
+  });
+  it("旧save-4を100点のまま読み込み、再生し、進行できる", () => {
+    const state = startDecisions("home-01", 0, new Catalog().resolve(), "rules-3");
+    expect(state.couple).toBe(60);
+    expect(state.decisions!.fatigue.A).toBe(25);
+    const run: Run = {
+      id: "legacy",
+      revision: 0,
+      state,
+      digest: digest(state),
+      commits: [],
+      receipts: {},
+      updated_at: "2026-09-17",
+    };
+    expect(importRun(exportRun(run))).toEqual(run);
+    expect(replayRun(run)).toEqual(state);
+    for (let turn = 0; turn < 40; turn++) {
+      const special = publicView(state).choices[0];
+      const option =
+        special.options.find((o) => o.option_id.endsWith(":together")) ?? special.options[0];
+      answerSpecial(state);
+      run.commits.push({
+        kind: "special",
+        choice: { event_instance: special.instance_id, option_id: option.option_id },
+        turn: state.n,
+        plan: clone(state.plan),
+        answers: {},
+        digest: digest(state),
+      });
+      answerAll(state);
+      const answers = clone(state.decisions!.selections);
+      const plan = clone(state.plan);
+      advance(state);
+      run.commits.push({ turn: state.n, plan, answers, digest: digest(state) });
+    }
+    run.digest = digest(state);
+    expect(replayRun(run)).toEqual(state);
+    expect(importRun(exportRun(run))).toEqual(run);
+    expect(state.phase).toBe("finished");
+    expect(state.versions.rules).toBe("rules-3");
+  });
 });

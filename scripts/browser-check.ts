@@ -50,6 +50,12 @@ try {
   };
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("今期の特殊イベント");
+  for (const meter of await page.locator(".rpg-party meter").all()) {
+    await expect(meter).toHaveAttribute("max", "10");
+    const value = Number(await meter.getAttribute("value"));
+    expect(value).toBeGreaterThanOrEqual(0);
+    expect(value).toBeLessThanOrEqual(10);
+  }
   const eventText = await dialog.innerText();
   await page.keyboard.press("Escape");
   await expect(dialog).toBeVisible();

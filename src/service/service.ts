@@ -97,7 +97,9 @@ export function validateRun(run: Run) {
   const current =
     version?.save === "save-3" && version.rules === "rules-2" && version.data === "data-2";
   const decisions =
-    version?.save === "save-4" && version.rules === "rules-3" && version.data === "data-3";
+    (version?.save === "save-4" && version.rules === "rules-3" && version.data === "data-3") ||
+    (version?.save === "save-5" && version.rules === "rules-4" && version.data === "data-4") ||
+    (version?.save === "save-6" && version.rules === "rules-5" && version.data === "data-5");
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
@@ -140,7 +142,12 @@ function envelope(
 export function replayRun(run: Run) {
   validateRun(run);
   const state = run.state.decisions
-    ? startDecisions(run.state.scenario, run.state.seed, run.state.settings!)
+    ? startDecisions(
+        run.state.scenario,
+        run.state.seed,
+        run.state.settings!,
+        run.state.versions.rules,
+      )
     : start(run.state.scenario, run.state.seed, run.state.settings ?? null);
   for (const commit of run.commits) {
     if (commit.kind === "special") {
@@ -433,7 +440,15 @@ export function exportRun(run: Run) {
 export function importRun(text: string): Run {
   try {
     const parsed = JSON.parse(text);
-    if (!["parent-save-2", "parent-save-3", "parent-save-4"].includes(parsed.format))
+    if (
+      ![
+        "parent-save-2",
+        "parent-save-3",
+        "parent-save-4",
+        "parent-save-5",
+        "parent-save-6",
+      ].includes(parsed.format)
+    )
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");
     if (hash(canonical(parsed.run)) !== parsed.checksum)
       throw new Failure("CORRUPT_SAVE", "書き出しデータが破損しています。");

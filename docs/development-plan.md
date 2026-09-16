@@ -196,3 +196,34 @@ D-031・[S-013 / AC-013-H・I](specs/gui.md#rpg型の固定画面2026-09-16d-031
 ### 家族ステータスの追加
 
 デスクトップ幅1024px以上で父・母・祖父・祖母の4ボックスを追加。公開状態を直接表示し、祖父母の共通値には明示ラベルを付けた。`bun run check`成功。Chrome / Playwrightで1280×900・1280×720・1024×768・390×844を検証し、ページ全体のはみ出しなし、イベント後の数値更新、モバイルでのボックス非表示、選択肢の到達性、console error/warningと実行時エラー0を確認。スクリーンショットを目視確認した。検証用スクリプトと画像は`/tmp/parent-party-check.ts`・`/tmp/parent-party-*.png`。ゲームルールは変更していない。
+
+## 10点スケールと選択効果の強化（2026-09-17）
+
+D-032・[S-016 / AC-016-J・K](specs/decisions.md#10点スケールと選択の強化2026-09-17d-032)を実装。新規ゲームの父母・祖父母・夫婦関係を整数0〜10とし、選択の効果を強化した。選択結果には実際の変更前後と差分を表示する。子どもの内部状態・最終幸福評価は100点を維持。旧保存は旧ルールを保持する。
+
+検証：
+
+- `bun run check`成功。`bun run test`は8ファイル59テスト成功。旧保存の確定列再生を追加した後の`bun run test -- tests/decisions.test.ts`も12テスト成功。0〜10の範囲、能力差、回復、終了条件、3難易度の40期・成人後、追加パック、再送・保存・再生を確認。
+- `bun run build`成功。
+- 変更前のGit HEADと旧rules-3経路をseed=0・7・42の120期で内部比較。各期の状態digestと成人後の結果が完全一致。比較スクリプトは作業環境の`/tmp/parent-scale-baseline/compare.ts`。
+- `bun run test:public /tmp/parent-ten-point-public-final 1`成功。公開CLIの5方針×seed=0で全件再生一致。support / adaptationは40期と成人後へ到達。pressureは3期、quietは4期、recoveryは23期で離婚。旧版より悪化も速いため、この結果を難易度が適切である根拠とはしない。Q-014で人の手応えと上限への張り付きを継続評価する。
+- `GAME_URL=http://127.0.0.1:5178 BROWSER_ARTIFACTS=/tmp/parent-ten-point-browser bun run test:browser`成功。Browser plugin not availableのため、frontend-testing-debuggingスキルに従い既存Playwrightを使用。隔離環境ではChromeがSIGABRTで終了し、権限拡張で実行した。
+- Chrome、1280×900・390×844。ページタイトル、非空画面、エラーオーバーレイ不在、全メーター上限10、イベント→3判断→40期→結末、未回答時と回答途中の再開、88件の履歴、書出し・取込、途中終了と再開を確認。console warning/error・実行時エラーなし。デスクトップとモバイルの画像を目視し、はみ出しなし。証跡は`/tmp/parent-ten-point-browser/`。
+
+未検証：実機Safari・Firefox、人による面白さ、全シードの難易度分布。公開デプロイは行っていない。
+
+## 家計の選択を強める（2026-09-17）
+
+D-033・[S-016 / AC-016-L・M](specs/decisions.md#家計の選択を強める2026-09-17d-033)。新規ゲームはrules-5 / data-5 / save-6。単発費用4倍・継続費2倍、父母を選べる追加の仕事（40万円）、繁忙期の臨時仕事（60万円）、地域の不用品販売（40万円）を実装した。金額は調整仮値。収入選択は負担を伴い、無料の回復と契約解除は維持する。
+
+検証：
+
+- `bun run check`成功。`bun run test`は9ファイル64テスト成功。家事支援と追加仕事の72万円差、予測・確定一致、資金不足から収入選択による回復、保有上限と計上外、選び直し・再送・再開の二重入金防止を確認。3難易度と追加パックの40期・成人後も維持。
+- `bun run build`成功。隔離環境のprerender待受がEPERMとなったため、権限拡張で再実行した。
+- `bun run test:public /tmp/parent-money-public 2`：5方針×2シードの10実行で全件再生一致。support / adaptationの4本は40期と成人後を完走。pressureは3期、quietは4期、recoveryは23期で離婚。この公開方針は追加収入の評価方針ではないため、収入選択自体は専用テストで検証した。
+- 変更前のrules-4の実保存5本（`/tmp/parent-ten-point-public-final/saves`）を現在のエンジンで再生し、全件digest一致。
+- 専用PlaywrightでChrome、`http://127.0.0.1:5179`、1280×900・390×844を確認。支援費20万円で80→60、追加仕事の半年後入金40万円、収入300・支出230・半年後130（+70）の表示、回答途中の再読込と確定を確認。console warning/error・実行時エラーなし、横はみ出しなし。画像のアニメーションを止めて確認。Browser plugin not availableのため前回と同じスキルのPlaywright経路を使用。証跡と一時スクリプトは`/tmp/parent-money-ui/`・`/tmp/parent-money-ui.ts`。
+
+- 既存の`test:browser`も成功。40期→成人後・結末、88件の履歴、書出し・取込、途中終了・再開を確認し、console warning/error・実行時エラーなし。初回は並行ビルド中にイベント結果画面の待機が失敗し、ビルド完了後の再実行では成功。証跡は`/tmp/parent-money-browser-final/`。
+
+未検証：人による家計の手応え・難易度分布、実機Safari・Firefox。公開デプロイは未実施。

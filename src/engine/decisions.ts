@@ -7,15 +7,42 @@ import { start, draw, stage, observeChild, publicView, applyEffect } from "./sim
 import { finish } from "./adult";
 import { matches } from "./events";
 
+import {
+  tenPoint,
+  pointEffect,
+  pointDrift,
+  clampParent,
+  parentEquivalent,
+  scaleParents,
+  legacyEquivalent,
+  parentFields,
+} from "./stat_scale";
+
 const names = { A: "父", B: "母", both: "父母" };
 const skillNames = { dialogue: "対話", planning: "段取り", learning: "学びの支援" };
+const dynamicMoney = (state: State) => state.versions.rules === "rules-5";
+const choiceIncome = (state: State, option: DecisionOption) =>
+  dynamicMoney(state) ? (option.income ?? 0) : 0;
+const moneyChange = (before: number, after: number) =>
+  `資金 ${before}→${after}万円（${after >= before ? "+" : ""}${after - before}万円）`;
 const game = (state: State) => contentFor(state).decision_game!;
 const instance = (state: State, theme: DecisionTheme) =>
   `t${String(state.n + 1).padStart(2, "0")}:${theme.id}`;
 
-export function startDecisions(scenario: string, seed: number, settings: Settings): State {
+export function startDecisions(
+  scenario: string,
+  seed: number,
+  settings: Settings,
+  rules = "rules-5",
+): State {
   const state = start(scenario, seed, settings);
-  state.versions = { rules: "rules-3", data: "data-3", save: "save-4" };
+  state.versions =
+    rules === "rules-3"
+      ? { rules, data: "data-3", save: "save-4" }
+      : rules === "rules-4"
+        ? { rules, data: "data-4", save: "save-5" }
+        : { rules, data: "data-5", save: "save-6" };
+  if (tenPoint(state)) scaleParents(state, 0.1);
   state.draws = [];
   state.events = [];
   state.seen = {};
@@ -35,13 +62,26 @@ export function startDecisions(scenario: string, seed: number, settings: Setting
     crisis: { divorce: 0, separation: 0 },
     event_history: null,
   };
+  if (tenPoint(state)) {
+    for (const p of PEOPLE) {
+      for (const key of ["dialogue", "planning", "learning"] as const)
+        state.decisions.skills[p][key] = Math.round(state.decisions.skills[p][key] / 10);
+      state.decisions.fatigue[p] = 3;
+    }
+  }
   openDecisionTurn(state);
   return state;
 }
 export function familyStatus(state: State) {
   const d = state.decisions!;
-  const burden = (state.parents.A.stress + state.parents.B.stress + d.fatigue.A + d.fatigue.B) / 4;
-  const score = (state.couple + state.child.trust.A + state.child.trust.B) / 3 - burden * 0.2;
+  const burden =
+    parentEquivalent(
+      state,
+      state.parents.A.stress + state.parents.B.stress + d.fatigue.A + d.fatigue.B,
+    ) / 4;
+  const score =
+    (parentEquivalent(state, state.couple) + state.child.trust.A + state.child.trust.B) / 3 -
+    burden * 0.2;
   const level = score >= 70 ? 5 : score >= 50 ? 4 : score >= 30 ? 3 : score >= 15 ? 2 : 1;
   const label = ["一家離散の危機", "不穏な雰囲気", "すれ違い気味", "おだやかな家庭", "家族円満"][
     level - 1
@@ -60,9 +100,13 @@ function eligible(state: State, t: DecisionTheme) {
   if (state.n + 1 < t.min_turn || state.n + 1 > t.max_turn) return false;
   switch (t.condition) {
     case "tired":
-      return PEOPLE.some((p) => state.decisions!.fatigue[p] >= 55 || state.parents[p].stress >= 55);
+      return PEOPLE.some(
+        (p) =>
+          parentEquivalent(state, state.decisions!.fatigue[p]) >= 55 ||
+          parentEquivalent(state, state.parents[p].stress) >= 55,
+      );
     case "strained":
-      return state.couple < 45 || familyStatus(state).level <= 2;
+      return parentEquivalent(state, state.couple) < 45 || familyStatus(state).level <= 2;
     case "crisis":
       return familyStatus(state).level === 1;
     default:
@@ -91,8 +135,8 @@ function packEvents(state: State): DecisionTheme[] {
         turn - (state.seen[id] ?? -100) >= t.cooldown &&
         t.probability > 0 &&
         (t.probability === 100 || draw(state, "decision", turn, `pack-${id}`) < t.probability) &&
-        t.all.every((c) => matches(state, c)) &&
-        (!t.any.length || t.any.some((c) => matches(state, c)))
+        t.all.every((c) => matches(legacyEquivalent(state), c)) &&
+        (!t.any.length || t.any.some((c) => matches(legacyEquivalent(state), c)))
       );
     })
     .map(([id, e]) => ({
@@ -165,7 +209,13 @@ function choiceDescription(state: State, option: DecisionOption) {
     autonomy: "主体性",
   };
   for (const [field, label] of Object.entries(fields)) {
-    const amount = option.effects[field as keyof typeof option.effects];
+    const raw = option.effects[field as keyof typeof option.effects];
+    const amount =
+      raw && tenPoint(state)
+        ? ["fatigue", "stress", "couple"].includes(field)
+          ? pointEffect(raw)
+          : raw * 2
+        : raw;
     if (amount)
       info.push(
         `${label} ${amount > 0 ? "+" : ""}${amount}${["fatigue", "stress", "trust"].includes(field) && option.parent ? `（${names[option.parent]}）` : ""}`,
@@ -203,7 +253,7 @@ export function decisionChoices(state: State): Choice[] {
         option_id: `${theme.id}:${o.id}`,
         label: o.label,
         cost: o.cost,
-        income: 0,
+        income: choiceIncome(state, o),
         description: choiceDescription(state, o),
         available: reason.length === 0,
         reasons: reason,
@@ -222,6 +272,7 @@ export function decisionForecast(state: State): Forecast {
     });
   let cost = difficultyFor(state).living_cost + stage(state.n, state).cost;
   let contract = d.contract;
+  let income = game(state).income;
   for (const theme of d.themes) {
     const selected = d.selections[instance(state, theme)];
     const option = theme.options.find((o) => `${theme.id}:${o.id}` === selected);
@@ -233,11 +284,11 @@ export function decisionForecast(state: State): Forecast {
       });
     else {
       cost += option.cost;
+      income += choiceIncome(state, option);
       if (option.contract) contract = option.contract;
     }
   }
   cost += contract?.cost ?? 0;
-  const income = game(state).income;
   if (state.cash + income < cost)
     reasons.push({
       code: "CASH_LIMIT",
@@ -247,7 +298,9 @@ export function decisionForecast(state: State): Forecast {
   return {
     income,
     cost,
-    projected_cash: state.cash + income - cost,
+    projected_cash: dynamicMoney(state)
+      ? Math.min(99999, state.cash + income - cost)
+      : state.cash + income - cost,
     can_advance:
       state.phase === "childhood" && !!d.special_answer && d.themes.length === 3 && !reasons.length,
     reasons,
@@ -283,34 +336,60 @@ export function decisionView(state: State) {
   if (state.game_over) base.public.game_over = clone(state.game_over);
   return { public: base.public, choices: decisionChoices(state) };
 }
-function applyOption(state: State, theme: DecisionTheme, option: DecisionOption): string[] {
+function applyOption(
+  state: State,
+  theme: DecisionTheme,
+  option: DecisionOption,
+  received = { income: 0 },
+): string[] {
   const d = state.decisions!;
   const parents = option.parent === "both" ? PEOPLE : option.parent ? [option.parent] : [];
-  const e = option.effects;
+  const before = tenPoint(state)
+    ? clone({
+        parents: state.parents,
+        couple: state.couple,
+        fatigue: d.fatigue,
+        grandparents: state.grandparents,
+      })
+    : null;
+  const e = { ...option.effects };
+  if (tenPoint(state)) {
+    for (const key of ["fatigue", "stress", "couple"] as const)
+      if (e[key]) e[key] = pointEffect(e[key]);
+    for (const key of ["trust", "child_stress", "autonomy"] as const) if (e[key]) e[key] *= 2;
+  }
   const gains = parents.map((p) =>
     Math.max(
       0,
       option.gain +
-        (option.skill ? Math.floor(d.skills[p][option.skill] / 25) : 0) -
-        (d.fatigue[p] >= 70 ? 2 : 0),
+        (option.skill ? Math.floor(parentEquivalent(state, d.skills[p][option.skill]) / 25) : 0) -
+        (parentEquivalent(state, d.fatigue[p]) >= 70 ? 2 : 0),
     ),
   );
-  const gain = gains.length
+  const baseGain = gains.length
     ? Math.floor(gains.reduce((a, b) => a + b, 0) / gains.length)
     : option.gain;
+  const gain = tenPoint(state) ? baseGain * 2 : baseGain;
+  const recovery = tenPoint(state) ? pointEffect(baseGain) : baseGain;
   for (const p of parents) {
     const fatigue = e.fatigue ?? 0;
-    d.fatigue[p] = clampStat(
+    d.fatigue[p] = clampParent(
+      state,
       d.fatigue[p] -
-        (option.skill === "planning" ? gain : 0) +
-        (fatigue > 0 ? Math.max(0, fatigue - Math.floor(d.skills[p].planning / 30)) : fatigue),
+        (option.skill === "planning" ? recovery : 0) +
+        (fatigue > 0
+          ? Math.max(
+              tenPoint(state) ? 1 : 0,
+              fatigue - Math.floor(d.skills[p].planning / (tenPoint(state) ? 6 : 30)),
+            )
+          : fatigue),
     );
-    state.parents[p].stress = clampStat(state.parents[p].stress + (e.stress ?? 0));
+    state.parents[p].stress = clampParent(state, state.parents[p].stress + (e.stress ?? 0));
     state.child.trust[p] = clampStat(
       state.child.trust[p] + (e.trust ?? 0) + (option.skill === "dialogue" ? gain : 0),
     );
   }
-  state.couple = clampStat(state.couple + (e.couple ?? 0));
+  state.couple = clampParent(state, state.couple + (e.couple ?? 0));
   state.child.stress = clampStat(state.child.stress + (e.child_stress ?? 0));
   state.child.autonomy = clampStat(state.child.autonomy + (e.autonomy ?? 0));
   if (option.domain) {
@@ -350,8 +429,9 @@ function applyOption(state: State, theme: DecisionTheme, option: DecisionOption)
           : event.target === "previous_activity" && state.previous_plan.activity.domain !== "none"
             ? state.previous_plan.activity.domain
             : "study";
-    applyEffect(state, selected.effects, target);
+    applyDecisionEffect(state, selected.effects, target);
     const aid = Math.min(state.grandparents.funds, Number(selected.effects.income ?? 0));
+    received.income += aid;
     state.cash = Math.min(99999, state.cash + aid);
     state.grandparents.funds -= aid;
     if (selected.effects.delay)
@@ -365,18 +445,44 @@ function applyOption(state: State, theme: DecisionTheme, option: DecisionOption)
   if (option.id.startsWith("pack-action-")) {
     state.plan.extra_action = option.id.slice(12);
     const action = contentFor(state).actions[option.id.slice(12)];
-    applyEffect(state, action.effects, action.target);
-    d.fatigue[action.parent] = clampStat(d.fatigue[action.parent] + action.time);
+    applyDecisionEffect(state, action.effects, action.target);
+    d.fatigue[action.parent] = clampParent(
+      state,
+      d.fatigue[action.parent] + (tenPoint(state) ? pointEffect(action.time) : action.time),
+    );
   }
   const lines = [`${theme.title} → ${option.label}`];
   if (option.skill)
     lines.push(
-      `${parents.map((p) => `${names[p]}の${skillNames[option.skill!]} ${d.skills[p][option.skill!]}`).join("・")}を生かし、${option.skill === "planning" ? `疲労の回復を${gain}後押しした` : `${option.domain ? "子どもの力" : "関わりの手応え"}が${gain}伸びた`}。`,
+      `${parents.map((p) => `${names[p]}の${skillNames[option.skill!]} ${d.skills[p][option.skill!]}`).join("・")}を生かし、${option.skill === "planning" ? `疲労の回復を${recovery}後押しした` : `${option.domain ? "子どもの力" : "関わりの手応え"}が${gain}伸びた`}。`,
     );
-  if (e.fatigue || e.stress)
+  if (!before && (e.fatigue || e.stress))
     lines.push(
       `負担の変化：${parents.map((p) => `${names[p]}の疲労 ${d.fatigue[p]}・ストレス ${state.parents[p].stress}`).join(" ／ ")}`,
     );
+  if (before) {
+    const change = (label: string, previous: number, current: number) => {
+      if (previous !== current)
+        lines.push(
+          `${label} ${previous}→${current}（${current > previous ? "+" : ""}${current - previous}）`,
+        );
+    };
+    const labels = {
+      stress: "ストレス",
+      health: "健康",
+      fulfillment: "充実",
+      social: "社会関係",
+      regret: "後悔",
+    };
+    for (const p of PEOPLE) {
+      change(`${names[p]}の疲労`, before.fatigue[p], d.fatigue[p]);
+      for (const key of parentFields)
+        change(`${names[p]}の${labels[key]}`, before.parents[p][key], state.parents[p][key]);
+    }
+    change("夫婦の関係", before.couple, state.couple);
+    change("祖父母の体力", before.grandparents.health, state.grandparents.health);
+    change("祖父母との関係", before.grandparents.relation, state.grandparents.relation);
+  }
   return lines;
 }
 function historyEntry(
@@ -443,8 +549,12 @@ export function chooseDecision(state: State, eventInstance: string, optionId: st
   }
   if (option.cost > state.cash) throw new Error("資金が足りません");
   const cash = state.cash;
-  state.cash -= option.cost;
-  const lines = applyOption(state, theme, option);
+  const income = choiceIncome(state, option);
+  // 入金は一度だけ。パック由来の援助とは別に記録する。
+  state.cash = Math.min(99999, state.cash - option.cost + income);
+  const received = { income };
+  const lines = applyOption(state, theme, option, received);
+  if (dynamicMoney(state)) lines.push(moneyChange(cash, state.cash));
   d.special_answer = optionId;
   state.observations = observeChild(state);
   const entry = historyEntry(
@@ -452,7 +562,7 @@ export function chooseDecision(state: State, eventInstance: string, optionId: st
     "special",
     lines,
     cash,
-    state.cash - cash + option.cost,
+    dynamicMoney(state) ? received.income : state.cash - cash + option.cost,
     option.cost,
   );
   entry.events = [
@@ -470,15 +580,23 @@ export function advanceDecisions(state: State) {
   const cash = state.cash;
   const previousStress = state.child.stress;
   state.cash = Math.min(99999, f.projected_cash);
-  const config = game(state);
+  const config = { ...game(state) };
+  if (tenPoint(state)) {
+    config.fatigue_per_turn = pointDrift(config.fatigue_per_turn);
+    config.stress_per_turn = pointDrift(config.stress_per_turn);
+    config.couple_per_turn = pointDrift(config.couple_per_turn);
+  }
   for (const p of PEOPLE) {
-    d.fatigue[p] = clampStat(d.fatigue[p] + config.fatigue_per_turn);
-    state.parents[p].stress = clampStat(
-      state.parents[p].stress + config.stress_per_turn + (d.fatigue[p] >= 70 ? 2 : 0),
+    d.fatigue[p] = clampParent(state, d.fatigue[p] + config.fatigue_per_turn);
+    state.parents[p].stress = clampParent(
+      state,
+      state.parents[p].stress +
+        config.stress_per_turn +
+        (parentEquivalent(state, d.fatigue[p]) >= 70 ? (tenPoint(state) ? 1 : 2) : 0),
     );
     state.child.trust[p] = clampStat(state.child.trust[p] + config.trust_per_turn);
   }
-  state.couple = clampStat(state.couple + config.couple_per_turn);
+  state.couple = clampParent(state, state.couple + config.couple_per_turn);
   if (state.n >= 12 && state.n < 36)
     for (const domain of ["study", "craft"] as const)
       state.child.ability[domain] = clampStat(state.child.ability[domain] + 1);
@@ -493,7 +611,11 @@ export function advanceDecisions(state: State) {
     return { title: theme.title, label: option.label };
   });
   for (const q of state.queue.filter((q) => q.due_turn === state.n + 1)) {
-    applyEffect(state, q.id === "L-01" ? { B_target: 2 } : { X: -4, T: 2, G: -1 }, q.target);
+    applyDecisionEffect(
+      state,
+      q.id === "L-01" ? { B_target: 2 } : { X: -4, T: 2, G: -1 },
+      q.target,
+    );
     lines.push("以前の働きかけが、少しずつ実を結んだ。");
   }
   state.queue = state.queue.filter((q) => q.due_turn > state.n + 1);
@@ -501,24 +623,29 @@ export function advanceDecisions(state: State) {
   state.n++;
   for (const p of PEOPLE) {
     state.parents[p].age_months += 6;
-    if (state.parents[p].stress >= 80)
-      state.parents[p].health = Math.max(10, state.parents[p].health - 1);
-    state.parents[p].regret = clampStat(
-      state.parents[p].regret + (state.child.trust[p] < 30 ? 2 : -1),
+    if (parentEquivalent(state, state.parents[p].stress) >= 80)
+      state.parents[p].health = Math.max(tenPoint(state) ? 1 : 10, state.parents[p].health - 1);
+    state.parents[p].regret = clampParent(
+      state,
+      state.parents[p].regret + (state.child.trust[p] < 30 ? (tenPoint(state) ? 1 : 2) : -1),
     );
   }
   d.crisis.divorce =
-    state.couple <= 10 && (state.parents.A.stress + state.parents.B.stress) / 2 >= 75
+    parentEquivalent(state, state.couple) <= 10 &&
+    parentEquivalent(state, state.parents.A.stress + state.parents.B.stress) / 2 >= 75
       ? d.crisis.divorce + 1
       : 0;
   d.crisis.separation =
-    state.couple <= 20 && state.child.trust.A <= 15 && state.child.trust.B <= 15
+    parentEquivalent(state, state.couple) <= 20 &&
+    state.child.trust.A <= 15 &&
+    state.child.trust.B <= 15
       ? d.crisis.separation + 1
       : 0;
   state.deltas.push(state.child.stress - previousStress);
   state.deltas = state.deltas.slice(-2);
   state.observations = observeChild(state);
   lines.push(`家族の様子：${familyStatus(state).label}。${familyStatus(state).description}`);
+  if (dynamicMoney(state)) lines.push(moneyChange(cash, state.cash));
   const entry = historyEntry(state, "turn", lines, cash, f.income, f.cost);
   entry.decisions = selections;
   state.history.push(entry);
@@ -527,7 +654,19 @@ export function advanceDecisions(state: State) {
   else if (state.n === 40) {
     state.answers = {};
     state.events = [];
+    if (tenPoint(state)) scaleParents(state, 10);
     finish(state, draw);
+    if (tenPoint(state)) {
+      scaleParents(state, 0.1);
+      for (const p of PEOPLE)
+        state.result!.parents[p].health = Math.round(state.result!.parents[p].health / 10);
+      for (const h of state.history)
+        if (h.adult_result)
+          for (const p of PEOPLE) {
+            const result = h.adult_result.parents[p];
+            if (result) result.health = Math.round(result.health / 10);
+          }
+    }
     const rename = (text: string) => text.replaceAll("親A", "父").replaceAll("親B", "母");
     for (const h of state.history.filter((h) => h.kind === "adult")) {
       h.text = h.text.map(rename);
@@ -536,4 +675,23 @@ export function advanceDecisions(state: State) {
     if (state.result) state.result.story = state.result.story.map(rename);
     state.phase = "finished";
   } else openDecisionTurn(state);
+}
+
+function applyDecisionEffect(
+  state: State,
+  effects: Record<string, number | string>,
+  target: "study" | "craft",
+) {
+  if (!tenPoint(state)) {
+    applyEffect(state, effects, target);
+    return;
+  }
+  const scaled = { ...effects };
+  for (const [key, value] of Object.entries(scaled)) {
+    if (typeof value !== "number" || key === "income" || key === "GM") continue;
+    scaled[key] = ["S", "N", "F", "G", "GR"].includes(key) ? pointEffect(value) * 10 : value * 2;
+  }
+  scaleParents(state, 10);
+  applyEffect(state, scaled, target);
+  scaleParents(state, 0.1);
 }

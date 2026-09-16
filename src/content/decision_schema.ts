@@ -5,6 +5,7 @@ export const decisionOptionSchema = v.strictObject({
   id: contentIdSchema,
   label: v.string(),
   cost: integer(),
+  income: v.optional(integer()),
   effects: v.strictObject({
     fatigue: v.optional(effect),
     stress: v.optional(effect),

@@ -44,7 +44,10 @@ function Options({
             <span>
               <strong>{option.label}</strong>
               <small>
-                費用 {option.cost}万円{option.income ? ` ／ 入金 ${option.income}万円` : ""}
+                費用 {option.cost}万円
+                {option.income
+                  ? ` ／ ${choice.kind === "special" ? "今すぐ" : "半年後"}入金 ＋${option.income}万円`
+                  : ""}
               </small>
               <small className="decision-effects">{option.description}</small>
               {option.reasons.map((reason) => (
@@ -306,7 +309,11 @@ export function DecisionPlay({ response }: { response: Response }) {
                         <span>
                           収入 ＋{projection.income}万円 / 支出 −{projection.cost}万円
                         </span>
-                        <strong>半年後 {projection.projected_cash}万円</strong>
+                        <strong>
+                          半年後 {projection.projected_cash}万円（
+                          {projection.projected_cash >= state.cash! ? "+" : ""}
+                          {projection.projected_cash - state.cash!}万円）
+                        </strong>
                       </div>
                       {turn.contract && (
                         <p className="rpg-hint">

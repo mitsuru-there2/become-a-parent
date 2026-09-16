@@ -52,6 +52,11 @@
                       "minimum": 0,
                       "maximum": 99999
                     },
+                    "income": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 99999
+                    },
                     "effects": {
                       "type": "object",
                       "properties": {
@@ -226,6 +231,11 @@
                       "type": "string"
                     },
                     "cost": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 99999
+                    },
+                    "income": {
                       "type": "integer",
                       "minimum": 0,
                       "maximum": 99999

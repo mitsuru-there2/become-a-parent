@@ -121,3 +121,7 @@ bun run cli new --run workshop --scenario community-home --seed 0 --difficulty n
 Valibot 1.5.0を利用します。[スキーマ](../src/content/schemas.ts)で構造・必須項目・値域・未知キーを検査し、[型定義](../src/content/types.ts)はスキーマから導出します。画像IDや行動IDの実在、必要な文言、設定ハッシュ等は[整合性検査](../src/content/validation.ts)で確認します。文字列の数値変換や、不正な入力の自動補正は行いません。
 
 設定項目を追加する場合はスキーマを変更し、必要な整合性検査と受け入れ条件を加えます。型を別途手書きで同期する必要はありません。CLI入力のスキーマは[service/schemas.ts](../src/service/schemas.ts)、ID・整数・辞書の共通処理は[validation/primitives.ts](../src/validation/primitives.ts)です。
+
+新規のrules-4では、decision_gameと追加パックの旧100点単位の効果値を[S-016](../docs/specs/decisions.md#10点スケールと選択の強化2026-09-17d-032)の式で10点スケールへ変換して適用する。保存済みのrules-3は同じ設定値を従来どおり適用する。金額と年齢は変換しない。
+
+rules-5は同じ10点スケールを維持し、decision_gameの選択肢に任意のincome（万円、省略時0）を追加する。特殊イベントでは即時、通常判断では半年確定時に入金する。既存保存の設定は書き換えない。金額と受け入れ条件は[S-016](../docs/specs/decisions.md#家計の選択を強める2026-09-17d-033)。
