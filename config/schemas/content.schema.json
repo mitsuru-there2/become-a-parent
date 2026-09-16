@@ -1,9 +1,249 @@
 {
   "type": "object",
   "properties": {
+    "automatic_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": ["good", "bad"],
+            "type": "string"
+          },
+          "min_age_months": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 239
+          },
+          "max_age_months": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 239
+          },
+          "probability": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "enum": [
+                    "cash",
+                    "couple",
+                    "child.stress",
+                    "child.autonomy",
+                    "child.trust.A",
+                    "child.trust.B",
+                    "child.interest.study",
+                    "child.interest.craft",
+                    "child.ability.study",
+                    "child.ability.craft",
+                    "parents.A.stress",
+                    "parents.A.health",
+                    "parents.A.fulfillment",
+                    "parents.A.social",
+                    "parents.A.regret",
+                    "parents.B.stress",
+                    "parents.B.health",
+                    "parents.B.fulfillment",
+                    "parents.B.social",
+                    "parents.B.regret",
+                    "decisions.fatigue.A",
+                    "decisions.fatigue.B",
+                    "decisions.skills.A.dialogue",
+                    "decisions.skills.A.planning",
+                    "decisions.skills.A.learning",
+                    "decisions.skills.B.dialogue",
+                    "decisions.skills.B.planning",
+                    "decisions.skills.B.learning",
+                    "grandparents.health",
+                    "grandparents.relation",
+                    "grandparents.funds",
+                    "parents.A.age_months",
+                    "parents.B.age_months"
+                  ],
+                  "type": "string"
+                },
+                "op": {
+                  "enum": ["eq", "lt", "gte"],
+                  "type": "string"
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": -99999,
+                  "maximum": 99999
+                }
+              },
+              "required": ["path", "op", "value"],
+              "additionalProperties": false
+            }
+          },
+          "modifiers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "condition": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "enum": [
+                        "cash",
+                        "couple",
+                        "child.stress",
+                        "child.autonomy",
+                        "child.trust.A",
+                        "child.trust.B",
+                        "child.interest.study",
+                        "child.interest.craft",
+                        "child.ability.study",
+                        "child.ability.craft",
+                        "parents.A.stress",
+                        "parents.A.health",
+                        "parents.A.fulfillment",
+                        "parents.A.social",
+                        "parents.A.regret",
+                        "parents.B.stress",
+                        "parents.B.health",
+                        "parents.B.fulfillment",
+                        "parents.B.social",
+                        "parents.B.regret",
+                        "decisions.fatigue.A",
+                        "decisions.fatigue.B",
+                        "decisions.skills.A.dialogue",
+                        "decisions.skills.A.planning",
+                        "decisions.skills.A.learning",
+                        "decisions.skills.B.dialogue",
+                        "decisions.skills.B.planning",
+                        "decisions.skills.B.learning",
+                        "grandparents.health",
+                        "grandparents.relation",
+                        "grandparents.funds",
+                        "parents.A.age_months",
+                        "parents.B.age_months"
+                      ],
+                      "type": "string"
+                    },
+                    "op": {
+                      "enum": ["eq", "lt", "gte"],
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "integer",
+                      "minimum": -99999,
+                      "maximum": 99999
+                    }
+                  },
+                  "required": ["path", "op", "value"],
+                  "additionalProperties": false
+                },
+                "add": {
+                  "type": "integer",
+                  "minimum": -100,
+                  "maximum": 100
+                }
+              },
+              "required": ["condition", "add"],
+              "additionalProperties": false
+            }
+          },
+          "cooldown": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "once": {
+            "type": "boolean"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "enum": [
+                    "cash",
+                    "couple",
+                    "child.stress",
+                    "child.autonomy",
+                    "child.trust.A",
+                    "child.trust.B",
+                    "child.interest.study",
+                    "child.interest.craft",
+                    "child.ability.study",
+                    "child.ability.craft",
+                    "parents.A.stress",
+                    "parents.A.health",
+                    "parents.A.fulfillment",
+                    "parents.A.social",
+                    "parents.A.regret",
+                    "parents.B.stress",
+                    "parents.B.health",
+                    "parents.B.fulfillment",
+                    "parents.B.social",
+                    "parents.B.regret",
+                    "decisions.fatigue.A",
+                    "decisions.fatigue.B",
+                    "decisions.skills.A.dialogue",
+                    "decisions.skills.A.planning",
+                    "decisions.skills.A.learning",
+                    "decisions.skills.B.dialogue",
+                    "decisions.skills.B.planning",
+                    "decisions.skills.B.learning",
+                    "grandparents.health",
+                    "grandparents.relation",
+                    "grandparents.funds"
+                  ],
+                  "type": "string"
+                },
+                "delta": {
+                  "type": "integer",
+                  "minimum": -99999,
+                  "maximum": 99999
+                }
+              },
+              "required": ["path", "delta"],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "kind",
+          "min_age_months",
+          "max_age_months",
+          "probability",
+          "conditions",
+          "modifiers",
+          "cooldown",
+          "once",
+          "effects"
+        ],
+        "additionalProperties": false
+      }
+    },
     "decision_game": {
       "type": "object",
       "properties": {
+        "initial_grandparent_funds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999
+        },
         "themes": {
           "type": "array",
           "items": {

@@ -71,6 +71,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   const [tab, setTab] = useState<"play" | "family" | "history" | "help">("play");
   const [editing, setEditing] = useState<string | null>(null);
   const [eventResult, setEventResult] = useState(false);
+  const [readEventTurn, setReadEventTurn] = useState<string | null>(null);
   const special = response.choices.find((choice) => choice.kind === "special");
   const decisions = response.choices.filter((choice) => choice.kind === "decision");
   const answered = (choice: Choice) =>
@@ -81,7 +82,13 @@ export function DecisionPlay({ response }: { response: Response }) {
     decisions.find((item) => !answered(item));
   const projection = state.forecast;
   const ended = response.phase !== "childhood";
-  const showingResult = eventResult && !special && !ended;
+  const eventTurn = `${response.run_id}:${state.time.next_turn}`;
+  const automaticResult =
+    state.versions.rules === "rules-6" &&
+    turn.event_result.length > 0 &&
+    turn.answered === 0 &&
+    readEventTurn !== eventTurn;
+  const showingResult = (eventResult || automaticResult) && !special && !ended;
   const stageKey = `${tab}:${state.time.next_turn}:${ended ? response.phase : showingResult ? "result" : (choice?.instance_id ?? "review")}`;
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -184,7 +191,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                     )}
                     {turn.event_result.length > 0 && (
                       <>
-                        <h3>今期の特殊イベントへの対応</h3>
+                        <h3>今期の出来事</h3>
                         {turn.event_result.map((line, index) => (
                           <p key={index}>{line}</p>
                         ))}
@@ -205,7 +212,11 @@ export function DecisionPlay({ response }: { response: Response }) {
                     半年ごとに、3つの判断。
                   </h2>
                   <ol>
-                    <li>特殊イベントへの対応を選びます。その場で確定します。</li>
+                    <li>
+                      {state.versions.rules === "rules-6"
+                        ? "出来事は自動で発生し、資金や家族の状態に反映されます。"
+                        : "特殊イベントへの対応を選びます。その場で確定します。"}
+                    </li>
                     <li>3つの判断に、ひとつずつ回答します。「何もしない」も回答です。</li>
                     <li>最後に選択と家計を確認し、「半年を進める」を押します。</li>
                   </ol>
@@ -249,15 +260,23 @@ export function DecisionPlay({ response }: { response: Response }) {
               ) : showingResult ? (
                 <>
                   <h2 ref={heading} tabIndex={-1}>
-                    家族の時間が、少し動いた。
+                    今期の出来事
                   </h2>
-                  <div className="rpg-result">
-                    {turn.event_result.map((line, index) => (
-                      <p key={index}>{line}</p>
-                    ))}
+                  <div className="rpg-result" role="region" aria-label="今期の出来事">
+                    {turn.event_result.length ? (
+                      turn.event_result.map((line, index) => <p key={index}>{line}</p>)
+                    ) : (
+                      <p>今期は特別な出来事はありません。</p>
+                    )}
                   </div>
-                  <button className="rpg-action" onClick={() => setEventResult(false)}>
-                    3つの判断へ →
+                  <button
+                    className="rpg-action"
+                    onClick={() => {
+                      setEventResult(false);
+                      setReadEventTurn(eventTurn);
+                    }}
+                  >
+                    {turn.answered === 3 && !choice ? "半年の確認へ →" : "3つの判断へ →"}
                   </button>
                 </>
               ) : choice ? (
@@ -340,23 +359,37 @@ export function DecisionPlay({ response }: { response: Response }) {
             </div>
             {tab === "play" && !ended && (
               <nav className="rpg-steps" aria-label="今期の進行">
-                <span aria-current={special ? "step" : undefined}>出来事</span>
+                <button
+                  disabled={busy}
+                  aria-current={special || showingResult ? "step" : undefined}
+                  onClick={() => setEventResult(true)}
+                >
+                  出来事
+                </button>
                 {[0, 1, 2].map((index) => (
                   <button
                     key={index}
-                    disabled={busy || !!special || showingResult || !decisions[index]}
+                    disabled={busy || !!special || !decisions[index]}
                     aria-current={
                       choice === decisions[index] && !showingResult ? "step" : undefined
                     }
-                    onClick={() => setEditing(decisions[index].instance_id)}
+                    onClick={() => {
+                      setEventResult(false);
+                      setReadEventTurn(eventTurn);
+                      setEditing(decisions[index].instance_id);
+                    }}
                   >
                     {decisions[index] && answered(decisions[index]) ? "✓ " : ""}判断{index + 1}
                   </button>
                 ))}
                 <button
-                  disabled={busy || !!special || showingResult || turn.answered < 3}
+                  disabled={busy || !!special || turn.answered < 3}
                   aria-current={!choice && !showingResult ? "step" : undefined}
-                  onClick={() => setEditing(null)}
+                  onClick={() => {
+                    setEventResult(false);
+                    setReadEventTurn(eventTurn);
+                    setEditing(null);
+                  }}
                 >
                   確認
                 </button>

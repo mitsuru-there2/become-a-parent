@@ -43,6 +43,7 @@ export const decisionThemeSchema = v.pipe(
   v.check((t) => t.min_turn <= t.max_turn, "対象期間が逆です"),
 );
 export const decisionGameSchema = v.strictObject({
+  initial_grandparent_funds: v.optional(integer()),
   themes: v.array(decisionThemeSchema),
   events: v.array(decisionThemeSchema),
   income: integer(),

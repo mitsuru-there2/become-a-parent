@@ -1,3 +1,4 @@
+import automaticEvents from "../../config/events.json";
 import base from "../../config/base.json";
 import legacy from "../../config/legacy-data-1.json";
 import bundledPacks from "../../config/packs.json";
@@ -8,7 +9,10 @@ import { ContentError, validateContent, validatePack } from "./validation";
 export class Catalog {
   private base: Content;
   private packs: ContentPack[];
-  constructor(data: unknown = base, packs: unknown = bundledPacks) {
+  constructor(
+    data: unknown = { ...base, automatic_events: automaticEvents },
+    packs: unknown = bundledPacks,
+  ) {
     validateContent(data);
     if (!Array.isArray(packs)) throw new ContentError("追加パックは配列で指定してください");
     packs.forEach(validatePack);
@@ -79,7 +83,7 @@ export class Catalog {
   }
 }
 export const catalog = new Catalog();
-const currentData: unknown = base;
+const currentData: unknown = { ...base, automatic_events: automaticEvents };
 const legacyData: unknown = legacy;
 validateContent(currentData);
 validateContent(legacyData);

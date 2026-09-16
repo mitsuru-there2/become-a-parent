@@ -1,0 +1,548 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+      },
+      "text": {
+        "type": "string",
+        "minLength": 1
+      },
+      "kind": {
+        "enum": ["good", "bad"],
+        "type": "string"
+      },
+      "min_age_months": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 239
+      },
+      "max_age_months": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 239
+      },
+      "probability": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "conditions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "enum": [
+                "cash",
+                "couple",
+                "child.stress",
+                "child.autonomy",
+                "child.trust.A",
+                "child.trust.B",
+                "child.interest.study",
+                "child.interest.craft",
+                "child.ability.study",
+                "child.ability.craft",
+                "parents.A.stress",
+                "parents.A.health",
+                "parents.A.fulfillment",
+                "parents.A.social",
+                "parents.A.regret",
+                "parents.B.stress",
+                "parents.B.health",
+                "parents.B.fulfillment",
+                "parents.B.social",
+                "parents.B.regret",
+                "decisions.fatigue.A",
+                "decisions.fatigue.B",
+                "decisions.skills.A.dialogue",
+                "decisions.skills.A.planning",
+                "decisions.skills.A.learning",
+                "decisions.skills.B.dialogue",
+                "decisions.skills.B.planning",
+                "decisions.skills.B.learning",
+                "grandparents.health",
+                "grandparents.relation",
+                "grandparents.funds",
+                "parents.A.age_months",
+                "parents.B.age_months"
+              ],
+              "type": "string"
+            },
+            "op": {
+              "enum": ["eq", "lt", "gte"],
+              "type": "string"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": -99999,
+              "maximum": 99999
+            }
+          },
+          "required": ["path", "op", "value"],
+          "additionalProperties": false
+        }
+      },
+      "modifiers": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "condition": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "enum": [
+                    "cash",
+                    "couple",
+                    "child.stress",
+                    "child.autonomy",
+                    "child.trust.A",
+                    "child.trust.B",
+                    "child.interest.study",
+                    "child.interest.craft",
+                    "child.ability.study",
+                    "child.ability.craft",
+                    "parents.A.stress",
+                    "parents.A.health",
+                    "parents.A.fulfillment",
+                    "parents.A.social",
+                    "parents.A.regret",
+                    "parents.B.stress",
+                    "parents.B.health",
+                    "parents.B.fulfillment",
+                    "parents.B.social",
+                    "parents.B.regret",
+                    "decisions.fatigue.A",
+                    "decisions.fatigue.B",
+                    "decisions.skills.A.dialogue",
+                    "decisions.skills.A.planning",
+                    "decisions.skills.A.learning",
+                    "decisions.skills.B.dialogue",
+                    "decisions.skills.B.planning",
+                    "decisions.skills.B.learning",
+                    "grandparents.health",
+                    "grandparents.relation",
+                    "grandparents.funds",
+                    "parents.A.age_months",
+                    "parents.B.age_months"
+                  ],
+                  "type": "string"
+                },
+                "op": {
+                  "enum": ["eq", "lt", "gte"],
+                  "type": "string"
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": -99999,
+                  "maximum": 99999
+                }
+              },
+              "required": ["path", "op", "value"],
+              "additionalProperties": false
+            },
+            "add": {
+              "type": "integer",
+              "minimum": -100,
+              "maximum": 100
+            }
+          },
+          "required": ["condition", "add"],
+          "additionalProperties": false
+        }
+      },
+      "cooldown": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 40
+      },
+      "once": {
+        "type": "boolean"
+      },
+      "effects": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "enum": [
+                "cash",
+                "couple",
+                "child.stress",
+                "child.autonomy",
+                "child.trust.A",
+                "child.trust.B",
+                "child.interest.study",
+                "child.interest.craft",
+                "child.ability.study",
+                "child.ability.craft",
+                "parents.A.stress",
+                "parents.A.health",
+                "parents.A.fulfillment",
+                "parents.A.social",
+                "parents.A.regret",
+                "parents.B.stress",
+                "parents.B.health",
+                "parents.B.fulfillment",
+                "parents.B.social",
+                "parents.B.regret",
+                "decisions.fatigue.A",
+                "decisions.fatigue.B",
+                "decisions.skills.A.dialogue",
+                "decisions.skills.A.planning",
+                "decisions.skills.A.learning",
+                "decisions.skills.B.dialogue",
+                "decisions.skills.B.planning",
+                "decisions.skills.B.learning",
+                "grandparents.health",
+                "grandparents.relation",
+                "grandparents.funds"
+              ],
+              "type": "string"
+            },
+            "delta": {
+              "type": "integer",
+              "minimum": -99999,
+              "maximum": 99999
+            }
+          },
+          "required": ["path", "delta"],
+          "additionalProperties": false
+        },
+        "minItems": 1
+      }
+    },
+    "required": [
+      "id",
+      "text",
+      "kind",
+      "min_age_months",
+      "max_age_months",
+      "probability",
+      "conditions",
+      "modifiers",
+      "cooldown",
+      "once",
+      "effects"
+    ],
+    "additionalProperties": false
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$defs": {
+    "Event": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+              },
+              "label": {
+                "type": "string"
+              },
+              "cost": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99999
+              },
+              "effects": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 99999
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": ["id", "label", "cost", "effects"],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "trigger": {
+          "type": "object",
+          "properties": {
+            "turns": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 40
+              }
+            },
+            "min_turn": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "max_turn": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "cooldown": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "once": {
+              "type": "boolean"
+            },
+            "probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "group": {
+              "type": "string"
+            },
+            "all": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "op": {
+                    "enum": ["eq", "lt", "gte"],
+                    "type": "string"
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                },
+                "required": ["path", "op", "value"],
+                "additionalProperties": false
+              }
+            },
+            "any": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "op": {
+                    "enum": ["eq", "lt", "gte"],
+                    "type": "string"
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                },
+                "required": ["path", "op", "value"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "turns",
+            "min_turn",
+            "max_turn",
+            "cooldown",
+            "once",
+            "probability",
+            "priority",
+            "group",
+            "all",
+            "any"
+          ],
+          "additionalProperties": false
+        },
+        "target": {
+          "enum": ["study", "craft", "previous_activity", "interest"],
+          "type": "string"
+        },
+        "target_suffix": {
+          "type": "string"
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["text", "options", "trigger", "target", "target_suffix", "visual"],
+      "additionalProperties": false
+    },
+    "Action": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999
+        },
+        "time": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "parent": {
+          "enum": ["A", "B"],
+          "type": "string"
+        },
+        "min_turn": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "max_turn": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "target": {
+          "enum": ["study", "craft"],
+          "type": "string"
+        },
+        "effects": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -100,
+                "maximum": 99999
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "description",
+        "cost",
+        "time",
+        "parent",
+        "min_turn",
+        "max_turn",
+        "target",
+        "effects",
+        "visual"
+      ],
+      "additionalProperties": false
+    },
+    "Visual": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "pattern": "^\\/assets\\/[A-Za-z0-9_./-]+\\.(png|jpg|jpeg|webp|gif|svg)$"
+        },
+        "alt": {
+          "type": "string"
+        }
+      },
+      "required": ["src", "alt"],
+      "additionalProperties": false
+    },
+    "Scenario": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "adaptation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "required": ["id", "label", "description", "adaptation"],
+      "additionalProperties": false
+    }
+  },
+  "title": "親伝説：自動イベント",
+  "description": "Valibotから自動生成。参照・依存・独自条件の検査には bun run check:content を実行してください。",
+  "$comment": "生成元: src/content/schemas.ts。変更後は bun run schema:generate。手で編集しないでください。"
+}

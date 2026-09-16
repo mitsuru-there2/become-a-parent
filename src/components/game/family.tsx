@@ -26,7 +26,11 @@ export function Family({ publicState }: { publicState: PublicState }) {
                 <span>疲労</span>
                 <meter
                   min="0"
-                  max={["rules-4", "rules-5"].includes(publicState.versions.rules) ? 10 : 100}
+                  max={
+                    ["rules-4", "rules-5", "rules-6"].includes(publicState.versions.rules)
+                      ? 10
+                      : 100
+                  }
                   value={publicState.decision_turn.fatigue[parentId]}
                   aria-label={`${labels[parentId]}の疲労`}
                 />
@@ -45,7 +49,9 @@ export function Family({ publicState }: { publicState: PublicState }) {
               <span>{labels[statKey]}</span>
               <meter
                 min="0"
-                max={["rules-4", "rules-5"].includes(publicState.versions.rules) ? 10 : 100}
+                max={
+                  ["rules-4", "rules-5", "rules-6"].includes(publicState.versions.rules) ? 10 : 100
+                }
                 value={publicState.parents[parentId][statKey]}
                 aria-label={`${labels[parentId]}の${labels[statKey]}`}
               />

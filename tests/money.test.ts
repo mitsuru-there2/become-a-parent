@@ -9,7 +9,7 @@ import { Service, replayRun, exportRun, importRun } from "../src/service/service
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
 import base from "../config/base.json";
 
-const start = (seed = 0) => startDecisions("home-01", seed, new Catalog().resolve());
+const start = (seed = 0) => startDecisions("home-01", seed, new Catalog(base).resolve());
 function choose(state: State, index: number, suffix?: string) {
   const theme = publicView(state).choices[index];
   const option = suffix
@@ -97,7 +97,7 @@ describe("S-016 家計の大きな選択差", () => {
 
   it("新収入の再送・回答途中の再開・確定後の再生で二重入金しない", async () => {
     const repo = new IndexedRepository(new GameDatabase(`money-${crypto.randomUUID()}`));
-    const service = new Service(repo);
+    const service = new Service(repo, new Catalog(base));
     try {
       let r = await service.execute({
         command: "new",
@@ -142,7 +142,8 @@ describe("S-016 家計の大きな選択差", () => {
       const saved = (await repo.read("money"))!;
       expect(importRun(exportRun(saved))).toEqual(saved);
       expect(
-        (await new Service(repo).execute({ command: "observe", run: "money" })).public,
+        (await new Service(repo, new Catalog(base)).execute({ command: "observe", run: "money" }))
+          .public,
       ).toEqual(r.public);
       const forecast = r.public!.forecast!;
       const commit = {

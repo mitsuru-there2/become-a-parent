@@ -49,7 +49,7 @@ try {
         throw new Error("新方式で配分操作が公開されています");
       while (r.phase === "childhood") {
         const special = r.choices[0];
-        if (special.kind !== "special") throw new Error("期首イベントがありません");
+
         const recover =
           policy === "recovery" &&
           (r.public!.family_status!.level <= 3 || r.public!.parents.A.stress >= 60);
@@ -57,10 +57,11 @@ try {
         const eventOption = supportive
           ? special.options[0]
           : (special.options.find((o) => o.option_id.endsWith(":leave")) ?? special.options[0]);
-        r = await call("choose", supportive ? "家族で相談して対応。" : "今回は様子を見る。", {
-          event_instance: special.instance_id,
-          option_id: eventOption.option_id,
-        });
+        if (special.kind === "special")
+          r = await call("choose", supportive ? "家族で相談して対応。" : "今回は様子を見る。", {
+            event_instance: special.instance_id,
+            option_id: eventOption.option_id,
+          });
         if (r.choices.length !== 3) throw new Error("判断が3件ではありません");
         for (const [index, theme] of r.choices.entries()) {
           const option = supportive

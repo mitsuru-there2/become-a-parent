@@ -23,7 +23,7 @@ import type { State } from "../src/engine/types";
 import sample from "../config/examples/community.json";
 import base from "../config/base.json";
 import { parentFields } from "../src/engine/stat_scale";
-const start = (seed = 0) => startDecisions("home-01", seed, new Catalog().resolve());
+const start = (seed = 0) => startDecisions("home-01", seed, new Catalog().resolve(), "rules-5");
 function answerSpecial(state: State, suffix = ":together") {
   const event = publicView(state).choices[0];
   const option = event.options.find((o) => o.option_id.endsWith(suffix)) ?? event.options[0];
@@ -195,7 +195,12 @@ describe("S-016 保存・公開CLI契約", () => {
             const saved = (await repo.read("test"))!;
             expect(importRun(exportRun(saved))).toEqual(saved);
             expect(
-              (await new Service(repo).execute({ command: "observe", run: "test" })).public,
+              (
+                await new Service(repo, new Catalog(base)).execute({
+                  command: "observe",
+                  run: "test",
+                })
+              ).public,
             ).toEqual(r.public);
           }
         }
@@ -269,7 +274,7 @@ describe("S-016 境界と保存整合性", () => {
   });
   it("不正操作を保存せず、ゲームオーバーも書出し・取込・再生できる", async () => {
     const repo = new IndexedRepository(new GameDatabase(`boundary-${crypto.randomUUID()}`));
-    const service = new Service(repo);
+    const service = new Service(repo, new Catalog(base));
     let r = await service.execute({
       command: "new",
       run: "test",

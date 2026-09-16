@@ -23,7 +23,7 @@ function StatusMeter({
 }
 
 export function PartyStatus({ state }: { state: PublicState }) {
-  const max = ["rules-4", "rules-5"].includes(state.versions.rules) ? 10 : 100;
+  const max = ["rules-4", "rules-5", "rules-6"].includes(state.versions.rules) ? 10 : 100;
   const turn = state.decision_turn;
   return (
     <section className="rpg-party" aria-label="家族のステータス">

@@ -1,0 +1,457 @@
+[
+  {
+    "id": "grandparent-gift",
+    "text": "祖父母から突然の援助。子育てに使ってね、と50万円が届いた。",
+    "kind": "good",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 12,
+    "conditions": [
+      {
+        "path": "grandparents.funds",
+        "value": 50,
+        "op": "gte"
+      }
+    ],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "grandparents.relation",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 10
+      }
+    ],
+    "cooldown": 8,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 50
+      },
+      {
+        "path": "grandparents.funds",
+        "delta": -50
+      },
+      {
+        "path": "grandparents.relation",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "craft-prize",
+    "text": "子どもが創作コンテストに入賞！ 賞金50万円を受け取った。",
+    "kind": "good",
+    "min_age_months": 72,
+    "max_age_months": 234,
+    "probability": 6,
+    "conditions": [
+      {
+        "path": "child.ability.craft",
+        "value": 30,
+        "op": "gte"
+      }
+    ],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "child.ability.craft",
+          "value": 60,
+          "op": "gte"
+        },
+        "add": 12
+      },
+      {
+        "condition": {
+          "path": "child.interest.craft",
+          "value": 70,
+          "op": "gte"
+        },
+        "add": 8
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 50
+      },
+      {
+        "path": "child.interest.craft",
+        "delta": 5
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 4
+      }
+    ]
+  },
+  {
+    "id": "study-prize",
+    "text": "子どもが学習コンテストに入賞！ 賞金50万円を受け取った。",
+    "kind": "good",
+    "min_age_months": 96,
+    "max_age_months": 234,
+    "probability": 6,
+    "conditions": [
+      {
+        "path": "child.ability.study",
+        "value": 30,
+        "op": "gte"
+      }
+    ],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "child.ability.study",
+          "value": 60,
+          "op": "gte"
+        },
+        "add": 12
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 50
+      },
+      {
+        "path": "child.interest.study",
+        "delta": 5
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 4
+      }
+    ]
+  },
+  {
+    "id": "baby-sleep",
+    "text": "赤ちゃんがぐっすり眠った。父母も少し休めた。",
+    "kind": "good",
+    "min_age_months": 0,
+    "max_age_months": 30,
+    "probability": 22,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 2,
+    "once": false,
+    "effects": [
+      {
+        "path": "decisions.fatigue.A",
+        "delta": -1
+      },
+      {
+        "path": "decisions.fatigue.B",
+        "delta": -1
+      },
+      {
+        "path": "child.stress",
+        "delta": -3
+      }
+    ]
+  },
+  {
+    "id": "friends",
+    "text": "子どもに気の合う友だちができた。帰宅後の話が弾む。",
+    "kind": "good",
+    "min_age_months": 36,
+    "max_age_months": 210,
+    "probability": 15,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "child.autonomy",
+          "value": 50,
+          "op": "gte"
+        },
+        "add": 10
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.stress",
+        "delta": -5
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "family-outing",
+    "text": "家族で過ごす時間に、自然と笑顔が増えた。",
+    "kind": "good",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 12,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "couple",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 10
+      },
+      {
+        "condition": {
+          "path": "decisions.skills.A.dialogue",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 5
+      },
+      {
+        "condition": {
+          "path": "decisions.skills.B.dialogue",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 5
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "couple",
+        "delta": 1
+      },
+      {
+        "path": "child.trust.A",
+        "delta": 3
+      },
+      {
+        "path": "child.trust.B",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "father-bonus",
+    "text": "父の仕事が評価され、臨時の報奨金が出た。",
+    "kind": "good",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 8,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "parents.A.fulfillment",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 8
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 30
+      },
+      {
+        "path": "parents.A.fulfillment",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "mother-bonus",
+    "text": "母の仕事が評価され、臨時の報奨金が出た。",
+    "kind": "good",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 8,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "parents.B.fulfillment",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 8
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 30
+      },
+      {
+        "path": "parents.B.fulfillment",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "appliance-failure",
+    "text": "家電が突然故障。修理費が家計に響いた。",
+    "kind": "bad",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 12,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -20
+      },
+      {
+        "path": "parents.A.stress",
+        "delta": 1
+      },
+      {
+        "path": "parents.B.stress",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "school-worry",
+    "text": "学校でのすれ違いが続き、子どもの気持ちが沈んでいる。",
+    "kind": "bad",
+    "min_age_months": 72,
+    "max_age_months": 210,
+    "probability": 8,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "child.stress",
+          "value": 60,
+          "op": "gte"
+        },
+        "add": 15
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.stress",
+        "delta": 6
+      }
+    ]
+  },
+  {
+    "id": "father-fatigue",
+    "text": "父に疲れがたまり、体調を崩してしまった。",
+    "kind": "bad",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 6,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "decisions.fatigue.A",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 18
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "parents.A.health",
+        "delta": -1
+      },
+      {
+        "path": "decisions.fatigue.A",
+        "delta": 1
+      },
+      {
+        "path": "cash",
+        "delta": -10
+      }
+    ]
+  },
+  {
+    "id": "mother-fatigue",
+    "text": "母に疲れがたまり、体調を崩してしまった。",
+    "kind": "bad",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 6,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "decisions.fatigue.B",
+          "value": 7,
+          "op": "gte"
+        },
+        "add": 18
+      }
+    ],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "parents.B.health",
+        "delta": -1
+      },
+      {
+        "path": "decisions.fatigue.B",
+        "delta": 1
+      },
+      {
+        "path": "cash",
+        "delta": -10
+      }
+    ]
+  },
+  {
+    "id": "grandparent-care",
+    "text": "祖父母の体調がすぐれず、家族で生活を支える費用が増えた。",
+    "kind": "bad",
+    "min_age_months": 0,
+    "max_age_months": 234,
+    "probability": 5,
+    "conditions": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "grandparents.health",
+          "value": 5,
+          "op": "lt"
+        },
+        "add": 20
+      }
+    ],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -20
+      },
+      {
+        "path": "grandparents.health",
+        "delta": -1
+      }
+    ]
+  }
+]

@@ -11,6 +11,10 @@
     {
       "fileMatch": ["/config/examples/*.json"],
       "url": "./config/schemas/pack.schema.json"
+    },
+    {
+      "fileMatch": ["/config/events.json"],
+      "url": "./config/schemas/events.schema.json"
     }
   ]
 }

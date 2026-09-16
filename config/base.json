@@ -690,6 +690,7 @@
     "simulation_extra_action": "この半年は「{action}」を実行した。"
   },
   "decision_game": {
+    "initial_grandparent_funds": 100,
     "themes": [
       {
         "id": "sleep",

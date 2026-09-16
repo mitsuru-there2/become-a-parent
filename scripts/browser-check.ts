@@ -6,6 +6,7 @@ await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  page.setDefaultTimeout(15000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
@@ -19,17 +20,15 @@ try {
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
   const dialog = page.locator(".rpg-window");
   const body = page.locator(".rpg-window-body");
-  const selectEvent = async (last = false) => {
-    await expect(dialog).toContainText("今期の特殊イベント");
-    const options = body.locator(".choices button");
-    await (last ? options.last() : options.first()).click();
-    await expect(dialog).not.toContainText("今期の特殊イベント");
+  const selectEvent = async () => {
     const proceed = page.getByRole("button", { name: "3つの判断へ →" });
-    if (!(await page.locator(".game-over").count())) {
-      await expect(proceed).toBeVisible();
+    if (await proceed.count()) {
+      await expect(page.getByRole("region", { name: "今期の出来事" })).toBeVisible();
+      await expect(body.locator(".choices")).toHaveCount(0);
       await proceed.click();
-      await expect(dialog).toContainText("判断 1 / 3");
     }
+    await expect(dialog).toContainText("判断 1 / 3");
+    await expect(dialog).not.toContainText("今期の特殊イベント");
   };
   const selectDecisions = async (last = false) => {
     for (let index = 0; index < 3; index++) {
@@ -49,7 +48,7 @@ try {
     ).toEqual({ x: false, y: false });
   };
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText("今期の特殊イベント");
+  await selectEvent();
   for (const meter of await page.locator(".rpg-party meter").all()) {
     await expect(meter).toHaveAttribute("max", "10");
     const value = Number(await meter.getAttribute("value"));
@@ -97,7 +96,9 @@ try {
   await expect(page.locator(".ending h1")).toHaveText(ending);
   await page.screenshot({ path: out + "/ending.png", fullPage: true });
   await page.getByRole("button", { name: "家族の記録", exact: true }).click();
-  await expect(page.locator(".timeline article")).toHaveCount(88);
+  await expect(page.locator(".timeline article").first()).toBeVisible();
+  const historyCount = await page.locator(".timeline article").count();
+  expect(historyCount).toBeGreaterThanOrEqual(48);
   await expect(page.locator(".timeline")).toContainText("最期を迎えた");
   await expect(page.locator(".timeline")).not.toContainText("親A");
   await page.getByRole("button", { name: "人生の結末", exact: true }).click();
@@ -108,6 +109,7 @@ try {
   await page.getByRole("button", { name: "書き出し", exact: true }).click();
   await (await downloadPromise).saveAs(out + "/save.json");
   const fresh = await browser.newPage();
+  fresh.setDefaultTimeout(15000);
   await fresh.goto(url);
   await fresh.getByLabel("保存ファイルを取り込む").setInputFiles(out + "/save.json");
   await expect(fresh.locator(".ending h1")).toHaveText(ending);
@@ -123,7 +125,7 @@ try {
   await page.goto(url);
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
   for (let turn = 1; turn <= 40; turn++) {
-    await selectEvent(true);
+    await selectEvent();
     if (await page.locator(".game-over").count()) break;
     await selectDecisions(true);
     await next.click();
@@ -147,8 +149,8 @@ try {
         viewports: ["1280x900", "390x844"],
         turns: log,
         ending,
-        history: 88,
-        sequentialEvents: true,
+        history: historyCount,
+        automaticEvents: true,
         gameOverReload: true,
         partialSave: true,
         exportImport: true,

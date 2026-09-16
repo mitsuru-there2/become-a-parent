@@ -28,8 +28,8 @@ export function Timeline({ items }: { items: History[] }) {
                 {text}
               </p>
             ))}
-            {entry.money.map((transaction) => (
-              <p className="ledger" key={transaction.scope}>
+            {entry.money.map((transaction, index) => (
+              <p className="ledger" key={`${transaction.scope}-${index}`}>
                 {transaction.scope === "household" ? "家計" : labels[transaction.scope]}：
                 {transaction.before} ＋ {transaction.income} − {transaction.expense}
                 {transaction.cap_overflow

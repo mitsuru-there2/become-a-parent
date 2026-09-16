@@ -134,6 +134,7 @@ export interface NumericState {
   grandparents: { health: number; relation: number; funds: number; network: boolean };
 }
 export interface DecisionTurn {
+  opened_turn?: number;
   skills: Record<Person, { dialogue: number; planning: number; learning: number }>;
   fatigue: Record<Person, number>;
   special: DecisionTheme;

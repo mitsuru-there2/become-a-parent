@@ -1,3 +1,4 @@
+import { applyAutomaticEvents, automaticEventsEnabled } from "./automatic_events";
 import type { DecisionOption, DecisionTheme } from "../content/decision_schema";
 import type { Choice, Forecast, History, Person, State } from "./types";
 import type { Settings } from "../content/types";
@@ -20,7 +21,7 @@ import {
 
 const names = { A: "父", B: "母", both: "父母" };
 const skillNames = { dialogue: "対話", planning: "段取り", learning: "学びの支援" };
-const dynamicMoney = (state: State) => state.versions.rules === "rules-5";
+const dynamicMoney = (state: State) => ["rules-5", "rules-6"].includes(state.versions.rules);
 const choiceIncome = (state: State, option: DecisionOption) =>
   dynamicMoney(state) ? (option.income ?? 0) : 0;
 const moneyChange = (before: number, after: number) =>
@@ -33,7 +34,7 @@ export function startDecisions(
   scenario: string,
   seed: number,
   settings: Settings,
-  rules = "rules-5",
+  rules = settings.content.automatic_events ? "rules-6" : "rules-5",
 ): State {
   const state = start(scenario, seed, settings);
   state.versions =
@@ -41,8 +42,12 @@ export function startDecisions(
       ? { rules, data: "data-3", save: "save-4" }
       : rules === "rules-4"
         ? { rules, data: "data-4", save: "save-5" }
-        : { rules, data: "data-5", save: "save-6" };
+        : rules === "rules-5"
+          ? { rules, data: "data-5", save: "save-6" }
+          : { rules, data: "data-6", save: "save-7" };
   if (tenPoint(state)) scaleParents(state, 0.1);
+  if (automaticEventsEnabled(state))
+    state.grandparents.funds = game(state).initial_grandparent_funds ?? 40;
   state.draws = [];
   state.events = [];
   state.seen = {};
@@ -187,6 +192,16 @@ function openThemes(state: State) {
 }
 export function openDecisionTurn(state: State) {
   const d = state.decisions!;
+  if (automaticEventsEnabled(state)) {
+    if (state.phase !== "childhood" || d.opened_turn === state.n + 1) return;
+    d.opened_turn = state.n + 1;
+    d.special_answer = "automatic";
+    d.selections = {};
+    d.event_history = applyAutomaticEvents(state);
+    state.observations = observeChild(state);
+    openThemes(state);
+    return;
+  }
   d.special = pick(state, [...game(state).events, ...packEvents(state)], "special");
   if (d.special.id.startsWith("pack-event-")) state.seen[d.special.id.slice(11)] = state.n + 1;
   d.special_answer = null;

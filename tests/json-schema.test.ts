@@ -1,3 +1,5 @@
+import eventsJsonSchema from "../config/schemas/events.schema.json";
+import events from "../config/events.json";
 import { describe, it, expect } from "vite-plus/test";
 import { getLanguageService, TextDocument } from "vscode-json-languageservice";
 import base from "../config/base.json";
@@ -11,6 +13,7 @@ import { clone } from "../src/engine/shared";
 import { generateJsonSchemas } from "../scripts/lib/json-schemas";
 
 const generated = {
+  "events.schema.json": eventsJsonSchema,
   "content.schema.json": contentJsonSchema,
   "pack.schema.json": packJsonSchema,
   "packs.schema.json": packsJsonSchema,
@@ -37,6 +40,7 @@ describe("JSONファイルの補完と検査", () => {
     const language = service();
     for (const [path, value] of [
       ["config/base.json", base],
+      ["config/events.json", events],
       ["config/legacy-data-1.json", legacy],
       ["config/examples/community.json", sample],
       ["config/packs.json", [sample]],

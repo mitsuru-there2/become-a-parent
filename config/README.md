@@ -1,18 +1,32 @@
 # ゲーム設定の編集
 
-## 選択中心の新方式（S-016）
+## 自動イベント（rules-6 / S-016）
 
-新規ゲームの特殊イベント・通常判断は`base.json`の`decision_game`で定義します。従来の`events`等は旧方式と追加パックの互換用にも維持します。外側の設定構造はdata-2のまま拡張し、新方式の保存にはrules-3 / data-3 / save-4を記録します。
+新規ルールの祖父母の初期援助資金は`base.json`の`decision_game.initial_grandparent_funds`で調整します（初期設定100万円）。50万円の援助ではこの資金も50万円減ります。
 
-- `events`：毎期1件の特殊イベント候補。`slot`は−1。
-- `themes`：通常判断。`slot`の0・1・2からそれぞれ1件。年齢範囲は`min_turn`〜`max_turn`。
-- `condition`：always / tired / strained / crisis。状況に合う条件付きの題材を優先します。
-- `options`：本文、即時費用、対象の父母、使う能力、成果、各状態への効果、継続契約、明示的な終了理由。
-- `income`と各`*_per_turn`：半年の基礎収入と自然な変化。
+新規ゲームのイベントは専用の [events.json](events.json) で調整します。各期に全イベントを独立抽選し、0件でも複数件でも通常の3判断に進みます。発生時に効果を自動適用し、回答は求めません。初期設定は善悪13件。本文・数値はゲーム用の調整仮値です。
 
-全40期で各枠の候補があり、無料で継続できる選択を持つことを検査します。正本は[専用Valibotスキーマ](../src/content/decision_schema.ts)。計算式は[S-016](../docs/specs/decisions.md)です。
+| 項目                                | 意味                                                          |
+| ----------------------------------- | ------------------------------------------------------------- |
+| `id` / `text` / `kind`              | 一意なID、本文、`good`（うれしい）/ `bad`（困った）の表示分類 |
+| `min_age_months` / `max_age_months` | 子どもの対象月齢。両端を含む。6歳なら72、19歳6か月なら234     |
+| `probability`                       | 1期あたりの基本確率（整数0〜100%）                            |
+| `conditions`                        | 全条件が成立したときだけ抽選。空配列は制約なし                |
+| `modifiers`                         | 条件に合う補正の`add`を確率に加算。最終確率は0〜100%          |
+| `cooldown` / `once`                 | 再発までの期数（1なら毎期抽選可）、一度限りか                 |
+| `effects`                           | 発生時の数値変更。`path`へ`delta`を直接加算                   |
 
-旧形式の追加パックの行動は通常判断の追加選択肢へ変換し、時間消費は担当親の疲労として扱います。追加イベントの`probability`は候補へ入る確率です。候補になっても特殊イベント1枠の抽選で選ばれるとは限りません。新方式では`group`・`priority`による複数イベント提示はしません。
+条件は `{ "path": "child.ability.craft", "op": "gte", "value": 30 }` のように記述します。`op`は`eq`（等しい）、`lt`（未満）、`gte`（以上）。父母は`parents.A`（父）/`parents.B`（母）、夫婦関係は`couple`、祖父母は`grandparents`。能力・疲労は`decisions.skills.A.learning`や`decisions.fatigue.B`等です。許可する全パスは[スキーマ](../src/content/automatic_event_schema.ts)とJSON補完で確認できます。
+
+親・祖父母・夫婦関係は10点、子どもは内部100点、金額は万円、年齢は月です。旧選択肢のような効果量の自動倍率はありません。例えば家計50万円の入金は`{ "path": "cash", "delta": 50 }`、父のストレス1点増加は`{ "path": "parents.A.stress", "delta": 1 }`。効果は上下限で止め、金銭支出は所持金までです。子どもの内部値は公開せず、観察に反映します。
+
+全件を同じ期首状態で判定してからID順に適用するため、定義の配列順は抽選結果に影響しません。設定の変更は新しく開始するゲームに適用されます。保存済みのゲームは設定と抽選結果を保持し、再開時に最新JSONへ置き換えません。`bun run lint:json`で月齢・確率・パス・ID重複などを検査できます。
+
+## 通常判断と旧設定
+
+通常判断は`base.json`の`decision_game.themes`で定義します。`slot`の0・1・2から1件ずつ提示し、`min_turn`〜`max_turn`と`condition`で候補を絞ります。費用・収入・継続契約・効果・能力による成果は[S-016](../docs/specs/decisions.md)と[専用スキーマ](../src/content/decision_schema.ts)を参照してください。
+
+`decision_game.events`はrules-3〜5の回答式イベント用、従来の`events`は旧方式・旧追加パック用です。rules-6ではこれらのイベントを発生させません。旧形式の追加パックの行動は通常判断に取り込みます。旧保存は元のルールで再開します。新規保存の版はrules-6 / data-6 / save-7です。
 
 以下は従来の設定フィールド・追加パックの説明です。
 
@@ -30,7 +44,7 @@
 - JSON関連の全検査：`bun run lint:json`（lint・check・コミット時にも実行）
 - 更新漏れの検出：`bun run schema:check`（`bun run lint`・`bun run check`にも組み込み済み）
 
-`base.json` と `legacy-data-1.json` は本編用、`packs.json` は配列用、`examples/*.json` は単体パック用のスキーマを使います。別の場所にパックJSONを置く場合は関連付けの `fileMatch` に追加してください。JSON本体へ `$schema` を加える方式は採用していません。設定本体の型・保存ハッシュをそのまま保ちます。
+`events.json`は自動イベント用、`base.json` と `legacy-data-1.json` は本編用、`packs.json` は配列用、`examples/*.json` は単体パック用のスキーマを使います。別の場所にパックJSONを置く場合は関連付けの `fileMatch` に追加してください。JSON本体へ `$schema` を加える方式は採用していません。設定本体の型・保存ハッシュをそのまま保ちます。
 
 独自の `check` 関数（効果キーの制約、確率の合計、IDの重複等）や、画像・行動・依存パックの実在はJSON Schemaだけでは検査しません。最終確認は `bun run check:content` で行います。生成物は手で編集せず、Valibotから再生成してください。
 

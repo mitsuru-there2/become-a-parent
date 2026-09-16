@@ -99,7 +99,8 @@ export function validateRun(run: Run) {
   const decisions =
     (version?.save === "save-4" && version.rules === "rules-3" && version.data === "data-3") ||
     (version?.save === "save-5" && version.rules === "rules-4" && version.data === "data-4") ||
-    (version?.save === "save-6" && version.rules === "rules-5" && version.data === "data-5");
+    (version?.save === "save-6" && version.rules === "rules-5" && version.data === "data-5") ||
+    (version?.save === "save-7" && version.rules === "rules-6" && version.data === "data-6");
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
@@ -107,6 +108,8 @@ export function validateRun(run: Run) {
       validateSettings(run.state.settings);
       if (decisions && (!run.state.settings!.content.decision_game || !run.state.decisions))
         throw new Error("選択ゲームの状態がありません");
+      if (version.rules === "rules-6" && !run.state.settings!.content.automatic_events)
+        throw new Error("自動イベント設定がありません");
     } else if (run.state.settings !== undefined) throw new Error("旧保存に設定があります");
   } catch {
     throw new Failure("CORRUPT_SAVE", "保存された設定が不正です。");
@@ -447,6 +450,7 @@ export function importRun(text: string): Run {
         "parent-save-4",
         "parent-save-5",
         "parent-save-6",
+        "parent-save-7",
       ].includes(parsed.format)
     )
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");

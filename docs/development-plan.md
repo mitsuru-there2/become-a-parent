@@ -227,3 +227,22 @@ D-033・[S-016 / AC-016-L・M](specs/decisions.md#家計の選択を強める202
 - 既存の`test:browser`も成功。40期→成人後・結末、88件の履歴、書出し・取込、途中終了・再開を確認し、console warning/error・実行時エラーなし。初回は並行ビルド中にイベント結果画面の待機が失敗し、ビルド完了後の再実行では成功。証跡は`/tmp/parent-money-browser-final/`。
 
 未検証：人による家計の手応え・難易度分布、実機Safari・Firefox。公開デプロイは未実施。
+
+## 自動イベントへの変更（2026-09-17）
+
+D-034・[S-016 / AC-016-N・O](specs/decisions.md#自動イベント2026-09-17d-034)。新規ゲームはrules-6 / data-6 / save-7。専用の`config/events.json`に善悪13件を定義し、各期0件以上の独立抽選・自動適用に変更した。月齢・家族の数値条件・確率補正・再発間隔・一度限り・効果を設定で調整できる。旧回答式イベントは旧ルールの保存で維持する。
+
+検証：
+
+- `bun run check`、`bun run build`成功。`bun run test`は10ファイル73テスト成功。複数発生・0件、月齢両端・範囲外、状態条件・確率補正、再発間隔・一度限り、金額・状態の上下限、乱数再現、40期・成人後、保存・再送・再開・再生を確認。旧ルールのテストは対象版を明示して保持した。
+- `bun run test:public /tmp/parent-auto-public-final 3`：5方針×3シードの15実行で全件再生一致。support / adaptationの6本は40期と成人後を完走。pressureは4期、quietは6〜7期、recoveryは14〜20期で途中終了。公開CLIの記録と内部状態を使う単体テストは区別している。
+- `bun run test:browser`：Chrome、`http://127.0.0.1:5173`、1280×900・390×844。タイトル・非空画面・エラーオーバーレイ不在、10点メーター、自動イベント表示と直接3判断、回答途中の再開、40期から成人後、76件の履歴、書出し・取込、途中終了・再開を確認。console warning/error・実行時エラーなし。Browser plugin not availableのためfrontend-testing-debuggingのPlaywright経路を使用。初回のChrome起動は隔離環境でSIGABRTとなり権限拡張で実行。履歴件数の検証は非同期読込完了を待つよう修正した。証跡は`/tmp/parent-browser-decisions/`。
+- 追加の公開UI検証でseed=1の休息イベント、seed=2の家電故障を確認。結果と資金が再読込で変わらず、確認操作なしで判断に回答できた。PC・モバイル画像は同じ証跡ディレクトリの`automatic-*.png`。
+- 祖父母の初期資金40万円では50万円援助の条件を満たせないため、新規ルールの初期援助資金を設定化して本編100万円とした。実設定の援助・コンテスト賞金50万円を専用テストで確認。修正後の公開CLI15実行・ブラウザ40期と保存検証も成功。最終ブラウザ証跡は`/tmp/parent-auto-browser-final/`（履歴76件・コンソールエラーなし）。
+- 変更前のrules-4・rules-5の実保存15本（`/tmp/parent-ten-point-public-final/saves`・`/tmp/parent-money-public/saves`）を現エンジンで再生し、全件digest一致。
+
+未検証：実機Safari・Firefox、人によるイベント頻度・善悪のバランス評価（Q-014）。公開デプロイは未実施。
+
+同日の表示修正：ユーザー指定により、イベント結果を通常判断と別の単独カードに戻した。「3つの判断へ」は表示切替のみ。0件なら直接判断に進み、回答途中の再開ではイベントカードを挟まない。`bun run check`成功。Chromeの1280×900・390×844で善悪2件の結果だけを表示し、次へ進んでも資金が変わらないこと、再読込と回答後の再開を確認。実行時・コンソールエラーなし。証跡は`/tmp/parent-event-card-desktop.png`・`/tmp/parent-event-card-mobile.png`。検証URLは`http://127.0.0.1:5174`。
+
+同日の振り返り操作：進行ナビの「出来事」をボタンにし、回答中・全件回答後にもイベントカードを再表示できるようにした。0件なら発生なしの案内を出す。判断・確認のナビから直接戻れ、全件回答後は「半年の確認へ」も表示する。`bun run check`成功。Chrome（1212×1070・390×844）でイベントあり・なし、2回の再表示、回答3件・資金・予測収支の保持、ナビと戻るボタンを確認し、実行時・コンソールエラーなし。証跡は`/tmp/parent-event-review-desktop.png`・`/tmp/parent-event-review-mobile.png`。
