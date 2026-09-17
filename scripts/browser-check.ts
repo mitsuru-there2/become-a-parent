@@ -17,17 +17,20 @@ try {
   await expect(page).toHaveTitle(/親伝説/);
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   await page.getByLabel("難易度").selectOption("hard");
+  await page.getByLabel("人生のシード（偶然を決める番号）").fill("3");
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
   const dialog = page.locator(".rpg-window");
   const body = page.locator(".rpg-window-body");
+  const eventDialog = page.getByRole("dialog", { name: "今期の出来事" });
   const selectEvent = async () => {
-    const proceed = page.getByRole("button", { name: "3つの判断へ →" });
-    await expect(body.locator(".choices").or(proceed)).toHaveCount(1);
-    if (await proceed.count()) {
-      await expect(page.getByRole("region", { name: "今期の出来事" })).toBeVisible();
-      await expect(body.locator(".choices")).toHaveCount(0);
-      await proceed.click();
+    await expect(body.locator(".choices")).toHaveCount(1);
+    // 保存作成・ターン更新直後のReact描画が揃ってから、開始ダイアログの有無を判定する。
+    await page.waitForTimeout(100);
+    if (await eventDialog.isVisible()) {
+      await eventDialog.getByRole("button", { name: "3つの判断へ →" }).click();
+      await expect(eventDialog).toHaveCount(0);
     }
+    await expect(body.locator(".choices")).toHaveCount(1);
     await expect(dialog).toContainText("判断 1 / 3");
     await expect(dialog).not.toContainText("今期の特殊イベント");
   };
@@ -49,26 +52,32 @@ try {
     ).toEqual({ x: false, y: false });
   };
   await expect(dialog).toBeVisible();
-  await selectEvent();
+  await expect(eventDialog).toBeVisible();
+  await expect(eventDialog.locator(".turn-event-card")).toHaveCount(3);
+  await expect(eventDialog.locator(".turn-event-card--good")).toHaveCount(1);
+  await expect(eventDialog.locator(".turn-event-card--bad")).toHaveCount(2);
+  await expect(eventDialog.locator(".turn-event-illustration img")).toBeVisible();
+  await expect(eventDialog.getByLabel("パラメータの変更")).toHaveCount(3);
   for (const meter of await page.locator(".rpg-party meter").all()) {
     await expect(meter).toHaveAttribute("max", "10");
     const value = Number(await meter.getAttribute("value"));
     expect(value).toBeGreaterThanOrEqual(0);
     expect(value).toBeLessThanOrEqual(10);
   }
-  const eventText = await dialog.innerText();
+  const eventText = await eventDialog.innerText();
+  const cashText = await page.locator(".rpg-cash").innerText();
   await page.keyboard.press("Escape");
-  await expect(dialog).toBeVisible();
+  await expect(eventDialog).toBeVisible();
   await page.mouse.click(5, 5);
-  await expect(dialog).toBeVisible();
-  await page.reload();
-  // 未回答で再読込した場合は今期の出来事を再表示する（効果は再適用しない）。
-  await selectEvent();
-  await expect(dialog).toHaveText(eventText, { useInnerText: true });
+  await expect(eventDialog).toBeVisible();
   await page.screenshot({ path: out + "/event-desktop.png", fullPage: false });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: out + "/event-mobile.png", fullPage: false });
   await checkViewport();
+  await page.reload();
+  // 未回答で再読込した場合は今期の出来事を再表示する（効果は再適用しない）。
+  await expect(eventDialog).toHaveText(eventText, { useInnerText: true });
+  await expect(page.locator(".rpg-cash")).toHaveText(cashText, { useInnerText: true });
   await selectEvent();
   await expect(body.locator(".choices")).toHaveCount(1);
   await expect(page.locator(".plan-section")).toHaveCount(0);

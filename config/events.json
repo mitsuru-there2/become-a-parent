@@ -5,7 +5,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 6,
+    "probability": 10,
     "conditions": [
       {
         "path": "grandparents.members.grandfather.funds",
@@ -46,7 +46,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 6,
+    "probability": 10,
     "conditions": [
       {
         "path": "grandparents.members.grandmother.funds",
@@ -87,7 +87,7 @@
     "kind": "good",
     "min_age_months": 72,
     "max_age_months": 234,
-    "probability": 6,
+    "probability": 10,
     "conditions": [
       {
         "path": "child.ability.craft",
@@ -136,7 +136,7 @@
     "kind": "good",
     "min_age_months": 96,
     "max_age_months": 234,
-    "probability": 6,
+    "probability": 10,
     "conditions": [
       {
         "path": "child.ability.study",
@@ -177,7 +177,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 30,
-    "probability": 22,
+    "probability": 35,
     "conditions": [],
     "modifiers": [],
     "cooldown": 2,
@@ -203,7 +203,7 @@
     "kind": "good",
     "min_age_months": 36,
     "max_age_months": 210,
-    "probability": 15,
+    "probability": 35,
     "conditions": [],
     "modifiers": [
       {
@@ -215,7 +215,7 @@
         "add": 10
       }
     ],
-    "cooldown": 4,
+    "cooldown": 3,
     "once": false,
     "effects": [
       {
@@ -234,7 +234,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 12,
+    "probability": 35,
     "conditions": [],
     "modifiers": [
       {
@@ -262,7 +262,7 @@
         "add": 5
       }
     ],
-    "cooldown": 4,
+    "cooldown": 3,
     "once": false,
     "effects": [
       {
@@ -285,7 +285,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 8,
+    "probability": 20,
     "conditions": [],
     "modifiers": [
       {
@@ -297,7 +297,7 @@
         "add": 8
       }
     ],
-    "cooldown": 4,
+    "cooldown": 3,
     "once": false,
     "effects": [
       {
@@ -316,7 +316,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 8,
+    "probability": 20,
     "conditions": [],
     "modifiers": [
       {
@@ -328,7 +328,7 @@
         "add": 8
       }
     ],
-    "cooldown": 4,
+    "cooldown": 3,
     "once": false,
     "effects": [
       {
@@ -347,10 +347,10 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 12,
+    "probability": 25,
     "conditions": [],
     "modifiers": [],
-    "cooldown": 4,
+    "cooldown": 3,
     "once": false,
     "effects": [
       {
@@ -373,7 +373,7 @@
     "kind": "bad",
     "min_age_months": 72,
     "max_age_months": 210,
-    "probability": 8,
+    "probability": 20,
     "conditions": [],
     "modifiers": [
       {
@@ -385,7 +385,7 @@
         "add": 15
       }
     ],
-    "cooldown": 4,
+    "cooldown": 3,
     "once": false,
     "effects": [
       {
@@ -400,7 +400,7 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 6,
+    "probability": 15,
     "conditions": [],
     "modifiers": [
       {
@@ -412,7 +412,7 @@
         "add": 18
       }
     ],
-    "cooldown": 4,
+    "cooldown": 3,
     "once": false,
     "effects": [
       {
@@ -435,7 +435,7 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 6,
+    "probability": 15,
     "conditions": [],
     "modifiers": [
       {
@@ -447,7 +447,7 @@
         "add": 18
       }
     ],
-    "cooldown": 4,
+    "cooldown": 3,
     "once": false,
     "effects": [
       {
@@ -470,7 +470,7 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 5,
+    "probability": 10,
     "conditions": [],
     "modifiers": [
       {
@@ -501,7 +501,7 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 5,
+    "probability": 10,
     "conditions": [],
     "modifiers": [
       {

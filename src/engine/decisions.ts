@@ -357,6 +357,7 @@ export function decisionView(state: State) {
     contract: clone(d.contract),
     answered: Object.keys(d.selections).length,
     event_result: d.event_history?.text ?? [],
+    event_results: clone(d.event_history?.event_results ?? []),
     previous_result: clone(state.history.findLast((h) => h.kind === "turn") ?? null),
   };
   base.public.family_status = familyStatus(state);

@@ -47,6 +47,20 @@ describe("S-016 自動イベント", () => {
     expect(state.cash).toBe(quiet.cash + 30);
     expect(state.parents.A.stress).toBe(quiet.parents.A.stress + 2);
     expect(state.history[0].events).toHaveLength(2);
+    expect(state.history[0].event_results).toEqual([
+      {
+        event_id: "expense",
+        kind: "bad",
+        text: "臨時収入50万円",
+        changes: ["父・ストレス 3→5（+2）", "資金 120万円→100万円（-20万円）"],
+      },
+      {
+        event_id: "gift",
+        kind: "good",
+        text: "臨時収入50万円",
+        changes: ["資金 100万円→150万円（+50万円）"],
+      },
+    ]);
     expect(state.history[0].events.every((e) => e.option_id === null)).toBe(true);
     expect(publicView(state).choices.map((c) => c.kind)).toEqual([
       "decision",
@@ -54,6 +68,9 @@ describe("S-016 自動イベント", () => {
       "decision",
     ]);
     expect(publicView(quiet).public.decision_turn!.event_result).toEqual([]);
+    expect(publicView(state).public.decision_turn!.event_results).toEqual(
+      state.history[0].event_results,
+    );
     const saved = clone(state);
     publicView(state);
     openDecisionTurn(state);
@@ -124,6 +141,7 @@ describe("S-016 自動イベント", () => {
     expect(state.child.ability.study).toBe(100);
     expect(state.history[0].money[0].expense).toBe(cash);
     expect(state.history[0].text.join()).not.toContain("ability");
+    expect(state.history[0].event_results![0].changes).toContain("子ども・能力・学び +90");
     state.settings!.content.automatic_events = [
       event({ effects: [{ path: "cash", delta: 99999 }] }),
     ];

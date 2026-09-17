@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { Link } from "@tanstack/react-router";
 import { useStore } from "@nanostores/react";
-import type { Choice, PublicState } from "../../engine/types";
+import type { AutomaticEventResult, Choice, PublicState } from "../../engine/types";
 import type { Response } from "../../service/service";
 import { $busy, $error, $notice, $extra, update, readExtra, downloadSave } from "../../stores/game";
 import { Family } from "./family";
@@ -61,6 +61,77 @@ function Options({
   );
 }
 
+function EventDialog({
+  events,
+  legacyLines,
+  nextLabel,
+  onContinue,
+  headingRef,
+}: {
+  events: AutomaticEventResult[];
+  legacyLines: string[];
+  nextLabel: string;
+  onContinue: () => void;
+  headingRef: RefObject<HTMLHeadingElement | null>;
+}) {
+  return (
+    <>
+      <div className="event-overlay" aria-hidden="true" />
+      <section
+        className="event-dialog turn-event-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="turn-event-title"
+      >
+        <div className="turn-event-illustration">
+          <img src={familyRoom} alt="家族に起きた出来事を表す仮の挿絵" />
+          <span>TURN EVENT</span>
+        </div>
+        <div className="turn-event-heading">
+          <p>この半年のはじまり</p>
+          <h2 id="turn-event-title" ref={headingRef} tabIndex={-1}>
+            今期の出来事
+          </h2>
+          {events.length > 0 && <span>{events.length}件発生</span>}
+        </div>
+        <div className="turn-event-list">
+          {events.length > 0 ? (
+            events.map((event) => (
+              <article
+                key={event.event_id}
+                className={`turn-event-card turn-event-card--${event.kind}`}
+              >
+                <span className="turn-event-kind">
+                  {event.kind === "good" ? "良い出来事" : "困った出来事"}
+                </span>
+                <p>{event.text}</p>
+                {event.changes.length > 0 && (
+                  <ul aria-label="パラメータの変更">
+                    {event.changes.map((change) => (
+                      <li key={change}>{change}</li>
+                    ))}
+                  </ul>
+                )}
+              </article>
+            ))
+          ) : legacyLines.length > 0 ? (
+            <div className="turn-event-card turn-event-card--neutral">
+              {legacyLines.map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
+            </div>
+          ) : (
+            <p className="turn-event-empty">今期は特別な出来事はありません。</p>
+          )}
+        </div>
+        <button className="rpg-action" onClick={onContinue}>
+          {nextLabel}
+        </button>
+      </section>
+    </>
+  );
+}
+
 export function DecisionPlay({ response }: { response: Response }) {
   const state = response.public!;
   const turn = state.decision_turn!;
@@ -91,9 +162,11 @@ export function DecisionPlay({ response }: { response: Response }) {
   const showingResult = (eventResult || automaticResult) && !special && !ended;
   const stageKey = `${tab}:${state.time.next_turn}:${ended ? response.phase : showingResult ? "result" : (choice?.instance_id ?? "review")}`;
   const heading = useRef<HTMLHeadingElement>(null);
+  const eventHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    heading.current?.focus({ preventScroll: true });
-  }, [stageKey]);
+    if (showingResult) eventHeading.current?.focus({ preventScroll: true });
+    else heading.current?.focus({ preventScroll: true });
+  }, [stageKey, showingResult]);
   useEffect(() => {
     if (response.phase === "finished" && tab === "play" && !extra.result) void readExtra("result");
   }, [response.phase, tab, extra.result]);
@@ -150,11 +223,9 @@ export function DecisionPlay({ response }: { response: Response }) {
                     ? "人生の結末"
                     : special
                       ? "今期の特殊イベント"
-                      : showingResult
-                        ? "イベントの結果"
-                        : choice
-                          ? `判断 ${decisions.indexOf(choice) + 1} / 3`
-                          : "この半年の確認"
+                      : choice
+                        ? `判断 ${decisions.indexOf(choice) + 1} / 3`
+                        : "この半年の確認"
                   : tab === "family"
                     ? "家族の様子"
                     : tab === "history"
@@ -257,28 +328,6 @@ export function DecisionPlay({ response }: { response: Response }) {
                 ) : (
                   <p>人生を振り返っています…</p>
                 )
-              ) : showingResult ? (
-                <>
-                  <h2 ref={heading} tabIndex={-1}>
-                    今期の出来事
-                  </h2>
-                  <div className="rpg-result" role="region" aria-label="今期の出来事">
-                    {turn.event_result.length ? (
-                      turn.event_result.map((line, index) => <p key={index}>{line}</p>)
-                    ) : (
-                      <p>今期は特別な出来事はありません。</p>
-                    )}
-                  </div>
-                  <button
-                    className="rpg-action"
-                    onClick={() => {
-                      setEventResult(false);
-                      setReadEventTurn(eventTurn);
-                    }}
-                  >
-                    {turn.answered === 3 && !choice ? "半年の確認へ →" : "3つの判断へ →"}
-                  </button>
-                </>
               ) : choice ? (
                 <>
                   <h2 ref={heading} tabIndex={-1}>
@@ -420,6 +469,18 @@ export function DecisionPlay({ response }: { response: Response }) {
           </button>
         ))}
       </nav>
+      {showingResult && (
+        <EventDialog
+          events={turn.event_results}
+          legacyLines={turn.event_result}
+          headingRef={eventHeading}
+          nextLabel={turn.answered === 3 && !choice ? "半年の確認へ →" : "3つの判断へ →"}
+          onContinue={() => {
+            setEventResult(false);
+            setReadEventTurn(eventTurn);
+          }}
+        />
+      )}
     </div>
   );
 }

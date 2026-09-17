@@ -1,5 +1,5 @@
 import { applyGrandparentDelta, syncGrandparents } from "./grandparents";
-import type { State, History } from "./types";
+import type { AutomaticEventResult, State, History } from "./types";
 import type { AutomaticEvent } from "../content/automatic_event_schema";
 import { contentFor } from "../content/catalog";
 import { clone } from "./shared";
@@ -39,9 +39,11 @@ export function applyAutomaticEvents(state: State): History | null {
   if (!selected.length) return null;
   const text: string[] = [];
   const money: History["money"] = [];
+  const eventResults: AutomaticEventResult[] = [];
   for (const event of selected) {
     state.seen[`automatic:${event.id}`] = turn;
     text.push(`${event.kind === "good" ? "うれしい出来事" : "困った出来事"}：${event.text}`);
+    const changes: string[] = [];
     const before = state.cash;
     let income = 0;
     let expense = 0;
@@ -55,16 +57,22 @@ export function applyAutomaticEvents(state: State): History | null {
         } else expense += previous - current;
       } else if (!effect.path.startsWith("child.")) {
         const label = statLabel(effect.path);
-        if (current !== previous)
-          text.push(
-            `${label} ${previous}→${current}（${current > previous ? "+" : ""}${current - previous}）`,
-          );
+        if (current !== previous) {
+          const change = formatChange(label, previous, current, effect.path.endsWith(".funds"));
+          text.push(change);
+          changes.push(change);
+        }
+      } else if (current !== previous) {
+        // 子どもの現在値は観察文で伝え、イベントでは今回の増減だけを公開する。
+        changes.push(formatDelta(statLabel(effect.path), current - previous));
       }
     }
-    if (income || expense)
-      text.push(
-        `資金 ${before}→${state.cash}万円（${state.cash >= before ? "+" : ""}${state.cash - before}万円）`,
-      );
+    if (income || expense) {
+      const change = formatChange("資金", before, state.cash, true);
+      text.push(change);
+      changes.push(change);
+    }
+    eventResults.push({ event_id: event.id, kind: event.kind, text: event.text, changes });
     money.push({
       scope: "household",
       before,
@@ -92,6 +100,7 @@ export function applyAutomaticEvents(state: State): History | null {
       option_id: null,
       text: e.text,
     })),
+    event_results: eventResults,
     money,
     observations: clone(state.observations),
     text,
@@ -100,6 +109,13 @@ export function applyAutomaticEvents(state: State): History | null {
   };
   state.history.push(entry);
   return clone(entry);
+}
+function formatDelta(label: string, delta: number, money = false) {
+  return `${label} ${delta > 0 ? "+" : ""}${delta}${money ? "万円" : ""}`;
+}
+function formatChange(label: string, previous: number, current: number, money = false) {
+  const unit = money ? "万円" : "";
+  return `${label} ${previous}${unit}→${current}${unit}（${current > previous ? "+" : ""}${current - previous}${unit}）`;
 }
 function applyStat(state: State, effect: AutomaticEvent["effects"][number]) {
   if (state.grandparents.members && /^grandparents\.(health|relation|funds)$/.test(effect.path)) {
@@ -146,7 +162,14 @@ function statLabel(path: string) {
     planning: "段取り",
     learning: "学びの支援",
     relation: "関係",
-    funds: "資金（万円）",
+    funds: "資金",
+    child: "子ども",
+    trust: "信頼",
+    autonomy: "主体性",
+    interest: "興味",
+    ability: "能力",
+    study: "学び",
+    craft: "創作",
   };
   if (/^grandparents\.(health|relation|funds)$/.test(path))
     return `祖父母・${labels[path.split(".")[1]]}`;

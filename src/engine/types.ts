@@ -78,6 +78,12 @@ export interface Money {
   cap_overflow: number;
   after: number;
 }
+export interface AutomaticEventResult {
+  event_id: string;
+  kind: "good" | "bad";
+  text: string;
+  changes: string[];
+}
 export interface ChildResult {
   age: number;
   domain: Domain;
@@ -116,6 +122,7 @@ export interface History {
   ages: { child_months: number; A_months: number; B_months: number };
   actions: { plan: Plan; answers: { event_instance: string; option_id: string }[] } | null;
   events: { instance_id: string; event_id: string; option_id: string | null; text: string }[];
+  event_results?: AutomaticEventResult[];
   money: Money[];
   observations: Observation[];
   text: string[];
@@ -194,6 +201,7 @@ export interface PublicState {
     contract: DecisionTurn["contract"];
     answered: number;
     event_result: string[];
+    event_results: AutomaticEventResult[];
     previous_result: History | null;
   };
   family_status?: { level: number; label: string; description: string };
