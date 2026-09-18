@@ -1,0 +1,1287 @@
+{
+  "schema_version": 1,
+  "max_actions": 2,
+  "income": 280,
+  "standard_effects": [
+    {
+      "path": "decisions.fatigue.A",
+      "delta": -1
+    },
+    {
+      "path": "decisions.fatigue.B",
+      "delta": -1
+    },
+    {
+      "path": "parents.A.stress",
+      "delta": -1
+    },
+    {
+      "path": "parents.B.stress",
+      "delta": -1
+    },
+    {
+      "path": "child.stress",
+      "delta": -1
+    }
+  ],
+  "menus": [
+    {
+      "id": "education",
+      "label": "教育・進路",
+      "description": "学びと通う場所"
+    },
+    {
+      "id": "home",
+      "label": "家庭生活",
+      "description": "休息と家族の時間"
+    },
+    {
+      "id": "grandparents",
+      "label": "実家",
+      "description": "祖父母との交流と支援"
+    },
+    {
+      "id": "afterschool",
+      "label": "遊び・放課後",
+      "description": "興味を試し、好きなことを続ける"
+    },
+    {
+      "id": "work",
+      "label": "仕事・家計",
+      "description": "働き方とお金"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "base-learning",
+      "menu": "education",
+      "title": "学びへの関わり",
+      "reason": "年齢に合った学び方を続けます。",
+      "kind": "policy",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "日々の遊びや学校で学ぶ",
+          "description": "普段の学びを見守ります。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "together",
+          "label": "一緒に学ぶ時間を作る",
+          "description": "父が学びを支えます。毎期、疲労と費用がかかります。",
+          "cost": 5,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            },
+            {
+              "path": "child.ability.study",
+              "delta": 2
+            }
+          ],
+          "skill": {
+            "parent": "A",
+            "ability": "learning",
+            "target": "child.ability.study",
+            "gain": 1
+          }
+        },
+        {
+          "id": "independent",
+          "label": "本人の工夫を見守る",
+          "description": "子ども自身で考える時間を大切にします。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-school-visit",
+      "menu": "education",
+      "title": "園・学校の見学",
+      "reason": "通う場所を家族で考える時期です。",
+      "kind": "action",
+      "min_age_months": 24,
+      "max_age_months": 65,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "visit",
+          "label": "見学する",
+          "description": "次期から見学先への通園を検討できます。",
+          "cost": 4,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-school",
+      "menu": "education",
+      "title": "通園先",
+      "reason": "見学した園への通園を検討できます。",
+      "kind": "policy",
+      "min_age_months": 24,
+      "max_age_months": 71,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "標準の通園・家庭での生活",
+          "description": "年齢に合った標準の暮らしです。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "enrolled",
+          "label": "見学した園へ通う",
+          "description": "継続費がかかり、母の負担を軽減します。卒園時に終了します。",
+          "cost": 24,
+          "income": 0,
+          "setup_cost": 8,
+          "effects": [
+            {
+              "path": "decisions.fatigue.B",
+              "delta": -1
+            },
+            {
+              "path": "child.ability.study",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-school-visit",
+                "option": "visit",
+                "after": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "base-school-meeting",
+      "menu": "education",
+      "title": "園の先生との面談",
+      "reason": "通園している園の先生に相談できます。",
+      "kind": "action",
+      "min_age_months": 24,
+      "max_age_months": 71,
+      "default_option": null,
+      "once": false,
+      "cooldown": 2,
+      "options": [
+        {
+          "id": "talk",
+          "label": "面談する",
+          "description": "子どもの負担を軽くし、信頼を深めます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.stress",
+              "delta": -5
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 3
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "policies": [
+          {
+            "decision": "base-school",
+            "option": "enrolled"
+          }
+        ]
+      }
+    },
+    {
+      "id": "base-career-talk",
+      "menu": "education",
+      "title": "進路について話す",
+      "reason": "次の生活を考える時期になりました。",
+      "kind": "action",
+      "min_age_months": 144,
+      "max_age_months": 215,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "talk",
+          "label": "本人の希望を聞く",
+          "description": "次期から進路の見学を検討できます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 3
+            },
+            {
+              "path": "child.trust.A",
+              "delta": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-career-visit",
+      "menu": "education",
+      "title": "進路先を見学する",
+      "reason": "以前に本人の希望を聞いたため、候補を一緒に見に行けます。",
+      "kind": "action",
+      "min_age_months": 144,
+      "max_age_months": 215,
+      "default_option": null,
+      "once": false,
+      "cooldown": 3,
+      "options": [
+        {
+          "id": "visit",
+          "label": "見学に付き添う",
+          "description": "新しい環境を知り、自分で決める手がかりを作ります。",
+          "cost": 12,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 4
+            },
+            {
+              "path": "child.stress",
+              "delta": -3
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "base-career-talk",
+            "option": "talk",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "base-home",
+      "menu": "home",
+      "title": "家族の過ごし方",
+      "reason": "日々の休息と交流を続けます。",
+      "kind": "policy",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "普段の分担で暮らす",
+          "description": "日常の休息と交流を続けます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "rest",
+          "label": "休息を優先する",
+          "description": "余暇に使えるお金を休息へ回します。",
+          "cost": 8,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.A",
+              "delta": -1
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": -1
+            }
+          ]
+        },
+        {
+          "id": "talk",
+          "label": "家族で話す時間を作る",
+          "description": "父母の手間をかけて、すれ違いを整えます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "couple",
+              "delta": 1
+            },
+            {
+              "path": "child.trust.A",
+              "delta": 2
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ],
+          "repair": true
+        }
+      ]
+    },
+    {
+      "id": "base-help-trial",
+      "menu": "home",
+      "title": "家事支援を試す",
+      "reason": "必要なときに家事支援を試せます。",
+      "kind": "action",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "trial",
+          "label": "一度頼んでみる",
+          "description": "次期から定期利用を選べます。",
+          "cost": 20,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.A",
+              "delta": -2
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": -2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-help",
+      "menu": "home",
+      "title": "家事支援の利用",
+      "reason": "一度試した家事支援の利用方針です。",
+      "kind": "policy",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "家族で分担する",
+          "description": "定期利用を停止し、自分たちの分担へ戻します。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "regular",
+          "label": "定期的に頼む",
+          "description": "毎期の費用を使い、父母の負担を軽減します。",
+          "cost": 32,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.A",
+              "delta": -1
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": -1
+            },
+            {
+              "path": "parents.A.stress",
+              "delta": -1
+            },
+            {
+              "path": "parents.B.stress",
+              "delta": -1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-help-trial",
+                "option": "trial",
+                "after": 0
+              }
+            ]
+          }
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "base-help-trial",
+            "option": "trial",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "base-family-trip",
+      "menu": "home",
+      "title": "家族で出かける",
+      "reason": "日常から少し離れる時間を作れます。",
+      "kind": "action",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": false,
+      "cooldown": 2,
+      "options": [
+        {
+          "id": "trip",
+          "label": "近場へ旅行する",
+          "description": "出費と引き換えに家族の思い出を作ります。",
+          "cost": 24,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "couple",
+              "delta": 1
+            },
+            {
+              "path": "child.trust.A",
+              "delta": 4
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 4
+            },
+            {
+              "path": "parents.A.fulfillment",
+              "delta": 1
+            },
+            {
+              "path": "parents.B.fulfillment",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-grand-contact",
+      "menu": "grandparents",
+      "title": "実家との付き合い",
+      "reason": "祖父・祖母それぞれとの関係を大切にします。",
+      "kind": "policy",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "時々連絡を取る",
+          "description": "普段の交流を続けます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "frequent",
+          "label": "こまめに顔を見せる",
+          "description": "父の手間と交通費を使い、祖父母との関係を深めます。",
+          "cost": 6,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            },
+            {
+              "path": "grandparents.members.grandfather.relation",
+              "delta": 1
+            },
+            {
+              "path": "grandparents.members.grandmother.relation",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-grand-consult",
+      "menu": "grandparents",
+      "title": "預かりを相談する",
+      "reason": "祖父母に無理のない支援を相談できます。",
+      "kind": "action",
+      "min_age_months": 0,
+      "max_age_months": 143,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "talk",
+          "label": "祖父に相談する",
+          "description": "次期から、祖父の体力と関係に余裕があれば預かりを頼めます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "grandparents.members.grandfather.relation",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-grand-care",
+      "menu": "grandparents",
+      "title": "祖父の預かり支援",
+      "reason": "以前に祖父へ相談したため、支援を検討できます。",
+      "kind": "policy",
+      "min_age_months": 0,
+      "max_age_months": 143,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "預かりは頼まない",
+          "description": "祖父の休息を優先します。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "supported",
+          "label": "定期的に預かってもらう",
+          "description": "母の負担は軽くなりますが、祖父の体力を使います。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.B",
+              "delta": -2
+            },
+            {
+              "path": "grandparents.members.grandfather.health",
+              "delta": -1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-grand-consult",
+                "option": "talk",
+                "after": 0
+              }
+            ],
+            "stats": [
+              {
+                "path": "grandparents.members.grandfather.health",
+                "op": "gte",
+                "value": 4
+              },
+              {
+                "path": "grandparents.members.grandfather.relation",
+                "op": "gte",
+                "value": 4
+              }
+            ]
+          },
+          "maintains": {
+            "stats": [
+              {
+                "path": "grandparents.members.grandfather.health",
+                "op": "gte",
+                "value": 4
+              },
+              {
+                "path": "grandparents.members.grandfather.relation",
+                "op": "gte",
+                "value": 4
+              }
+            ]
+          }
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "base-grand-consult",
+            "option": "talk",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "base-grand-visit",
+      "menu": "grandparents",
+      "title": "祖父母を訪ねる",
+      "reason": "交流やお見舞いの時間を作れます。",
+      "kind": "action",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": false,
+      "cooldown": 2,
+      "options": [
+        {
+          "id": "visit",
+          "label": "会いに行く",
+          "description": "祖父母との関係を深め、休息を手伝います。",
+          "cost": 8,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "grandparents.members.grandfather.health",
+              "delta": 1
+            },
+            {
+              "path": "grandparents.members.grandmother.health",
+              "delta": 1
+            },
+            {
+              "path": "grandparents.members.grandfather.relation",
+              "delta": 1
+            },
+            {
+              "path": "grandparents.members.grandmother.relation",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-play",
+      "menu": "afterschool",
+      "title": "遊びの時間",
+      "reason": "年齢に合った遊びを続けます。",
+      "kind": "policy",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "自由に遊ぶ",
+          "description": "身近な遊びを楽しみます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "creative",
+          "label": "家で工作を楽しむ",
+          "description": "材料費を使い、創作を楽しむ時間を作ります。",
+          "cost": 6,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 1
+            },
+            {
+              "path": "child.interest.craft",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "friends",
+          "label": "友人との時間を大切にする",
+          "description": "本人の工夫や自由な時間を支えます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 1
+            },
+            {
+              "path": "child.stress",
+              "delta": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-craft-trial",
+      "menu": "afterschool",
+      "title": "工作教室の体験",
+      "reason": "工作を楽しめる年齢になりました。",
+      "kind": "action",
+      "min_age_months": 48,
+      "max_age_months": 203,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "try",
+          "label": "体験教室に参加する",
+          "description": "次期から入会や別の活動を検討できます。",
+          "cost": 8,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 2
+            },
+            {
+              "path": "child.interest.craft",
+              "delta": 3
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-craft",
+      "menu": "afterschool",
+      "title": "工作教室",
+      "reason": "以前に工作教室を体験したため、通い方を選べます。",
+      "kind": "policy",
+      "min_age_months": 48,
+      "max_age_months": 215,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "通わずに過ごす",
+          "description": "入会を見送る、または退会します。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "enrolled",
+          "label": "工作教室に通う",
+          "description": "毎期、自動で通います。参加費と送迎の負担がかかります。",
+          "cost": 24,
+          "income": 0,
+          "setup_cost": 4,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-craft-trial",
+                "option": "try",
+                "after": 0
+              }
+            ]
+          },
+          "skill": {
+            "parent": "A",
+            "ability": "learning",
+            "target": "child.ability.craft",
+            "gain": 1
+          }
+        },
+        {
+          "id": "paused",
+          "label": "休会する",
+          "description": "費用と通う負担を止めます。後の期に再開できます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-craft",
+                "option": "enrolled",
+                "after": 0
+              }
+            ]
+          }
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "base-craft-trial",
+            "option": "try",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "base-craft-show",
+      "menu": "afterschool",
+      "title": "工作の発表会",
+      "reason": "通っている教室で発表する機会があります。",
+      "kind": "action",
+      "min_age_months": 60,
+      "max_age_months": 215,
+      "default_option": null,
+      "once": false,
+      "cooldown": 3,
+      "options": [
+        {
+          "id": "support",
+          "label": "発表を支える",
+          "description": "母の支援能力が成果に影響します。",
+          "cost": 12,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            },
+            {
+              "path": "child.autonomy",
+              "delta": 3
+            }
+          ],
+          "skill": {
+            "parent": "B",
+            "ability": "dialogue",
+            "target": "child.trust.B",
+            "gain": 2
+          }
+        }
+      ],
+      "requires": {
+        "policies": [
+          {
+            "decision": "base-craft",
+            "option": "enrolled"
+          }
+        ],
+        "history": [
+          {
+            "decision": "base-craft",
+            "option": "enrolled",
+            "after": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "base-other-trial",
+      "menu": "afterschool",
+      "title": "別の活動を試す",
+      "reason": "工作教室を体験したことをきっかけに、別の興味も探せます。",
+      "kind": "action",
+      "min_age_months": 48,
+      "max_age_months": 215,
+      "default_option": null,
+      "once": false,
+      "cooldown": 3,
+      "options": [
+        {
+          "id": "try",
+          "label": "科学の体験に参加する",
+          "description": "学びへの興味を試します。",
+          "cost": 8,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.interest.study",
+              "delta": 3
+            },
+            {
+              "path": "child.ability.study",
+              "delta": 2
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "base-craft-trial",
+            "option": "try",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "base-work",
+      "menu": "work",
+      "title": "父の働き方",
+      "reason": "家計と家族の時間のバランスを選べます。",
+      "kind": "policy",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "今の働き方を続ける",
+          "description": "通常の収入で暮らします。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "reduced",
+          "label": "仕事を減らして家族の時間を作る",
+          "description": "収入の減少は半年ごとの家計負担として表示します。",
+          "cost": 30,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.A.stress",
+              "delta": -1
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": -1
+            },
+            {
+              "path": "child.trust.A",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "heavy",
+          "label": "仕事を増やす",
+          "description": "事前の相談と預かり支援が必要です。支援が終われば通常勤務へ戻ります。",
+          "cost": 0,
+          "income": 40,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.A.stress",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            },
+            {
+              "path": "couple",
+              "delta": -1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-work-consult",
+                "option": "talk",
+                "after": 0
+              }
+            ],
+            "policies": [
+              {
+                "decision": "base-grand-care",
+                "option": "supported"
+              }
+            ]
+          },
+          "maintains": {
+            "policies": [
+              {
+                "decision": "base-grand-care",
+                "option": "supported"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "base-work-consult",
+      "menu": "work",
+      "title": "働き方を相談する",
+      "reason": "家族で仕事と生活の組み合わせを考えます。",
+      "kind": "action",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "talk",
+          "label": "相談する",
+          "description": "預かり支援がある期には、次期以降に仕事を増やす選択肢が開きます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "couple",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-extra-work",
+      "menu": "work",
+      "title": "今期だけの仕事",
+      "reason": "必要なときに臨時収入を得られます。",
+      "kind": "action",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "accept",
+          "label": "臨時の仕事を引き受ける",
+          "description": "半年後に入金します。父の負担が増えます。",
+          "cost": 0,
+          "income": 40,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.A.stress",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            },
+            {
+              "path": "couple",
+              "delta": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "base-work-mother",
+      "menu": "work",
+      "title": "母の働き方",
+      "reason": "家計と家族の時間のバランスを選べます。",
+      "kind": "policy",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "今の働き方を続ける",
+          "description": "通常の収入で暮らします。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "reduced",
+          "label": "仕事を減らして家族の時間を作る",
+          "description": "収入の減少は半年ごとの家計負担として表示します。",
+          "cost": 30,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.B.stress",
+              "delta": -1
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": -1
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "heavy",
+          "label": "仕事を増やす",
+          "description": "事前の相談と預かり支援が必要です。支援が終われば通常勤務へ戻ります。",
+          "cost": 0,
+          "income": 40,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.B.stress",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            },
+            {
+              "path": "couple",
+              "delta": -1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-work-consult",
+                "option": "talk",
+                "after": 0
+              }
+            ],
+            "policies": [
+              {
+                "decision": "base-grand-care",
+                "option": "supported"
+              }
+            ]
+          },
+          "maintains": {
+            "policies": [
+              {
+                "decision": "base-grand-care",
+                "option": "supported"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "base-extra-work-mother",
+      "menu": "work",
+      "title": "母の今期だけの仕事",
+      "reason": "必要なときに臨時収入を得られます。",
+      "kind": "action",
+      "min_age_months": 0,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "accept",
+          "label": "臨時の仕事を引き受ける",
+          "description": "半年後に入金します。母の負担が増えます。",
+          "cost": 0,
+          "income": 40,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.B.stress",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            },
+            {
+              "path": "couple",
+              "delta": -1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "initial_grandparents": {
+    "grandfather": {
+      "health": 8,
+      "relation": 6,
+      "funds": 50,
+      "network": true
+    },
+    "grandmother": {
+      "health": 8,
+      "relation": 6,
+      "funds": 50,
+      "network": true
+    }
+  }
+}

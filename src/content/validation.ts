@@ -1,3 +1,4 @@
+import { validateLifeContent } from "./life_validation";
 import * as v from "valibot";
 import legacyData from "../../config/legacy-data-1.json";
 import type { Content, ContentPack, Condition, Settings } from "./types";
@@ -50,6 +51,7 @@ function condition(c: Condition, content: Content) {
 }
 // 型検査後に、パック合成やゲーム規則に依存する参照整合性を検査する。
 function references(c: Content) {
+  validateLifeContent(c, ensure);
   if (
     c.automatic_events?.some((e) =>
       [...e.conditions, ...e.modifiers.map((m) => m.condition), ...e.effects].some((item) =>

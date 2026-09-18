@@ -1,3 +1,4 @@
+import { LifeMenus, LifeAdvance } from "./life_menus";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Link } from "@tanstack/react-router";
 import { useStore } from "@nanostores/react";
@@ -82,6 +83,12 @@ function EventDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="turn-event-title"
+        onKeyDown={(event) => {
+          if (event.key === "Tab") {
+            event.preventDefault();
+            event.currentTarget.querySelector("button")?.focus();
+          }
+        }}
       >
         <div className="turn-event-illustration">
           <img src={familyRoom} alt="家族に起きた出来事を表す仮の挿絵" />
@@ -155,14 +162,21 @@ export function DecisionPlay({ response }: { response: Response }) {
   const ended = response.phase !== "childhood";
   const eventTurn = `${response.run_id}:${state.time.next_turn}`;
   const automaticResult =
-    ["rules-6", "rules-7"].includes(state.versions.rules) &&
+    ["rules-6", "rules-7", "rules-8"].includes(state.versions.rules) &&
     turn.event_result.length > 0 &&
     turn.answered === 0 &&
     readEventTurn !== eventTurn;
   const showingResult = (eventResult || automaticResult) && !special && !ended;
-  const stageKey = `${tab}:${state.time.next_turn}:${ended ? response.phase : showingResult ? "result" : (choice?.instance_id ?? "review")}`;
+  const life = !!state.life;
+  const stageKey = life
+    ? `${tab}:${state.time.next_turn}:${response.phase}`
+    : `${tab}:${state.time.next_turn}:${ended ? response.phase : showingResult ? "result" : (choice?.instance_id ?? "review")}`;
   const heading = useRef<HTMLHeadingElement>(null);
   const eventHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    // 予定を持つ保存から再開した期は、全取消しても出来事を自動再表示しない。
+    if (turn.answered > 0) setReadEventTurn(eventTurn);
+  }, [eventTurn, turn.answered]);
   useEffect(() => {
     if (showingResult) eventHeading.current?.focus({ preventScroll: true });
     else heading.current?.focus({ preventScroll: true });
@@ -171,8 +185,8 @@ export function DecisionPlay({ response }: { response: Response }) {
     if (response.phase === "finished" && tab === "play" && !extra.result) void readExtra("result");
   }, [response.phase, tab, extra.result]);
   return (
-    <div className="rpg-shell">
-      <header className="rpg-header">
+    <div className={`rpg-shell${life ? " life-shell" : ""}`}>
+      <header className="rpg-header" inert={showingResult}>
         <Link to="/" className="brand">
           親伝説 <span>BECOME A PARENT</span>
         </Link>
@@ -183,7 +197,7 @@ export function DecisionPlay({ response }: { response: Response }) {
           保存一覧 ↗
         </Link>
       </header>
-      <main id="main" className="rpg-main">
+      <main id="main" className="rpg-main" inert={showingResult}>
         <div className="rpg-hud">
           <div className="rpg-age">
             <strong>
@@ -221,18 +235,24 @@ export function DecisionPlay({ response }: { response: Response }) {
                 {tab === "play"
                   ? ended
                     ? "人生の結末"
-                    : special
-                      ? "今期の特殊イベント"
-                      : choice
-                        ? `判断 ${decisions.indexOf(choice) + 1} / 3`
-                        : "この半年の確認"
+                    : life
+                      ? "暮らしのメニュー"
+                      : special
+                        ? "今期の特殊イベント"
+                        : choice
+                          ? `判断 ${decisions.indexOf(choice) + 1} / 3`
+                          : "この半年の確認"
                   : tab === "family"
                     ? "家族の様子"
                     : tab === "history"
                       ? "家族の記録"
                       : "遊び方"}
               </span>
-              <span>{turn.answered} / 3 回答済み</span>
+              <span>
+                {life
+                  ? `今期だけの予定 ${state.life!.action_count}件`
+                  : `${turn.answered} / 3 回答済み`}
+              </span>
             </div>
             {error && (
               <p role="alert" className="error">
@@ -280,19 +300,29 @@ export function DecisionPlay({ response }: { response: Response }) {
               ) : tab === "help" ? (
                 <section className="rpg-help">
                   <h2 ref={heading} tabIndex={-1}>
-                    半年ごとに、3つの判断。
+                    {life ? "普段はそのまま、必要なときだけ。" : "半年ごとに、3つの判断。"}
                   </h2>
                   <ol>
                     <li>
-                      {["rules-6", "rules-7"].includes(state.versions.rules)
+                      {["rules-6", "rules-7", "rules-8"].includes(state.versions.rules)
                         ? "出来事は自動で発生し、資金や家族の状態に反映されます。"
                         : "特殊イベントへの対応を選びます。その場で確定します。"}
                     </li>
-                    <li>3つの判断に、ひとつずつ回答します。「何もしない」も回答です。</li>
-                    <li>最後に選択と家計を確認し、「半年を進める」を押します。</li>
+                    <li>
+                      {life
+                        ? "生活メニューから継続する方針や今期だけの行動を選べます。何も選ばなくても進められます。"
+                        : "3つの判断に、ひとつずつ回答します。「何もしない」も回答です。"}
+                    </li>
+                    <li>
+                      {life
+                        ? `選択を確定すると、次期から新しい機会が現れます。今期だけの行動は全分類合計${state.life!.max_actions}件までです。`
+                        : "最後に選択と家計を確認し、「半年を進める」を押します。"}
+                    </li>
                   </ol>
                   <p>
-                    下の「判断1〜3」から、半年を進める前なら選び直せます。家族の様子では父母の能力・疲労と子どもの観察、前の半年の結果を確認できます。
+                    {life
+                      ? "方針は変更するまで継続し、単発行動は繰り返しません。半年を進める前は予定を取り消せます。費用と家族の負担を確認して進めましょう。"
+                      : "下の「判断1〜3」から、半年を進める前なら選び直せます。家族の様子では父母の能力・疲労と子どもの観察、前の半年の結果を確認できます。"}
                   </p>
                   <p>
                     20歳までの40期と、その後の人生をたどります。家族の危機は修復できますが、離婚・一家離散が起きるとゲームオーバーです。
@@ -328,6 +358,8 @@ export function DecisionPlay({ response }: { response: Response }) {
                 ) : (
                   <p>人生を振り返っています…</p>
                 )
+              ) : life ? (
+                <LifeMenus state={state} choices={decisions} />
               ) : choice ? (
                 <>
                   <h2 ref={heading} tabIndex={-1}>
@@ -406,7 +438,10 @@ export function DecisionPlay({ response }: { response: Response }) {
                 </>
               )}
             </div>
-            {tab === "play" && !ended && (
+            {tab === "play" && !ended && life && (
+              <LifeAdvance state={state} onEvents={() => setEventResult(true)} />
+            )}
+            {tab === "play" && !ended && !life && (
               <nav className="rpg-steps" aria-label="今期の進行">
                 <button
                   disabled={busy}
@@ -447,7 +482,7 @@ export function DecisionPlay({ response }: { response: Response }) {
           </section>
         </div>
       </main>
-      <nav className="rpg-menu" aria-label="ゲーム内">
+      <nav className="rpg-menu" aria-label="ゲーム内" inert={showingResult}>
         {(["play", "family", "history", "help"] as const).map((item) => (
           <button
             key={item}
@@ -474,7 +509,13 @@ export function DecisionPlay({ response }: { response: Response }) {
           events={turn.event_results}
           legacyLines={turn.event_result}
           headingRef={eventHeading}
-          nextLabel={turn.answered === 3 && !choice ? "半年の確認へ →" : "3つの判断へ →"}
+          nextLabel={
+            life
+              ? "暮らしのメニューへ →"
+              : turn.answered === 3 && !choice
+                ? "半年の確認へ →"
+                : "3つの判断へ →"
+          }
           onContinue={() => {
             setEventResult(false);
             setReadEventTurn(eventTurn);

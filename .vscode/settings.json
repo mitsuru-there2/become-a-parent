@@ -15,6 +15,26 @@
     {
       "fileMatch": ["/config/events.json"],
       "url": "./config/schemas/events.schema.json"
+    },
+    {
+      "fileMatch": ["/config/decisions.json"],
+      "url": "./config/schemas/decisions.schema.json"
+    },
+    {
+      "fileMatch": ["/config/legacy-decisions.json"],
+      "url": "./config/schemas/legacy-decisions.schema.json"
+    },
+    {
+      "fileMatch": ["/config/packs/*/decisions.json"],
+      "url": "./config/schemas/decision-pack.schema.json"
+    },
+    {
+      "fileMatch": ["/config/packs/*/events.json"],
+      "url": "./config/schemas/events.schema.json"
+    },
+    {
+      "fileMatch": ["/config/packs/*/manifest.json"],
+      "url": "./config/schemas/pack.schema.json"
     }
   ]
 }

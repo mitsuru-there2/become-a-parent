@@ -8,7 +8,7 @@ import { clone } from "../src/engine/shared";
 import { validateContent } from "../src/content/validation";
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
 import { Service, replayRun, exportRun, importRun } from "../src/service/service";
-import base from "../config/base.json";
+import base from "./fixtures/legacy_content";
 import type { AutomaticEvent } from "../src/content/automatic_event_schema";
 
 const event = (patch: Partial<AutomaticEvent> = {}): AutomaticEvent => ({

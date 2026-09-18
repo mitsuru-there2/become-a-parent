@@ -1,0 +1,781 @@
+{
+  "type": "object",
+  "properties": {
+    "initial_grandparents": {
+      "type": "object",
+      "properties": {
+        "grandfather": {
+          "type": "object",
+          "properties": {
+            "health": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "relation": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "funds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "network": {
+              "type": "boolean"
+            }
+          },
+          "required": ["health", "relation", "funds", "network"],
+          "additionalProperties": false
+        },
+        "grandmother": {
+          "type": "object",
+          "properties": {
+            "health": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "relation": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "funds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "network": {
+              "type": "boolean"
+            }
+          },
+          "required": ["health", "relation", "funds", "network"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["grandfather", "grandmother"],
+      "additionalProperties": false
+    },
+    "initial_grandparent_funds": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 99999
+    },
+    "themes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slot": {
+            "type": "integer",
+            "minimum": -1,
+            "maximum": 2
+          },
+          "min_turn": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "max_turn": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "condition": {
+            "enum": ["always", "tired", "strained", "crisis"],
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "cost": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
+                "income": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
+                "effects": {
+                  "type": "object",
+                  "properties": {
+                    "fatigue": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "stress": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "trust": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "couple": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "child_stress": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "autonomy": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "parent": {
+                  "anyOf": [
+                    {
+                      "enum": ["A", "B", "both"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "skill": {
+                  "anyOf": [
+                    {
+                      "enum": ["dialogue", "planning", "learning"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gain": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 20
+                },
+                "domain": {
+                  "anyOf": [
+                    {
+                      "enum": ["study", "craft"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "contract": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "cost": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 99999
+                        }
+                      },
+                      "required": ["label", "cost"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "end": {
+                  "anyOf": [
+                    {
+                      "enum": ["divorce", "separation"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "cost",
+                "effects",
+                "parent",
+                "skill",
+                "gain",
+                "domain",
+                "contract",
+                "end"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 2
+          }
+        },
+        "required": ["id", "title", "slot", "min_turn", "max_turn", "condition", "options"],
+        "additionalProperties": false
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slot": {
+            "type": "integer",
+            "minimum": -1,
+            "maximum": 2
+          },
+          "min_turn": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "max_turn": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 40
+          },
+          "condition": {
+            "enum": ["always", "tired", "strained", "crisis"],
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "cost": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
+                "income": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
+                "effects": {
+                  "type": "object",
+                  "properties": {
+                    "fatigue": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "stress": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "trust": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "couple": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "child_stress": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    },
+                    "autonomy": {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 100
+                    }
+                  },
+                  "required": [],
+                  "additionalProperties": false
+                },
+                "parent": {
+                  "anyOf": [
+                    {
+                      "enum": ["A", "B", "both"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "skill": {
+                  "anyOf": [
+                    {
+                      "enum": ["dialogue", "planning", "learning"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "gain": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 20
+                },
+                "domain": {
+                  "anyOf": [
+                    {
+                      "enum": ["study", "craft"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "contract": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string"
+                        },
+                        "cost": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 99999
+                        }
+                      },
+                      "required": ["label", "cost"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "end": {
+                  "anyOf": [
+                    {
+                      "enum": ["divorce", "separation"],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "cost",
+                "effects",
+                "parent",
+                "skill",
+                "gain",
+                "domain",
+                "contract",
+                "end"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 2
+          }
+        },
+        "required": ["id", "title", "slot", "min_turn", "max_turn", "condition", "options"],
+        "additionalProperties": false
+      }
+    },
+    "income": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 99999
+    },
+    "fatigue_per_turn": {
+      "type": "integer",
+      "minimum": -100,
+      "maximum": 100
+    },
+    "stress_per_turn": {
+      "type": "integer",
+      "minimum": -100,
+      "maximum": 100
+    },
+    "couple_per_turn": {
+      "type": "integer",
+      "minimum": -100,
+      "maximum": 100
+    },
+    "trust_per_turn": {
+      "type": "integer",
+      "minimum": -100,
+      "maximum": 100
+    }
+  },
+  "required": [
+    "themes",
+    "events",
+    "income",
+    "fatigue_per_turn",
+    "stress_per_turn",
+    "couple_per_turn",
+    "trust_per_turn"
+  ],
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$defs": {
+    "Event": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+              },
+              "label": {
+                "type": "string"
+              },
+              "cost": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99999
+              },
+              "effects": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -100,
+                      "maximum": 99999
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": ["id", "label", "cost", "effects"],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "trigger": {
+          "type": "object",
+          "properties": {
+            "turns": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 40
+              }
+            },
+            "min_turn": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "max_turn": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "cooldown": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "once": {
+              "type": "boolean"
+            },
+            "probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "group": {
+              "type": "string"
+            },
+            "all": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "op": {
+                    "enum": ["eq", "lt", "gte"],
+                    "type": "string"
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                },
+                "required": ["path", "op", "value"],
+                "additionalProperties": false
+              }
+            },
+            "any": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "op": {
+                    "enum": ["eq", "lt", "gte"],
+                    "type": "string"
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
+                  }
+                },
+                "required": ["path", "op", "value"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "turns",
+            "min_turn",
+            "max_turn",
+            "cooldown",
+            "once",
+            "probability",
+            "priority",
+            "group",
+            "all",
+            "any"
+          ],
+          "additionalProperties": false
+        },
+        "target": {
+          "enum": ["study", "craft", "previous_activity", "interest"],
+          "type": "string"
+        },
+        "target_suffix": {
+          "type": "string"
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["text", "options", "trigger", "target", "target_suffix", "visual"],
+      "additionalProperties": false
+    },
+    "Action": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999
+        },
+        "time": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "parent": {
+          "enum": ["A", "B"],
+          "type": "string"
+        },
+        "min_turn": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "max_turn": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 40
+        },
+        "target": {
+          "enum": ["study", "craft"],
+          "type": "string"
+        },
+        "effects": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": -100,
+                "maximum": 99999
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "description",
+        "cost",
+        "time",
+        "parent",
+        "min_turn",
+        "max_turn",
+        "target",
+        "effects",
+        "visual"
+      ],
+      "additionalProperties": false
+    },
+    "Visual": {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "pattern": "^\\/assets\\/[A-Za-z0-9_./-]+\\.(png|jpg|jpeg|webp|gif|svg)$"
+        },
+        "alt": {
+          "type": "string"
+        }
+      },
+      "required": ["src", "alt"],
+      "additionalProperties": false
+    },
+    "Scenario": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "adaptation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "required": ["id", "label", "description", "adaptation"],
+      "additionalProperties": false
+    }
+  },
+  "title": "親伝説：旧判断の互換設定",
+  "description": "Valibotから自動生成。参照・依存・独自条件の検査には bun run check:content を実行してください。",
+  "$comment": "生成元: src/content/schemas.ts。変更後は bun run schema:generate。手で編集しないでください。"
+}

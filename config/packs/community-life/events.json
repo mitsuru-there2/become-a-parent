@@ -1,0 +1,33 @@
+[
+  {
+    "id": "community-life-exhibition",
+    "text": "地域の工作会で作った作品が、商店街に飾られた。",
+    "kind": "good",
+    "min_age_months": 48,
+    "max_age_months": 239,
+    "probability": 40,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "parents.B.fulfillment",
+        "delta": 1
+      },
+      {
+        "path": "child.interest.craft",
+        "delta": 2
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "community-life-workshop",
+          "option": "join",
+          "after": 0
+        }
+      ]
+    }
+  }
+]

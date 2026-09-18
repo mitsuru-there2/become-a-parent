@@ -3,6 +3,908 @@
   "items": {
     "type": "object",
     "properties": {
+      "automatic_events": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "requires": {
+              "type": "object",
+              "properties": {
+                "history": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                      },
+                      "option": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                      },
+                      "after": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 40
+                      }
+                    },
+                    "required": ["decision", "option", "after"],
+                    "additionalProperties": false
+                  }
+                },
+                "policies": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                      },
+                      "option": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                      }
+                    },
+                    "required": ["decision", "option"],
+                    "additionalProperties": false
+                  }
+                },
+                "stats": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "enum": [
+                          "cash",
+                          "couple",
+                          "child.stress",
+                          "child.autonomy",
+                          "child.trust.A",
+                          "child.trust.B",
+                          "child.interest.study",
+                          "child.interest.craft",
+                          "child.ability.study",
+                          "child.ability.craft",
+                          "parents.A.stress",
+                          "parents.A.health",
+                          "parents.A.fulfillment",
+                          "parents.A.social",
+                          "parents.A.regret",
+                          "parents.B.stress",
+                          "parents.B.health",
+                          "parents.B.fulfillment",
+                          "parents.B.social",
+                          "parents.B.regret",
+                          "decisions.fatigue.A",
+                          "decisions.fatigue.B",
+                          "decisions.skills.A.dialogue",
+                          "decisions.skills.A.planning",
+                          "decisions.skills.A.learning",
+                          "decisions.skills.B.dialogue",
+                          "decisions.skills.B.planning",
+                          "decisions.skills.B.learning",
+                          "grandparents.members.grandfather.health",
+                          "grandparents.members.grandfather.relation",
+                          "grandparents.members.grandfather.funds",
+                          "grandparents.members.grandmother.health",
+                          "grandparents.members.grandmother.relation",
+                          "grandparents.members.grandmother.funds",
+                          "grandparents.health",
+                          "grandparents.relation",
+                          "grandparents.funds",
+                          "parents.A.age_months",
+                          "parents.B.age_months"
+                        ],
+                        "type": "string"
+                      },
+                      "op": {
+                        "enum": ["eq", "lt", "gte"],
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      }
+                    },
+                    "required": ["path", "op", "value"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "enum": ["good", "bad"],
+              "type": "string"
+            },
+            "min_age_months": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 239
+            },
+            "max_age_months": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 239
+            },
+            "probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "conditions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "enum": [
+                      "cash",
+                      "couple",
+                      "child.stress",
+                      "child.autonomy",
+                      "child.trust.A",
+                      "child.trust.B",
+                      "child.interest.study",
+                      "child.interest.craft",
+                      "child.ability.study",
+                      "child.ability.craft",
+                      "parents.A.stress",
+                      "parents.A.health",
+                      "parents.A.fulfillment",
+                      "parents.A.social",
+                      "parents.A.regret",
+                      "parents.B.stress",
+                      "parents.B.health",
+                      "parents.B.fulfillment",
+                      "parents.B.social",
+                      "parents.B.regret",
+                      "decisions.fatigue.A",
+                      "decisions.fatigue.B",
+                      "decisions.skills.A.dialogue",
+                      "decisions.skills.A.planning",
+                      "decisions.skills.A.learning",
+                      "decisions.skills.B.dialogue",
+                      "decisions.skills.B.planning",
+                      "decisions.skills.B.learning",
+                      "grandparents.members.grandfather.health",
+                      "grandparents.members.grandfather.relation",
+                      "grandparents.members.grandfather.funds",
+                      "grandparents.members.grandmother.health",
+                      "grandparents.members.grandmother.relation",
+                      "grandparents.members.grandmother.funds",
+                      "grandparents.health",
+                      "grandparents.relation",
+                      "grandparents.funds",
+                      "parents.A.age_months",
+                      "parents.B.age_months"
+                    ],
+                    "type": "string"
+                  },
+                  "op": {
+                    "enum": ["eq", "lt", "gte"],
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "integer",
+                    "minimum": -99999,
+                    "maximum": 99999
+                  }
+                },
+                "required": ["path", "op", "value"],
+                "additionalProperties": false
+              }
+            },
+            "modifiers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "condition": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "enum": [
+                          "cash",
+                          "couple",
+                          "child.stress",
+                          "child.autonomy",
+                          "child.trust.A",
+                          "child.trust.B",
+                          "child.interest.study",
+                          "child.interest.craft",
+                          "child.ability.study",
+                          "child.ability.craft",
+                          "parents.A.stress",
+                          "parents.A.health",
+                          "parents.A.fulfillment",
+                          "parents.A.social",
+                          "parents.A.regret",
+                          "parents.B.stress",
+                          "parents.B.health",
+                          "parents.B.fulfillment",
+                          "parents.B.social",
+                          "parents.B.regret",
+                          "decisions.fatigue.A",
+                          "decisions.fatigue.B",
+                          "decisions.skills.A.dialogue",
+                          "decisions.skills.A.planning",
+                          "decisions.skills.A.learning",
+                          "decisions.skills.B.dialogue",
+                          "decisions.skills.B.planning",
+                          "decisions.skills.B.learning",
+                          "grandparents.members.grandfather.health",
+                          "grandparents.members.grandfather.relation",
+                          "grandparents.members.grandfather.funds",
+                          "grandparents.members.grandmother.health",
+                          "grandparents.members.grandmother.relation",
+                          "grandparents.members.grandmother.funds",
+                          "grandparents.health",
+                          "grandparents.relation",
+                          "grandparents.funds",
+                          "parents.A.age_months",
+                          "parents.B.age_months"
+                        ],
+                        "type": "string"
+                      },
+                      "op": {
+                        "enum": ["eq", "lt", "gte"],
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      }
+                    },
+                    "required": ["path", "op", "value"],
+                    "additionalProperties": false
+                  },
+                  "add": {
+                    "type": "integer",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                },
+                "required": ["condition", "add"],
+                "additionalProperties": false
+              }
+            },
+            "cooldown": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "once": {
+              "type": "boolean"
+            },
+            "effects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "enum": [
+                      "cash",
+                      "couple",
+                      "child.stress",
+                      "child.autonomy",
+                      "child.trust.A",
+                      "child.trust.B",
+                      "child.interest.study",
+                      "child.interest.craft",
+                      "child.ability.study",
+                      "child.ability.craft",
+                      "parents.A.stress",
+                      "parents.A.health",
+                      "parents.A.fulfillment",
+                      "parents.A.social",
+                      "parents.A.regret",
+                      "parents.B.stress",
+                      "parents.B.health",
+                      "parents.B.fulfillment",
+                      "parents.B.social",
+                      "parents.B.regret",
+                      "decisions.fatigue.A",
+                      "decisions.fatigue.B",
+                      "decisions.skills.A.dialogue",
+                      "decisions.skills.A.planning",
+                      "decisions.skills.A.learning",
+                      "decisions.skills.B.dialogue",
+                      "decisions.skills.B.planning",
+                      "decisions.skills.B.learning",
+                      "grandparents.members.grandfather.health",
+                      "grandparents.members.grandfather.relation",
+                      "grandparents.members.grandfather.funds",
+                      "grandparents.members.grandmother.health",
+                      "grandparents.members.grandmother.relation",
+                      "grandparents.members.grandmother.funds",
+                      "grandparents.health",
+                      "grandparents.relation",
+                      "grandparents.funds"
+                    ],
+                    "type": "string"
+                  },
+                  "delta": {
+                    "type": "integer",
+                    "minimum": -99999,
+                    "maximum": 99999
+                  }
+                },
+                "required": ["path", "delta"],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "id",
+            "text",
+            "kind",
+            "min_age_months",
+            "max_age_months",
+            "probability",
+            "conditions",
+            "modifiers",
+            "cooldown",
+            "once",
+            "effects"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "decisions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            "menu": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "enum": ["policy", "action"],
+              "type": "string"
+            },
+            "min_age_months": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 234
+            },
+            "max_age_months": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 239
+            },
+            "requires": {
+              "type": "object",
+              "properties": {
+                "history": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                      },
+                      "option": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                      },
+                      "after": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 40
+                      }
+                    },
+                    "required": ["decision", "option", "after"],
+                    "additionalProperties": false
+                  }
+                },
+                "policies": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                      },
+                      "option": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                      }
+                    },
+                    "required": ["decision", "option"],
+                    "additionalProperties": false
+                  }
+                },
+                "stats": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "enum": [
+                          "cash",
+                          "couple",
+                          "child.stress",
+                          "child.autonomy",
+                          "child.trust.A",
+                          "child.trust.B",
+                          "child.interest.study",
+                          "child.interest.craft",
+                          "child.ability.study",
+                          "child.ability.craft",
+                          "parents.A.stress",
+                          "parents.A.health",
+                          "parents.A.fulfillment",
+                          "parents.A.social",
+                          "parents.A.regret",
+                          "parents.B.stress",
+                          "parents.B.health",
+                          "parents.B.fulfillment",
+                          "parents.B.social",
+                          "parents.B.regret",
+                          "decisions.fatigue.A",
+                          "decisions.fatigue.B",
+                          "decisions.skills.A.dialogue",
+                          "decisions.skills.A.planning",
+                          "decisions.skills.A.learning",
+                          "decisions.skills.B.dialogue",
+                          "decisions.skills.B.planning",
+                          "decisions.skills.B.learning",
+                          "grandparents.members.grandfather.health",
+                          "grandparents.members.grandfather.relation",
+                          "grandparents.members.grandfather.funds",
+                          "grandparents.members.grandmother.health",
+                          "grandparents.members.grandmother.relation",
+                          "grandparents.members.grandmother.funds",
+                          "grandparents.health",
+                          "grandparents.relation",
+                          "grandparents.funds",
+                          "parents.A.age_months",
+                          "parents.B.age_months"
+                        ],
+                        "type": "string"
+                      },
+                      "op": {
+                        "enum": ["eq", "lt", "gte"],
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "integer",
+                        "minimum": -99999,
+                        "maximum": 99999
+                      }
+                    },
+                    "required": ["path", "op", "value"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "default_option": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "once": {
+              "type": "boolean"
+            },
+            "cooldown": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 40
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                  },
+                  "repair": {
+                    "type": "boolean"
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "cost": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 99999
+                  },
+                  "income": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 99999
+                  },
+                  "setup_cost": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 99999
+                  },
+                  "effects": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "enum": [
+                            "couple",
+                            "child.stress",
+                            "child.autonomy",
+                            "child.trust.A",
+                            "child.trust.B",
+                            "child.interest.study",
+                            "child.interest.craft",
+                            "child.ability.study",
+                            "child.ability.craft",
+                            "parents.A.stress",
+                            "parents.A.health",
+                            "parents.A.fulfillment",
+                            "parents.A.social",
+                            "parents.A.regret",
+                            "parents.B.stress",
+                            "parents.B.health",
+                            "parents.B.fulfillment",
+                            "parents.B.social",
+                            "parents.B.regret",
+                            "decisions.fatigue.A",
+                            "decisions.fatigue.B",
+                            "decisions.skills.A.dialogue",
+                            "decisions.skills.A.planning",
+                            "decisions.skills.A.learning",
+                            "decisions.skills.B.dialogue",
+                            "decisions.skills.B.planning",
+                            "decisions.skills.B.learning",
+                            "grandparents.members.grandfather.health",
+                            "grandparents.members.grandfather.relation",
+                            "grandparents.members.grandfather.funds",
+                            "grandparents.members.grandmother.health",
+                            "grandparents.members.grandmother.relation",
+                            "grandparents.members.grandmother.funds",
+                            "grandparents.health",
+                            "grandparents.relation",
+                            "grandparents.funds"
+                          ],
+                          "type": "string"
+                        },
+                        "delta": {
+                          "type": "integer",
+                          "minimum": -100,
+                          "maximum": 100
+                        }
+                      },
+                      "required": ["path", "delta"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "requires": {
+                    "type": "object",
+                    "properties": {
+                      "history": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "decision": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                            },
+                            "option": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                            },
+                            "after": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 40
+                            }
+                          },
+                          "required": ["decision", "option", "after"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "policies": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "decision": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                            },
+                            "option": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                            }
+                          },
+                          "required": ["decision", "option"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "stats": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "enum": [
+                                "cash",
+                                "couple",
+                                "child.stress",
+                                "child.autonomy",
+                                "child.trust.A",
+                                "child.trust.B",
+                                "child.interest.study",
+                                "child.interest.craft",
+                                "child.ability.study",
+                                "child.ability.craft",
+                                "parents.A.stress",
+                                "parents.A.health",
+                                "parents.A.fulfillment",
+                                "parents.A.social",
+                                "parents.A.regret",
+                                "parents.B.stress",
+                                "parents.B.health",
+                                "parents.B.fulfillment",
+                                "parents.B.social",
+                                "parents.B.regret",
+                                "decisions.fatigue.A",
+                                "decisions.fatigue.B",
+                                "decisions.skills.A.dialogue",
+                                "decisions.skills.A.planning",
+                                "decisions.skills.A.learning",
+                                "decisions.skills.B.dialogue",
+                                "decisions.skills.B.planning",
+                                "decisions.skills.B.learning",
+                                "grandparents.members.grandfather.health",
+                                "grandparents.members.grandfather.relation",
+                                "grandparents.members.grandfather.funds",
+                                "grandparents.members.grandmother.health",
+                                "grandparents.members.grandmother.relation",
+                                "grandparents.members.grandmother.funds",
+                                "grandparents.health",
+                                "grandparents.relation",
+                                "grandparents.funds",
+                                "parents.A.age_months",
+                                "parents.B.age_months"
+                              ],
+                              "type": "string"
+                            },
+                            "op": {
+                              "enum": ["eq", "lt", "gte"],
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "integer",
+                              "minimum": -99999,
+                              "maximum": 99999
+                            }
+                          },
+                          "required": ["path", "op", "value"],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "maintains": {
+                    "type": "object",
+                    "properties": {
+                      "history": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "decision": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                            },
+                            "option": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                            },
+                            "after": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 40
+                            }
+                          },
+                          "required": ["decision", "option", "after"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "policies": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "decision": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                            },
+                            "option": {
+                              "type": "string",
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                            }
+                          },
+                          "required": ["decision", "option"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "stats": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "enum": [
+                                "cash",
+                                "couple",
+                                "child.stress",
+                                "child.autonomy",
+                                "child.trust.A",
+                                "child.trust.B",
+                                "child.interest.study",
+                                "child.interest.craft",
+                                "child.ability.study",
+                                "child.ability.craft",
+                                "parents.A.stress",
+                                "parents.A.health",
+                                "parents.A.fulfillment",
+                                "parents.A.social",
+                                "parents.A.regret",
+                                "parents.B.stress",
+                                "parents.B.health",
+                                "parents.B.fulfillment",
+                                "parents.B.social",
+                                "parents.B.regret",
+                                "decisions.fatigue.A",
+                                "decisions.fatigue.B",
+                                "decisions.skills.A.dialogue",
+                                "decisions.skills.A.planning",
+                                "decisions.skills.A.learning",
+                                "decisions.skills.B.dialogue",
+                                "decisions.skills.B.planning",
+                                "decisions.skills.B.learning",
+                                "grandparents.members.grandfather.health",
+                                "grandparents.members.grandfather.relation",
+                                "grandparents.members.grandfather.funds",
+                                "grandparents.members.grandmother.health",
+                                "grandparents.members.grandmother.relation",
+                                "grandparents.members.grandmother.funds",
+                                "grandparents.health",
+                                "grandparents.relation",
+                                "grandparents.funds",
+                                "parents.A.age_months",
+                                "parents.B.age_months"
+                              ],
+                              "type": "string"
+                            },
+                            "op": {
+                              "enum": ["eq", "lt", "gte"],
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "integer",
+                              "minimum": -99999,
+                              "maximum": 99999
+                            }
+                          },
+                          "required": ["path", "op", "value"],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  "skill": {
+                    "type": "object",
+                    "properties": {
+                      "parent": {
+                        "enum": ["A", "B"],
+                        "type": "string"
+                      },
+                      "ability": {
+                        "enum": ["dialogue", "planning", "learning"],
+                        "type": "string"
+                      },
+                      "target": {
+                        "enum": [
+                          "child.trust.A",
+                          "child.trust.B",
+                          "child.ability.study",
+                          "child.ability.craft"
+                        ],
+                        "type": "string"
+                      },
+                      "gain": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 10
+                      }
+                    },
+                    "required": ["parent", "ability", "target", "gain"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "id",
+                  "label",
+                  "description",
+                  "cost",
+                  "income",
+                  "setup_cost",
+                  "effects"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "id",
+            "menu",
+            "title",
+            "reason",
+            "kind",
+            "min_age_months",
+            "max_age_months",
+            "default_option",
+            "once",
+            "cooldown",
+            "options"
+          ],
+          "additionalProperties": false
+        }
+      },
       "schema_version": {
         "const": 1
       },

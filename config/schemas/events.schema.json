@@ -3,6 +3,117 @@
   "items": {
     "type": "object",
     "properties": {
+      "requires": {
+        "type": "object",
+        "properties": {
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "decision": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "option": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "after": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 40
+                }
+              },
+              "required": ["decision", "option", "after"],
+              "additionalProperties": false
+            }
+          },
+          "policies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "decision": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "option": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                }
+              },
+              "required": ["decision", "option"],
+              "additionalProperties": false
+            }
+          },
+          "stats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "enum": [
+                    "cash",
+                    "couple",
+                    "child.stress",
+                    "child.autonomy",
+                    "child.trust.A",
+                    "child.trust.B",
+                    "child.interest.study",
+                    "child.interest.craft",
+                    "child.ability.study",
+                    "child.ability.craft",
+                    "parents.A.stress",
+                    "parents.A.health",
+                    "parents.A.fulfillment",
+                    "parents.A.social",
+                    "parents.A.regret",
+                    "parents.B.stress",
+                    "parents.B.health",
+                    "parents.B.fulfillment",
+                    "parents.B.social",
+                    "parents.B.regret",
+                    "decisions.fatigue.A",
+                    "decisions.fatigue.B",
+                    "decisions.skills.A.dialogue",
+                    "decisions.skills.A.planning",
+                    "decisions.skills.A.learning",
+                    "decisions.skills.B.dialogue",
+                    "decisions.skills.B.planning",
+                    "decisions.skills.B.learning",
+                    "grandparents.members.grandfather.health",
+                    "grandparents.members.grandfather.relation",
+                    "grandparents.members.grandfather.funds",
+                    "grandparents.members.grandmother.health",
+                    "grandparents.members.grandmother.relation",
+                    "grandparents.members.grandmother.funds",
+                    "grandparents.health",
+                    "grandparents.relation",
+                    "grandparents.funds",
+                    "parents.A.age_months",
+                    "parents.B.age_months"
+                  ],
+                  "type": "string"
+                },
+                "op": {
+                  "enum": ["eq", "lt", "gte"],
+                  "type": "string"
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": -99999,
+                  "maximum": 99999
+                }
+              },
+              "required": ["path", "op", "value"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
       "id": {
         "type": "string",
         "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"

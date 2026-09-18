@@ -19,11 +19,13 @@
     "check:content": "bun scripts/check-content.ts",
     "schema:generate": "bun scripts/generate-json-schemas.ts && vp fmt config/schemas",
     "schema:check": "bun scripts/generate-json-schemas.ts --check",
-    "lint:json": "bun run schema:check && bun run check:json && bun run check:content",
+    "lint:json": "bun run packs:check && bun run schema:check && bun run check:json && bun run check:content",
     "check:json": "bun scripts/check-json.ts",
     "format:check": "vp fmt --check",
     "hooks:install": "lefthook install",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "packs:generate": "bun scripts/generate-packs.ts",
+    "packs:check": "bun scripts/generate-packs.ts --check"
   },
   "dependencies": {
     "@nanostores/react": "2.0.1",

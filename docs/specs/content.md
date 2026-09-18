@@ -51,3 +51,12 @@ Valibotを正本とし、生成JSON Schemaは手で編集しない。設定本�
 - JSON本体の診断はファイル名・行・列を表示し、違反があれば非0で終了する。追加されたサンプルJSONも関連付けのglobから検出する。
 - Lefthookのpre-commitは、対象のステージ済みファイルをformat・再ステージした後にlintを実行する。検査に失敗したコミットは中止する。formatの対象外は既存のVitePlus設定に従う。
 - 受け入れ：正常な設定でlint・check・フックが通る。型違いのJSON、古い生成スキーマ、lint違反ではフックが失敗する。整形結果がステージされ、部分ステージの未選択変更がコミットへ混入しないことを一時リポジトリで検証する。
+
+
+## 生活メニューと新形式DLC（2026-09-18、D-038）
+
+新規ゲームの判断は[S-017](life-menus.md)に従う。イベントは`config/events.json`、メニュー・分岐・標準生活は`config/decisions.json`へ分離し、旧判断は`config/legacy-decisions.json`で保持する。新規はrules-8 / data-8 / save-9、設定とパック版の保存固定は維持する。
+
+新形式パックは`config/packs/<id>/manifest.json`・`events.json`・`decisions.json`で追加する。`bun run packs:generate`で登録用ファイルを生成し、更新漏れを通常のcheckに組み込む。パックは`automatic_events`と`decisions`を共通スキーマで追加する。ID順の合成、上書き禁止、依存関係、未定義参照、入口のない循環前提を検査する。JSON補完も本編・DLC共通で使う。
+
+同じ前提条件で、判断から次の判断・イベントを接続できる。旧形式の行動・回答式イベントを含むパックは新規生活メニューでは移行を要求し、黙って無視しない。旧保存には影響しない。詳細な項目と作成手順は[設定ガイド](../../config/README.md)。受け入れはAC-017-K・LとAC-015-C〜Fの保存・拡張契約。

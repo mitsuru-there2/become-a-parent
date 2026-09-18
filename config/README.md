@@ -1,10 +1,69 @@
 # ゲーム設定の編集
 
-## 自動イベント（rules-6 / S-016）
+## 現行の編集先（rules-8 / S-017）
 
-新規ルールの祖父・祖母は`base.json`の`decision_game.initial_grandparents.grandfather` / `grandmother`で体力・関係・資金・地域のつながりを個別に設定します。初期援助資金は各50万円、援助では本人の資金のみ50万円減ります。`initial_grandparent_funds`は旧rules-6用です。
+| ファイル                                                   | 編集する内容                                                                        |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [events.json](events.json)                                 | 自動イベントの本文・発生条件・確率・効果                                            |
+| [decisions.json](decisions.json)                           | 5分類のメニュー、継続方針・単発行動、分岐条件、費用・効果、標準生活、祖父母の初期値 |
+| [base.json](base.json)                                     | 難易度・年代別生活費・成人後・共通テキストなど                                      |
+| [packs/community-life](packs/community-life/manifest.json) | 新方式DLCの動くサンプル。開始時に選んだ場合だけ追加                                 |
+| [legacy-decisions.json](legacy-decisions.json)             | 旧rules-3〜7の判断。現行の調整には使わない                                          |
 
-新規ゲームのイベントは専用の [events.json](events.json) で調整します。各期に全イベントを独立抽選し、0件でも複数件でも通常の3判断に進みます。発生時に効果を自動適用し、回答は求めません。初期設定は善悪17件で、通常は1期1〜3件を中心とする調整です。独立抽選のため最低件数・上限はなく、本文・数値はゲーム用の調整仮値です。
+保存には合成した設定とパック版を固定します。JSONの変更は新規ゲームから適用し、既存保存は旧設定で継続します。現在はrules-8 / data-8 / save-9です。共通コンテンツ形式の`data_version`とパックの`requires_data`は互換形式名`data-2`を維持し、人生のルール・保存の版とは区別します。
+
+## ディシジョンの編集
+
+`decisions.json`の`decisions`配列へ項目を追加します。IDはゲーム内で一意とし、本編は`base-`、DLCはパックIDを先頭につける命名を推奨します。
+
+| 項目                                | 意味                                                              |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| `id` / `menu` / `title` / `reason`  | 判断ID、所属分類ID、見出し、プレイヤーに見せる出現理由            |
+| `kind`                              | `policy`＝変更するまで継続、`action`＝今期だけ                    |
+| `min_age_months` / `max_age_months` | 対象月齢（両端を含む）。各期の開始時に判定                        |
+| `default_option`                    | 方針の既定選択肢。単発は`null`。既定は無条件・支出・開始費・収入0 |
+| `once` / `cooldown`                 | 単発行動の一度限り／再実行までの期数。方針は`false` / `1`         |
+| `requires`                          | 判断または選択肢の出現・利用条件                                  |
+| `options`                           | ID・名前・説明・費用・収入・効果を持つ選択肢                      |
+
+選択肢の`cost`・`income`は単発ならその期、方針なら毎期計上します。`setup_cost`は方針が切り替わった期だけ追加し、単発では0です。方針に戻る・再開する場合も切り替えとして扱います。同じ方針を選び直しても開始費を取りません。金額は万円、親・祖父母は10点、子どもは100点の単位で、`effects`に直接の増減を指定します。`cash`は効果に書かず、必ず`cost`・`income`を使います。
+
+`skill`は任意で、`parent`（A/B）、`ability`（dialogue/planning/learning）、`target`（親子信頼または子どもの能力）、`gain`を指定します。成果は基本値＋能力÷3の整数部、疲労7以上なら2減算（最低0）。`repair: true`は関係を立て直した履歴として記録します。
+
+分岐条件の例：
+
+```json
+{
+  "history": [{ "decision": "base-craft-trial", "option": "try", "after": 0 }],
+  "policies": [{ "decision": "base-craft", "option": "enrolled" }],
+  "stats": [{ "path": "parents.A.stress", "op": "lt", "value": 8 }]
+}
+```
+
+全項目をANDで判定します。履歴は確定した選択に限り、`after: 0`は実行直後の次期、`after: 1`はさらに1期経過後です。`policies`は現在も続けている方針を参照します。数値条件で利用できない項目は理由付きで表示し、未経験の枝は表示しません。`requires`を判断全体に置いた場合は、その方針の継続にも必要です。選択肢の`requires`は選ぶときの条件で、継続にも必要な条件は選択肢の`maintains`へ記述します。維持条件や月齢を外れた方針は無料の既定へ戻り、通知します。
+
+`max_actions`は今期だけの行動上限（本編2）、`income`は基本収入、`standard_effects`は普段の休息などです。方針変更は行動枠に数えません。全ての予定は確定前に取り消せ、枠超過や資金不足は確定時に拒否します。分岐は半年確定後の次期から反映します。
+
+## DLCを追加する
+
+1. `config/packs/community-life/`を新しいパックIDのフォルダへコピーします。
+2. `manifest.json`の`id`をフォルダ名と合わせ、名称・版・`dependencies`を設定します。現在の形式では共通項目の`scenarios`は`[]`、旧式の`events`・`actions`・`visuals`は`{}`から始められます。
+3. 同じフォルダの`events.json`に自動イベント配列、`decisions.json`に判断配列を書きます。片方だけ追加する場合も、もう片方を`[]`で用意します。
+4. `bun run packs:generate`を実行すると登録用のTypeScriptが生成されます。エンジンや画面の編集は不要です。
+5. `bun run check`で構造・重複・参照・循環・依存を検査します。新しいフォルダのJSONにも補完が適用されます。
+6. 新規開始画面でパックを選ぶか、CLIの`new`へ`--packs '["新しいID"]'`を付けます。
+
+本編または依存パックの判断を`requires`で参照でき、別経路から既存の生活状態を条件にした分岐へ接続できます。既存IDの上書きは拒否します。DLCのイベントにも同じ`requires`を指定できるため、「DLCの活動を経験した後だけ発生するイベント」をJSONで書けます。別パックを参照する場合は必ず`dependencies`へ宣言し、開始時に両方を選択します。
+
+合成順はパックID順、イベント抽選はイベントID別です。無関係なパックの追加で既存イベントの乱数系列をずらしません。到達不能な履歴・方針の循環は拒否しますが、数値条件や年齢の組合せによる実際の到達可能性はプレイテストで確認してください。未選択のパックも依存関係を含めて検査します。登録漏れは`packs:check`で検出します。
+
+新方式では旧パックの`events`・`actions`を黙って無視せず、新形式への移行を要求します。旧保存と旧方式向けのパックは従来どおりです。これはコンテンツ拡張の仕組みであり、決済・購入権利・後から保存へ追加する機能は含みません。
+
+## 自動イベントの項目
+
+新規ルールの祖父・祖母は`decisions.json`の`initial_grandparents.grandfather` / `grandmother`で体力・関係・資金・地域のつながりを個別に設定します。初期援助資金は各50万円、援助では本人の資金のみ50万円減ります。`initial_grandparent_funds`は旧rules-6用です。
+
+新規ゲームのイベントは専用の [events.json](events.json) で調整します。各期に全イベントを独立抽選し、0件でも複数件でも生活メニューに進みます。発生時に効果を自動適用し、回答は求めません。初期設定は善悪17件で、通常は1期1〜3件を中心とする調整です。独立抽選のため最低件数・上限はなく、本文・数値はゲーム用の調整仮値です。
 
 | 項目                                | 意味                                                          |
 | ----------------------------------- | ------------------------------------------------------------- |
@@ -16,7 +75,7 @@
 | `cooldown` / `once`                 | 再発までの期数（1なら毎期抽選可）、一度限りか                 |
 | `effects`                           | 発生時の数値変更。`path`へ`delta`を直接加算                   |
 
-条件は `{ "path": "child.ability.craft", "op": "gte", "value": 30 }` のように記述します。`op`は`eq`（等しい）、`lt`（未満）、`gte`（以上）。父母は`parents.A`（父）/`parents.B`（母）、夫婦関係は`couple`、祖父・祖母は`grandparents.members.grandfather` / `grandparents.members.grandmother`。`grandparents`直下は旧互換の集計値です。能力・疲労は`decisions.skills.A.learning`や`decisions.fatigue.B`等です。許可する全パスは[スキーマ](../src/content/automatic_event_schema.ts)とJSON補完で確認できます。
+条件は `{ "path": "child.ability.craft", "op": "gte", "value": 30 }` のように記述します。`op`は`eq`（等しい）、`lt`（未満）、`gte`（以上）。父母は`parents.A`（父）/`parents.B`（母）、夫婦関係は`couple`、祖父・祖母は`grandparents.members.grandfather` / `grandparents.members.grandmother`。`grandparents`直下は旧互換の集計値です。能力・疲労は`decisions.skills.A.learning`や`decisions.fatigue.B`等です。許可する全パスは[スキーマ](../src/content/stat_schema.ts)とJSON補完で確認できます。
 
 親・祖父母・夫婦関係は10点、子どもは内部100点、金額は万円、年齢は月です。旧選択肢のような効果量の自動倍率はありません。例えば家計50万円の入金は`{ "path": "cash", "delta": 50 }`、父のストレス1点増加は`{ "path": "parents.A.stress", "delta": 1 }`。効果は上下限で止め、金銭支出は所持金までです。子どもの内部値は現在値を公開せず観察に反映し、イベントダイアログではそのイベントによる増減だけを表示します。
 
@@ -24,13 +83,13 @@
 
 ## 通常判断と旧設定
 
-通常判断は`base.json`の`decision_game.themes`で定義します。`slot`の0・1・2から1件ずつ提示し、`min_turn`〜`max_turn`と`condition`で候補を絞ります。費用・収入・継続契約・効果・能力による成果は[S-016](../docs/specs/decisions.md)と[専用スキーマ](../src/content/decision_schema.ts)を参照してください。
+旧方式の通常判断は`legacy-decisions.json`の`themes`で定義します。`slot`の0・1・2から1件ずつ提示し、`min_turn`〜`max_turn`と`condition`で候補を絞ります。費用・収入・継続契約・効果・能力による成果は[S-016](../docs/specs/decisions.md)と[専用スキーマ](../src/content/decision_schema.ts)を参照してください。
 
-`decision_game.events`はrules-3〜5の回答式イベント用、従来の`events`は旧方式・旧追加パック用です。rules-6ではこれらのイベントを発生させません。旧形式の追加パックの行動は通常判断に取り込みます。旧保存は元のルールで再開します。新規保存の版はrules-6 / data-6 / save-7です。
+`decision_game.events`はrules-3〜5の回答式イベント用、従来の`events`は旧方式・旧追加パック用です。rules-6ではこれらのイベントを発生させません。旧形式の追加パックの行動は通常判断に取り込みます。旧保存は元のルールで再開します。rules-6 / data-6 / save-7は当時の保存版です。
 
 以下は従来の設定フィールド・追加パックの説明です。
 
-仕様の正本：[S-015](../docs/specs/content.md)。通常の調整は `base.json`、追加パックの登録は `packs.json` を編集します。`legacy-data-1.json` は旧保存の再生用に凍結したデータです。変更しないでください。
+仕様の正本：[S-015](../docs/specs/content.md)。従来方式の調整は `base.json`、旧形式の追加パックの登録は `packs.json` を編集します。`legacy-data-1.json` は旧保存の再生用に凍結したデータです。変更しないでください。
 
 ## JSONの補完・型チェック
 

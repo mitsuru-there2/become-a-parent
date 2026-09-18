@@ -48,6 +48,38 @@ try {
       if (actions.payload!.actions!.plan_fields.length)
         throw new Error("新方式で配分操作が公開されています");
       while (r.phase === "childhood") {
+        if (r.public!.life) {
+          const recover = policy === "recovery" && r.public!.family_status!.level <= 3;
+          if (["support", "adaptation"].includes(policy) || recover) {
+            const home = r.choices.find((c) => c.event_id === "base-home");
+            if (home && home.current_option !== "base-home:talk")
+              r = await call("choose", "家族の対話を継続する。", {
+                event_instance: home.instance_id,
+                option_id: "base-home:talk",
+              });
+            const activity = r.choices.find(
+              (c) => c.decision_kind === "action" && c.menu === "afterschool",
+            );
+            const option = activity?.options.find(
+              (o) => o.available && !o.option_id.endsWith(":cancel") && o.cost <= 12,
+            );
+            if (activity && option)
+              r = await call("choose", "公開された体験・活動の機会を試す。", {
+                event_instance: activity.instance_id,
+                option_id: option.option_id,
+              });
+          } else if (policy === "pressure") {
+            const work = r.choices.find((c) => c.event_id === "base-extra-work")!;
+            r = await call("choose", "今期の収入を優先する。", {
+              event_instance: work.instance_id,
+              option_id: "base-extra-work:accept",
+            });
+          }
+          if (!r.public!.forecast!.can_advance)
+            throw new Error(JSON.stringify(r.public!.forecast!.reasons));
+          r = await call("advance", "現在の暮らしと任意の予定で半年を進める。");
+          continue;
+        }
         const special = r.choices[0];
 
         const recover =

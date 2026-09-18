@@ -1,0 +1,1779 @@
+{
+  "initial_grandparent_funds": 100,
+  "themes": [
+    {
+      "id": "sleep",
+      "title": "夜の過ごし方をどうする？",
+      "slot": 0,
+      "min_turn": 1,
+      "max_turn": 2,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "父母で交代して寝かしつける",
+          "cost": 0,
+          "effects": {
+            "fatigue": -4,
+            "trust": 2
+          },
+          "parent": "both",
+          "skill": "planning",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "訪問支援を頼む",
+          "cost": 24,
+          "effects": {
+            "fatigue": -4,
+            "trust": 2
+          },
+          "parent": "both",
+          "skill": "planning",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "今の寝かしつけを続ける",
+          "cost": 0,
+          "effects": {
+            "fatigue": 2,
+            "trust": 0
+          },
+          "parent": "both",
+          "skill": "planning",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "baby-play",
+      "title": "家での遊びをどうする？",
+      "slot": 0,
+      "min_turn": 3,
+      "max_turn": 4,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "絵本を一緒に楽しむ",
+          "cost": 0,
+          "effects": {
+            "fatigue": -4,
+            "trust": 2
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "親子の遊び場に出かける",
+          "cost": 24,
+          "effects": {
+            "fatigue": -4,
+            "trust": 2
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "家で自由に遊ぶ",
+          "cost": 0,
+          "effects": {
+            "fatigue": 2,
+            "trust": 0
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "nursery",
+      "title": "預け先をどうする？",
+      "slot": 0,
+      "min_turn": 5,
+      "max_turn": 6,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "保育園に通う",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "保育園に通う",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "一時保育を利用する",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "一時保育を利用する",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "もう半年自宅で過ごす",
+          "cost": 0,
+          "effects": {
+            "fatigue": 4,
+            "stress": -2,
+            "child_stress": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 1,
+          "domain": "study",
+          "contract": {
+            "label": "自宅で過ごす",
+            "cost": 0
+          },
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "enrollment",
+      "title": "入園先をどうする？",
+      "slot": 0,
+      "min_turn": 7,
+      "max_turn": 12,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "幼稚園に入園する",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "幼稚園に入園する",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "インターナショナル幼稚園に入園する",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "インターナショナル幼稚園に入園する",
+            "cost": 48
+          },
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "保育園に入園する",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "保育園に入園する",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "3",
+          "label": "もう半年自宅で過ごす",
+          "cost": 0,
+          "effects": {
+            "fatigue": 4,
+            "stress": -2,
+            "child_stress": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 1,
+          "domain": "study",
+          "contract": {
+            "label": "自宅で過ごす",
+            "cost": 0
+          },
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "after-school",
+      "title": "放課後をどう過ごす？",
+      "slot": 0,
+      "min_turn": 13,
+      "max_turn": 18,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "学童で過ごす",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "学童で過ごす",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "創作の教室に通う",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "craft",
+          "contract": {
+            "label": "創作の教室に通う",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "家で自由に過ごす",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 1,
+          "domain": "study",
+          "contract": {
+            "label": "自宅で過ごす",
+            "cost": 0
+          },
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "learning",
+      "title": "学びの場をどうする？",
+      "slot": 0,
+      "min_turn": 19,
+      "max_turn": 24,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "学習塾に通う",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "学習塾に通う",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "ものづくりの教室に通う",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "craft",
+          "contract": {
+            "label": "ものづくりの教室に通う",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "家庭で興味のあることを探す",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 1,
+          "domain": "study",
+          "contract": {
+            "label": "自宅で過ごす",
+            "cost": 0
+          },
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "club",
+      "title": "学校の外の活動をどうする？",
+      "slot": 0,
+      "min_turn": 25,
+      "max_turn": 30,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "学習のサポートを受ける",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "学習のサポートを受ける",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "創作の活動を続ける",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "craft",
+          "contract": {
+            "label": "創作の活動を続ける",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "活動を休み、自分の時間を作る",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 1,
+          "domain": "study",
+          "contract": {
+            "label": "自宅で過ごす",
+            "cost": 0
+          },
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "future",
+      "title": "卒業後への準備をどうする？",
+      "slot": 0,
+      "min_turn": 31,
+      "max_turn": 36,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "受験の講座を受ける",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "受験の講座を受ける",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "作品づくりの講座を受ける",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "作品づくりの講座を受ける",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "家族と進路を話し合う",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 1,
+          "domain": "study",
+          "contract": {
+            "label": "自宅で過ごす",
+            "cost": 0
+          },
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "independence",
+      "title": "自立の準備をどうする？",
+      "slot": 0,
+      "min_turn": 37,
+      "max_turn": 40,
+      "condition": "always",
+      "options": [
+        {
+          "id": "0",
+          "label": "学び直しの講座を受ける",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "study",
+          "contract": {
+            "label": "学び直しの講座を受ける",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "1",
+          "label": "創作の挑戦を支援する",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": 2
+          },
+          "parent": "both",
+          "skill": "learning",
+          "gain": 2,
+          "domain": "craft",
+          "contract": {
+            "label": "創作の挑戦を支援する",
+            "cost": 24
+          },
+          "end": null
+        },
+        {
+          "id": "2",
+          "label": "生活を整えながら本人に任せる",
+          "cost": 0,
+          "effects": {
+            "fatigue": -3,
+            "stress": -2,
+            "child_stress": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 1,
+          "domain": "study",
+          "contract": {
+            "label": "自宅で過ごす",
+            "cost": 0
+          },
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "baby-talk",
+      "title": "子どものサインにどう向き合う？",
+      "slot": 1,
+      "min_turn": 1,
+      "max_turn": 6,
+      "condition": "always",
+      "options": [
+        {
+          "id": "father",
+          "label": "父が表情を見ながらゆっくり遊ぶ",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "A",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "mother",
+          "label": "母が表情を見ながらゆっくり遊ぶ",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "B",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "press",
+          "label": "親の考えを強く押し通す",
+          "cost": 0,
+          "effects": {
+            "stress": 5,
+            "trust": -7,
+            "child_stress": 8,
+            "couple": -4,
+            "autonomy": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 3,
+          "domain": "study",
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "keep",
+          "label": "今期は特別なことをせず、今の生活を続ける",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "new-place",
+      "title": "新しい環境にどう慣れる？",
+      "slot": 1,
+      "min_turn": 7,
+      "max_turn": 12,
+      "condition": "always",
+      "options": [
+        {
+          "id": "father",
+          "label": "父が子どもと一緒に見学する",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "A",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "mother",
+          "label": "母が子どもと一緒に見学する",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "B",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "press",
+          "label": "親の考えを強く押し通す",
+          "cost": 0,
+          "effects": {
+            "stress": 5,
+            "trust": -7,
+            "child_stress": 8,
+            "couple": -4,
+            "autonomy": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 3,
+          "domain": "study",
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "keep",
+          "label": "今期は特別なことをせず、今の生活を続ける",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "friends",
+      "title": "友だちとのことをどう聞く？",
+      "slot": 1,
+      "min_turn": 13,
+      "max_turn": 24,
+      "condition": "always",
+      "options": [
+        {
+          "id": "father",
+          "label": "父が帰宅後に話を聞く",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "A",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "mother",
+          "label": "母が帰宅後に話を聞く",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "B",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "press",
+          "label": "親の考えを強く押し通す",
+          "cost": 0,
+          "effects": {
+            "stress": 5,
+            "trust": -7,
+            "child_stress": 8,
+            "couple": -4,
+            "autonomy": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 3,
+          "domain": "study",
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "keep",
+          "label": "今期は特別なことをせず、今の生活を続ける",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "distance",
+      "title": "子どもとの距離をどう取る？",
+      "slot": 1,
+      "min_turn": 25,
+      "max_turn": 36,
+      "condition": "always",
+      "options": [
+        {
+          "id": "father",
+          "label": "父が本人の話を聞いて約束を決める",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "A",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "mother",
+          "label": "母が本人の話を聞いて約束を決める",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "B",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "press",
+          "label": "親の考えを強く押し通す",
+          "cost": 0,
+          "effects": {
+            "stress": 5,
+            "trust": -7,
+            "child_stress": 8,
+            "couple": -4,
+            "autonomy": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 3,
+          "domain": "study",
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "keep",
+          "label": "今期は特別なことをせず、今の生活を続ける",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "adult-talk",
+      "title": "これからの暮らしをどう話す？",
+      "slot": 1,
+      "min_turn": 37,
+      "max_turn": 40,
+      "condition": "always",
+      "options": [
+        {
+          "id": "father",
+          "label": "父が本人の希望を聞いて支え方を決める",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "A",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "mother",
+          "label": "母が本人の希望を聞いて支え方を決める",
+          "cost": 0,
+          "effects": {
+            "fatigue": 5,
+            "stress": -1,
+            "trust": 2,
+            "child_stress": -3,
+            "autonomy": 1
+          },
+          "parent": "B",
+          "skill": "dialogue",
+          "gain": 2,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "press",
+          "label": "親の考えを強く押し通す",
+          "cost": 0,
+          "effects": {
+            "stress": 5,
+            "trust": -7,
+            "child_stress": 8,
+            "couple": -4,
+            "autonomy": -3
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 3,
+          "domain": "study",
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "keep",
+          "label": "今期は特別なことをせず、今の生活を続ける",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "weekend",
+      "title": "週末の家族時間をどうする？",
+      "slot": 2,
+      "min_turn": 1,
+      "max_turn": 40,
+      "condition": "always",
+      "options": [
+        {
+          "id": "talk",
+          "label": "家族で話し合い、交代で休む",
+          "cost": 0,
+          "effects": {
+            "fatigue": -10,
+            "stress": -8,
+            "couple": 7,
+            "trust": 3,
+            "child_stress": -4
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "support",
+          "label": "家事支援を頼んで休む",
+          "cost": 32,
+          "effects": {
+            "fatigue": -16,
+            "stress": -10,
+            "couple": 4
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "outing",
+          "label": "近場に出かけて気分を変える",
+          "cost": 16,
+          "effects": {
+            "fatigue": 3,
+            "stress": -8,
+            "couple": 5,
+            "trust": 3
+          },
+          "parent": "both",
+          "skill": "planning",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "work-father",
+          "label": "父が追加の仕事を引き受ける",
+          "cost": 0,
+          "income": 40,
+          "effects": {
+            "fatigue": 8,
+            "stress": 6,
+            "couple": -3
+          },
+          "parent": "A",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "work-mother",
+          "label": "母が追加の仕事を引き受ける",
+          "cost": 0,
+          "income": 40,
+          "effects": {
+            "fatigue": 8,
+            "stress": 6,
+            "couple": -3
+          },
+          "parent": "B",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "ignore",
+          "label": "今期は何も変えない",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "rest",
+      "title": "たまった疲れをどうする？",
+      "slot": 2,
+      "min_turn": 1,
+      "max_turn": 40,
+      "condition": "tired",
+      "options": [
+        {
+          "id": "talk",
+          "label": "家族で話し合い、交代で休む",
+          "cost": 0,
+          "effects": {
+            "fatigue": -10,
+            "stress": -8,
+            "couple": 7,
+            "trust": 3,
+            "child_stress": -4
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "support",
+          "label": "家事支援を頼んで休む",
+          "cost": 32,
+          "effects": {
+            "fatigue": -16,
+            "stress": -10,
+            "couple": 4
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "outing",
+          "label": "近場に出かけて気分を変える",
+          "cost": 16,
+          "effects": {
+            "fatigue": 3,
+            "stress": -8,
+            "couple": 5,
+            "trust": 3
+          },
+          "parent": "both",
+          "skill": "planning",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "work-father",
+          "label": "父が追加の仕事を引き受ける",
+          "cost": 0,
+          "income": 40,
+          "effects": {
+            "fatigue": 8,
+            "stress": 6,
+            "couple": -3
+          },
+          "parent": "A",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "work-mother",
+          "label": "母が追加の仕事を引き受ける",
+          "cost": 0,
+          "income": 40,
+          "effects": {
+            "fatigue": 8,
+            "stress": 6,
+            "couple": -3
+          },
+          "parent": "B",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "ignore",
+          "label": "今期は何も変えない",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "repair",
+      "title": "家族のすれ違いをどうする？",
+      "slot": 2,
+      "min_turn": 1,
+      "max_turn": 40,
+      "condition": "strained",
+      "options": [
+        {
+          "id": "talk",
+          "label": "家族で話し合い、交代で休む",
+          "cost": 0,
+          "effects": {
+            "fatigue": -10,
+            "stress": -8,
+            "couple": 7,
+            "trust": 3,
+            "child_stress": -4
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "support",
+          "label": "家事支援を頼んで休む",
+          "cost": 32,
+          "effects": {
+            "fatigue": -16,
+            "stress": -10,
+            "couple": 4
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "outing",
+          "label": "近場に出かけて気分を変える",
+          "cost": 16,
+          "effects": {
+            "fatigue": 3,
+            "stress": -8,
+            "couple": 5,
+            "trust": 3
+          },
+          "parent": "both",
+          "skill": "planning",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "work-father",
+          "label": "父が追加の仕事を引き受ける",
+          "cost": 0,
+          "income": 40,
+          "effects": {
+            "fatigue": 8,
+            "stress": 6,
+            "couple": -3
+          },
+          "parent": "A",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "work-mother",
+          "label": "母が追加の仕事を引き受ける",
+          "cost": 0,
+          "income": 40,
+          "effects": {
+            "fatigue": 8,
+            "stress": 6,
+            "couple": -3
+          },
+          "parent": "B",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "ignore",
+          "label": "今期は何も変えない",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "busy",
+      "title": "急な繁忙期。家のことをどう分担する？",
+      "slot": -1,
+      "min_turn": 1,
+      "max_turn": 40,
+      "condition": "always",
+      "options": [
+        {
+          "id": "together",
+          "label": "家族で相談して、できることを分担する",
+          "cost": 0,
+          "effects": {
+            "fatigue": 3,
+            "stress": -2,
+            "couple": 2,
+            "trust": 1
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "help",
+          "label": "支援を頼んで余裕を作る",
+          "cost": 20,
+          "effects": {
+            "fatigue": -6,
+            "stress": -4,
+            "couple": 2
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "work-father",
+          "label": "父が臨時の仕事を引き受ける",
+          "cost": 0,
+          "income": 60,
+          "effects": {
+            "fatigue": 12,
+            "stress": 8,
+            "couple": -4
+          },
+          "parent": "A",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "work-mother",
+          "label": "母が臨時の仕事を引き受ける",
+          "cost": 0,
+          "income": 60,
+          "effects": {
+            "fatigue": 12,
+            "stress": 8,
+            "couple": -4
+          },
+          "parent": "B",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "leave",
+          "label": "今回は何もせず様子を見る",
+          "cost": 0,
+          "effects": {
+            "stress": 3,
+            "couple": -3,
+            "trust": -1
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "spill",
+      "title": "大切な予定の日に、家の中が大散らかり。",
+      "slot": -1,
+      "min_turn": 1,
+      "max_turn": 12,
+      "condition": "always",
+      "options": [
+        {
+          "id": "together",
+          "label": "家族で相談して、できることを分担する",
+          "cost": 0,
+          "effects": {
+            "fatigue": 3,
+            "stress": -2,
+            "couple": 2,
+            "trust": 1
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "help",
+          "label": "支援を頼んで余裕を作る",
+          "cost": 20,
+          "effects": {
+            "fatigue": -6,
+            "stress": -4,
+            "couple": 2
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "leave",
+          "label": "今回は何もせず様子を見る",
+          "cost": 0,
+          "effects": {
+            "stress": 3,
+            "couple": -3,
+            "trust": -1
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "invitation",
+      "title": "地域の集まりへのお誘いが届いた。",
+      "slot": -1,
+      "min_turn": 1,
+      "max_turn": 40,
+      "condition": "always",
+      "options": [
+        {
+          "id": "together",
+          "label": "家族で相談して、できることを分担する",
+          "cost": 0,
+          "effects": {
+            "fatigue": 3,
+            "stress": -2,
+            "couple": 2,
+            "trust": 1
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "help",
+          "label": "支援を頼んで余裕を作る",
+          "cost": 20,
+          "effects": {
+            "fatigue": -6,
+            "stress": -4,
+            "couple": 2
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "sale",
+          "label": "家族で不用品を集め、地域の市で売る",
+          "cost": 0,
+          "income": 40,
+          "effects": {
+            "fatigue": 6,
+            "stress": 4
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "leave",
+          "label": "今回は何もせず様子を見る",
+          "cost": 0,
+          "effects": {
+            "stress": 3,
+            "couple": -3,
+            "trust": -1
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "friend-trouble",
+      "title": "子どもが友だちとのことで悩んでいる。",
+      "slot": -1,
+      "min_turn": 13,
+      "max_turn": 36,
+      "condition": "always",
+      "options": [
+        {
+          "id": "together",
+          "label": "家族で相談して、できることを分担する",
+          "cost": 0,
+          "effects": {
+            "fatigue": 3,
+            "stress": -2,
+            "couple": 2,
+            "trust": 1
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "help",
+          "label": "支援を頼んで余裕を作る",
+          "cost": 20,
+          "effects": {
+            "fatigue": -6,
+            "stress": -4,
+            "couple": 2
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "leave",
+          "label": "今回は何もせず様子を見る",
+          "cost": 0,
+          "effects": {
+            "stress": 3,
+            "couple": -3,
+            "trust": -1
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "challenge",
+      "title": "子どもが新しいことに挑戦したいと言う。",
+      "slot": -1,
+      "min_turn": 7,
+      "max_turn": 40,
+      "condition": "always",
+      "options": [
+        {
+          "id": "together",
+          "label": "家族で相談して、できることを分担する",
+          "cost": 0,
+          "effects": {
+            "fatigue": 3,
+            "stress": -2,
+            "couple": 2,
+            "trust": 1
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "help",
+          "label": "支援を頼んで余裕を作る",
+          "cost": 20,
+          "effects": {
+            "fatigue": -6,
+            "stress": -4,
+            "couple": 2
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "leave",
+          "label": "今回は何もせず様子を見る",
+          "cost": 0,
+          "effects": {
+            "stress": 3,
+            "couple": -3,
+            "trust": -1
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "future-worry",
+      "title": "将来の話をすると、子どもが黙り込んだ。",
+      "slot": -1,
+      "min_turn": 25,
+      "max_turn": 40,
+      "condition": "always",
+      "options": [
+        {
+          "id": "together",
+          "label": "家族で相談して、できることを分担する",
+          "cost": 0,
+          "effects": {
+            "fatigue": 3,
+            "stress": -2,
+            "couple": 2,
+            "trust": 1
+          },
+          "parent": "both",
+          "skill": "dialogue",
+          "gain": 1,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "help",
+          "label": "支援を頼んで余裕を作る",
+          "cost": 20,
+          "effects": {
+            "fatigue": -6,
+            "stress": -4,
+            "couple": 2
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "leave",
+          "label": "今回は何もせず様子を見る",
+          "cost": 0,
+          "effects": {
+            "stress": 3,
+            "couple": -3,
+            "trust": -1
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        }
+      ]
+    },
+    {
+      "id": "crisis",
+      "title": "このまま一緒に暮らせるのか、家族で話し合うことになった。",
+      "slot": -1,
+      "min_turn": 1,
+      "max_turn": 40,
+      "condition": "crisis",
+      "options": [
+        {
+          "id": "repair",
+          "label": "今の気持ちを聞き、もう一度やり直す",
+          "cost": 0,
+          "effects": {
+            "couple": 10,
+            "stress": -8,
+            "trust": 5
+          },
+          "parent": "both",
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": null
+        },
+        {
+          "id": "divorce",
+          "label": "離婚して、この家庭での暮らしを終える",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": "divorce"
+        },
+        {
+          "id": "separation",
+          "label": "家族それぞれが家を離れる（一家離散）",
+          "cost": 0,
+          "effects": {},
+          "parent": null,
+          "skill": null,
+          "gain": 0,
+          "domain": null,
+          "contract": null,
+          "end": "separation"
+        }
+      ]
+    }
+  ],
+  "income": 260,
+  "fatigue_per_turn": 4,
+  "stress_per_turn": 2,
+  "couple_per_turn": -2,
+  "trust_per_turn": -1,
+  "initial_grandparents": {
+    "grandfather": {
+      "health": 8,
+      "relation": 6,
+      "funds": 50,
+      "network": true
+    },
+    "grandmother": {
+      "health": 8,
+      "relation": 6,
+      "funds": 50,
+      "network": true
+    }
+  }
+}

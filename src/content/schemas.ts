@@ -1,3 +1,4 @@
+import { lifeGameSchema, lifeDecisionsSchema } from "./life_schema";
 import { automaticEventsSchema } from "./automatic_event_schema";
 import * as v from "valibot";
 import { decisionGameSchema } from "./decision_schema";
@@ -188,6 +189,7 @@ const odditiesSchema = v.pipe(
 );
 // 構造と値域のスキーマ。参照先の実在等はvalidation.tsで合成後に検査する。
 export const contentSchema = v.strictObject({
+  life_game: v.optional(lifeGameSchema),
   automatic_events: v.optional(automaticEventsSchema),
   decision_game: v.optional(decisionGameSchema),
   schema_version: v.literal(1),
@@ -228,6 +230,8 @@ export const contentSchema = v.strictObject({
   text: dictionary(v.string(), false),
 });
 export const contentPackSchema = v.strictObject({
+  automatic_events: v.optional(automaticEventsSchema),
+  decisions: v.optional(lifeDecisionsSchema),
   schema_version: v.literal(1),
   id: contentIdSchema,
   version: v.pipe(v.string(), v.minLength(1)),

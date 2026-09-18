@@ -21,7 +21,7 @@ import {
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
 import type { State } from "../src/engine/types";
 import sample from "../config/examples/community.json";
-import base from "../config/base.json";
+import base from "./fixtures/legacy_content";
 import { parentFields } from "../src/engine/stat_scale";
 const start = (seed = 0) => startDecisions("home-01", seed, new Catalog().resolve(), "rules-5");
 function answerSpecial(state: State, suffix = ":together") {

@@ -7,7 +7,7 @@ import { clone } from "../src/engine/shared";
 import type { State } from "../src/engine/types";
 import { Service, replayRun, exportRun, importRun } from "../src/service/service";
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
-import base from "../config/base.json";
+import base from "./fixtures/legacy_content";
 
 const start = (seed = 0) => startDecisions("home-01", seed, new Catalog(base).resolve());
 function choose(state: State, index: number, suffix?: string) {

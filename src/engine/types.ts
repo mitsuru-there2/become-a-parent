@@ -165,7 +165,15 @@ export interface GameOver {
   text: string;
   turn: number;
 }
+export interface LifeState {
+  policies: Record<string, string>;
+  history: Record<string, { first_turn: number; last_turn: number; count: number }>;
+  visible: string[];
+  fresh: string[];
+  notices: string[];
+}
 export interface State extends NumericState {
+  life?: LifeState;
   decisions?: DecisionTurn;
   game_over?: GameOver;
   settings?: Settings;
@@ -194,6 +202,20 @@ export interface State extends NumericState {
   result: Result | null;
 }
 export interface PublicState {
+  life?: {
+    menus: { id: string; label: string; description: string }[];
+    policies: {
+      id: string;
+      title: string;
+      label: string;
+      cost: number;
+      planned_label: string;
+      planned_cost: number;
+    }[];
+    max_actions: number;
+    action_count: number;
+    notices: string[];
+  };
   decision_turn?: {
     step: "special" | "decisions" | "ended";
     skills: DecisionTurn["skills"];
@@ -242,6 +264,13 @@ export interface PublicState {
   forecast: Forecast | null;
 }
 export interface Choice {
+  menu?: string;
+  decision_kind?: "policy" | "action";
+  reason?: string;
+  fresh?: boolean;
+  current_option?: string;
+  selected_option?: string;
+  expires_age_months?: number;
   kind?: "special" | "decision";
   visual: Visual | null;
   instance_id: string;

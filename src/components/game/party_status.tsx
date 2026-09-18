@@ -24,7 +24,7 @@ function StatusMeter({
 }
 
 export function PartyStatus({ state }: { state: PublicState }) {
-  const max = ["rules-4", "rules-5", "rules-6", "rules-7"].includes(state.versions.rules)
+  const max = ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8"].includes(state.versions.rules)
     ? 10
     : 100;
   const turn = state.decision_turn;

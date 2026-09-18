@@ -1,3 +1,4 @@
+import { validateLifeState } from "../engine/life_save";
 import * as v from "valibot";
 import { grandparentSchema } from "../content/decision_schema";
 import { syncGrandparents } from "../engine/grandparents";
@@ -104,13 +105,14 @@ export function validateRun(run: Run) {
     (version?.save === "save-5" && version.rules === "rules-4" && version.data === "data-4") ||
     (version?.save === "save-6" && version.rules === "rules-5" && version.data === "data-5") ||
     (version?.save === "save-7" && version.rules === "rules-6" && version.data === "data-6") ||
-    (version?.save === "save-8" && version.rules === "rules-7" && version.data === "data-7");
+    (version?.save === "save-8" && version.rules === "rules-7" && version.data === "data-7") ||
+    (version?.save === "save-9" && version.rules === "rules-8" && version.data === "data-8");
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
     if (current || decisions) {
       validateSettings(run.state.settings);
-      if (version.rules === "rules-7") {
+      if (["rules-7", "rules-8"].includes(version.rules)) {
         const group = run.state.grandparents;
         if (
           !run.state.settings!.content.decision_game?.initial_grandparents ||
@@ -123,10 +125,16 @@ export function validateRun(run: Run) {
         syncGrandparents(expected);
         if (canonical(expected) !== canonical(group)) throw new Error("祖父母の集計が一致しません");
       }
+      if (
+        version.rules === "rules-8" &&
+        (!run.state.life || !run.state.settings!.content.life_game)
+      )
+        throw new Error("生活メニューの状態がありません");
+      if (version.rules === "rules-8") validateLifeState(run.state);
       if (decisions && (!run.state.settings!.content.decision_game || !run.state.decisions))
         throw new Error("選択ゲームの状態がありません");
       if (
-        ["rules-6", "rules-7"].includes(version.rules) &&
+        ["rules-6", "rules-7", "rules-8"].includes(version.rules) &&
         !run.state.settings!.content.automatic_events
       )
         throw new Error("自動イベント設定がありません");
@@ -334,6 +342,10 @@ export class Service {
               break;
             }
             case "reset-plan":
+              if (state.life) {
+                state.decisions!.selections = {};
+                break;
+              }
               if (state.decisions)
                 throw new Failure("UNKNOWN_ACTION", "今期の3件の判断を選び直してください。");
               state.plan = clone(state.previous_plan);
@@ -345,9 +357,11 @@ export class Service {
                   projection.reasons.some((reason) => reason.code === "ANSWER_REQUIRED")
                     ? "ANSWER_REQUIRED"
                     : "RESOURCE_LIMIT",
-                  state.decisions
-                    ? "必須の回答と、半年の支出を確認してください。"
-                    : "出来事への対応と、方針の時間・お金の配分を確認してください。",
+                  state.life
+                    ? "今期の予定と、半年の支出を確認してください。"
+                    : state.decisions
+                      ? "必須の回答と、半年の支出を確認してください。"
+                      : "出来事への対応と、方針の時間・お金の配分を確認してください。",
                   projection.reasons.map((reason) => ({
                     path: reason.path,
                     reason: reason.message,
@@ -392,6 +406,7 @@ export class Service {
               publicView(state).choices,
               publicView(state).public.extra_actions,
               !!state.decisions,
+              !!state.life,
             ),
           };
           break;
@@ -472,6 +487,7 @@ export function importRun(text: string): Run {
         "parent-save-6",
         "parent-save-7",
         "parent-save-8",
+        "parent-save-9",
       ].includes(parsed.format)
     )
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");

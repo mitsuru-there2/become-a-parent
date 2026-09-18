@@ -1,3 +1,4 @@
+import { meetsLifeRequirement } from "./life_requirements";
 import { applyGrandparentDelta, syncGrandparents } from "./grandparents";
 import type { AutomaticEventResult, State, History } from "./types";
 import type { AutomaticEvent } from "../content/automatic_event_schema";
@@ -7,7 +8,7 @@ import { matches } from "./events";
 import { draw, observeChild } from "./simulation";
 
 export const automaticEventsEnabled = (state: State) =>
-  ["rules-6", "rules-7"].includes(state.versions.rules);
+  ["rules-6", "rules-7", "rules-8"].includes(state.versions.rules);
 export function applyAutomaticEvents(state: State): History | null {
   const turn = state.n + 1;
   const age = state.n * 6;
@@ -20,7 +21,8 @@ export function applyAutomaticEvents(state: State): History | null {
         age < event.min_age_months ||
         age > event.max_age_months ||
         (seen !== undefined && (event.once || turn - seen < event.cooldown)) ||
-        !event.conditions.every((c) => matches(state, c))
+        !event.conditions.every((c) => matches(state, c)) ||
+        !meetsLifeRequirement(state, event.requires)
       )
         return false;
       const probability = Math.max(
@@ -117,7 +119,7 @@ function formatChange(label: string, previous: number, current: number, money = 
   const unit = money ? "万円" : "";
   return `${label} ${previous}${unit}→${current}${unit}（${current > previous ? "+" : ""}${current - previous}${unit}）`;
 }
-function applyStat(state: State, effect: AutomaticEvent["effects"][number]) {
+export function applyStat(state: State, effect: AutomaticEvent["effects"][number]) {
   if (state.grandparents.members && /^grandparents\.(health|relation|funds)$/.test(effect.path)) {
     const field = effect.path.split(".")[1] as "health" | "relation" | "funds";
     const previous = state.grandparents[field];
@@ -140,7 +142,7 @@ function applyStat(state: State, effect: AutomaticEvent["effects"][number]) {
   syncGrandparents(state.grandparents);
   return { previous, current };
 }
-function statLabel(path: string) {
+export function statLabel(path: string) {
   const labels: Record<string, string> = {
     parents: "",
     decisions: "",

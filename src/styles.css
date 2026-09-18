@@ -1968,3 +1968,210 @@ meter::-moz-meter-bar {
     max-height: calc(100% - 12px);
   }
 }
+
+/* 生活メニューは分類と進行操作を固定し、内容だけをスクロールする。 */
+.life-shell .rpg-stage {
+  flex-direction: column;
+  gap: 0;
+}
+.life-shell .rpg-scenery {
+  flex: 0 0 70px;
+  min-height: 0;
+}
+.life-shell .rpg-window {
+  width: min(100%, 1100px);
+  max-height: none;
+  flex: 1;
+}
+.life-shell .rpg-window-body {
+  flex: 1;
+}
+.life-content h2 {
+  font-size: 20px;
+  margin: 18px 0 8px;
+}
+.life-content h3 {
+  font-size: 14px;
+  margin: 0 0 7px;
+}
+.life-lead,
+.life-decision > p {
+  color: #bebdb1;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.life-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #45453e;
+}
+.life-tabs button {
+  border: 1px solid #45453e;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.life-tabs button[aria-pressed="true"] {
+  color: #171713;
+  background: #dbdacd;
+  border-color: #dbdacd;
+}
+.life-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+  margin-top: 16px;
+}
+.life-summary button,
+.life-opportunities button {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 5px;
+  padding: 13px 0;
+  border-bottom: 1px solid #45453e;
+}
+.life-summary strong,
+.life-opportunities strong {
+  font-size: 13px;
+}
+.life-summary span,
+.life-opportunities span {
+  font-size: 11px;
+  color: #bebdb1;
+  line-height: 1.7;
+}
+.life-opportunities,
+.life-observations,
+.life-reflection,
+.life-scheduled {
+  margin-top: 22px;
+  font-size: 12px;
+}
+.life-opportunities button {
+  width: 100%;
+}
+.life-observations p,
+.life-reflection p {
+  margin: 6px 0;
+  color: #bebdb1;
+}
+.life-decision {
+  padding: 20px 0;
+  border-bottom: 1px solid #45453e;
+}
+.life-decision header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: baseline;
+}
+.life-decision header span {
+  font-size: 10px;
+  color: #bebdb1;
+}
+.life-cancel,
+.life-scheduled > button {
+  margin-top: 12px;
+  text-decoration: underline;
+  font-size: 12px;
+}
+.life-advance {
+  flex-shrink: 0;
+  padding: 12px 24px;
+  border-top: 1px solid #65655b;
+  background: #20201d;
+}
+.life-budget {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+.life-advance-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+.life-advance-actions > button:first-child {
+  font-size: 11px;
+  text-decoration: underline;
+  flex-shrink: 0;
+}
+.life-advance .warning {
+  font-size: 11px;
+  margin: 4px 0;
+}
+.life-advance .rpg-action {
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+@media (max-width: 640px) {
+  .life-shell .rpg-scenery {
+    flex-basis: 46px;
+  }
+  .life-shell .rpg-caption p {
+    display: none;
+  }
+  .life-content h2 {
+    font-size: 17px;
+  }
+  .life-tabs {
+    gap: 4px;
+  }
+  .life-tabs button {
+    padding: 8px;
+    font-size: 11px;
+  }
+  .life-summary {
+    grid-template-columns: 1fr;
+  }
+  .life-advance {
+    padding: 10px 12px;
+  }
+  .life-budget {
+    flex-direction: column;
+    gap: 3px;
+    font-size: 11px;
+  }
+  .life-advance .rpg-action {
+    width: auto;
+    font-size: 11px;
+    padding: 10px;
+  }
+}
+@media (max-height: 600px) {
+  .life-shell .rpg-scenery {
+    flex-basis: 28px;
+  }
+  .life-shell .rpg-party {
+    display: none;
+  }
+  .life-shell .rpg-main {
+    grid-template-rows: 52px minmax(0, 1fr);
+  }
+}
+.life-tabs {
+  position: sticky;
+  top: -18px;
+  z-index: 1;
+  background: #161615;
+  padding-top: 8px;
+}
+.life-shell .choices button[aria-pressed="true"],
+.life-shell .choices button[aria-pressed="true"]:hover:not(:disabled) {
+  color: #171713;
+  background: #e6e6dc;
+}
+.life-shell .choices button[aria-pressed="true"] .choice-number {
+  color: #505047;
+}
+@media (max-width: 640px) {
+  .life-tabs {
+    top: -12px;
+  }
+}

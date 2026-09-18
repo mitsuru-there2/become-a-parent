@@ -98,6 +98,7 @@ export function actions(
   choices: Choice[],
   extraActions: PublicState["extra_actions"] = [],
   decisions = false,
+  life = false,
 ) {
   const paths = ["A", "B"]
     .flatMap((parentId) =>
@@ -105,12 +106,12 @@ export function actions(
     )
     .concat(["activity.domain", "activity.level", "activity.sponsor", "style", "help"]);
   return {
-    commands: COMMANDS.filter((id) => !decisions || (id !== "plan" && id !== "reset-plan")).map(
-      (id) => ({
-        id,
-        required_args: requiredArguments(id),
-      }),
-    ),
+    commands: COMMANDS.filter(
+      (id) => !decisions || (id !== "plan" && (life || id !== "reset-plan")),
+    ).map((id) => ({
+      id,
+      required_args: requiredArguments(id),
+    })),
     plan_fields: (decisions ? [] : paths).map((path) => {
       const key = path.split(".").at(-1)!;
       const enums = ENUMS as Record<string, readonly string[]>;

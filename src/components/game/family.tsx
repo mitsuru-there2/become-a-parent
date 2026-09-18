@@ -28,7 +28,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
                 <meter
                   min="0"
                   max={
-                    ["rules-4", "rules-5", "rules-6", "rules-7"].includes(
+                    ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8"].includes(
                       publicState.versions.rules,
                     )
                       ? 10
@@ -53,7 +53,9 @@ export function Family({ publicState }: { publicState: PublicState }) {
               <meter
                 min="0"
                 max={
-                  ["rules-4", "rules-5", "rules-6", "rules-7"].includes(publicState.versions.rules)
+                  ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8"].includes(
+                    publicState.versions.rules,
+                  )
                     ? 10
                     : 100
                 }

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "community-life",
+  "version": "1.0.0",
+  "label": "地域の創作活動（開発用サンプル）",
+  "requires_data": "data-2",
+  "dependencies": [],
+  "scenarios": [],
+  "events": {},
+  "actions": {},
+  "visuals": {}
+}

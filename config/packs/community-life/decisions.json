@@ -1,0 +1,43 @@
+[
+  {
+    "id": "community-life-workshop",
+    "menu": "afterschool",
+    "title": "地域の工作会",
+    "reason": "工作教室を体験したことをきっかけに、地域でも作れます。",
+    "kind": "action",
+    "min_age_months": 48,
+    "max_age_months": 215,
+    "default_option": null,
+    "once": false,
+    "cooldown": 2,
+    "options": [
+      {
+        "id": "join",
+        "label": "工作会に参加する",
+        "description": "母と一緒に創作を楽しみます。",
+        "cost": 6,
+        "income": 0,
+        "setup_cost": 0,
+        "effects": [
+          {
+            "path": "child.ability.craft",
+            "delta": 3
+          },
+          {
+            "path": "child.trust.B",
+            "delta": 2
+          }
+        ]
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "base-craft-trial",
+          "option": "try",
+          "after": 0
+        }
+      ]
+    }
+  }
+]

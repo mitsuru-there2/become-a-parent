@@ -1,3 +1,9 @@
+import lifeSchema from "../config/schemas/decisions.schema.json";
+import decisionPackSchema from "../config/schemas/decision-pack.schema.json";
+import legacyDecisionSchema from "../config/schemas/legacy-decisions.schema.json";
+import life from "../config/decisions.json";
+import legacyDecisions from "../config/legacy-decisions.json";
+import packDecisions from "../config/packs/community-life/decisions.json";
 import eventsJsonSchema from "../config/schemas/events.schema.json";
 import events from "../config/events.json";
 import { describe, it, expect } from "vite-plus/test";
@@ -13,6 +19,9 @@ import { clone } from "../src/engine/shared";
 import { generateJsonSchemas } from "../scripts/lib/json-schemas";
 
 const generated = {
+  "decisions.schema.json": lifeSchema,
+  "decision-pack.schema.json": decisionPackSchema,
+  "legacy-decisions.schema.json": legacyDecisionSchema,
   "events.schema.json": eventsJsonSchema,
   "content.schema.json": contentJsonSchema,
   "pack.schema.json": packJsonSchema,
@@ -40,6 +49,9 @@ describe("JSONファイルの補完と検査", () => {
     const language = service();
     for (const [path, value] of [
       ["config/base.json", base],
+      ["config/decisions.json", life],
+      ["config/legacy-decisions.json", legacyDecisions],
+      ["config/packs/community-life/decisions.json", packDecisions],
       ["config/events.json", events],
       ["config/legacy-data-1.json", legacy],
       ["config/examples/community.json", sample],

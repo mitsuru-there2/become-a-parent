@@ -1,53 +1,11 @@
 import * as v from "valibot";
 import { integer, contentIdSchema } from "../validation/primitives";
 
-// 明示した数値だけを読み書きし、任意の状態パスは受け付けない。
-export const eventStatPaths = [
-  "cash",
-  "couple",
-  "child.stress",
-  "child.autonomy",
-  "child.trust.A",
-  "child.trust.B",
-  "child.interest.study",
-  "child.interest.craft",
-  "child.ability.study",
-  "child.ability.craft",
-  "parents.A.stress",
-  "parents.A.health",
-  "parents.A.fulfillment",
-  "parents.A.social",
-  "parents.A.regret",
-  "parents.B.stress",
-  "parents.B.health",
-  "parents.B.fulfillment",
-  "parents.B.social",
-  "parents.B.regret",
-  "decisions.fatigue.A",
-  "decisions.fatigue.B",
-  "decisions.skills.A.dialogue",
-  "decisions.skills.A.planning",
-  "decisions.skills.A.learning",
-  "decisions.skills.B.dialogue",
-  "decisions.skills.B.planning",
-  "decisions.skills.B.learning",
-  "grandparents.members.grandfather.health",
-  "grandparents.members.grandfather.relation",
-  "grandparents.members.grandfather.funds",
-  "grandparents.members.grandmother.health",
-  "grandparents.members.grandmother.relation",
-  "grandparents.members.grandmother.funds",
-  "grandparents.health",
-  "grandparents.relation",
-  "grandparents.funds",
-] as const;
-export const eventConditionSchema = v.strictObject({
-  path: v.picklist([...eventStatPaths, "parents.A.age_months", "parents.B.age_months"]),
-  op: v.picklist(["eq", "lt", "gte"]),
-  value: integer(-99999, 99999),
-});
+import { eventConditionSchema, eventStatPaths } from "./stat_schema";
+import { lifeRequirementSchema } from "./life_requirements_schema";
 export const automaticEventSchema = v.pipe(
   v.strictObject({
+    requires: v.optional(lifeRequirementSchema),
     id: contentIdSchema,
     text: v.pipe(v.string(), v.minLength(1)),
     kind: v.picklist(["good", "bad"]),

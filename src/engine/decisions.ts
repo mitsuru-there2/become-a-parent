@@ -1,3 +1,13 @@
+import {
+  initializeLife,
+  normalizeLife,
+  openLife,
+  lifeChoices,
+  lifeForecast,
+  lifeView,
+  chooseLife,
+  applyLife,
+} from "./life";
 import { GRANDPARENTS, grandparentNames, syncGrandparents } from "./grandparents";
 import { applyAutomaticEvents, automaticEventsEnabled } from "./automatic_events";
 import type { DecisionOption, DecisionTheme } from "../content/decision_schema";
@@ -23,7 +33,7 @@ import {
 const names = { A: "父", B: "母", both: "父母" };
 const skillNames = { dialogue: "対話", planning: "段取り", learning: "学びの支援" };
 const dynamicMoney = (state: State) =>
-  ["rules-5", "rules-6", "rules-7"].includes(state.versions.rules);
+  ["rules-5", "rules-6", "rules-7", "rules-8"].includes(state.versions.rules);
 const choiceIncome = (state: State, option: DecisionOption) =>
   dynamicMoney(state) ? (option.income ?? 0) : 0;
 const moneyChange = (before: number, after: number) =>
@@ -36,28 +46,36 @@ export function startDecisions(
   scenario: string,
   seed: number,
   settings: Settings,
-  rules = settings.content.automatic_events
-    ? settings.content.decision_game?.initial_grandparents
-      ? "rules-7"
-      : "rules-6"
-    : "rules-5",
+  rules = settings.content.life_game
+    ? "rules-8"
+    : settings.content.automatic_events
+      ? settings.content.decision_game?.initial_grandparents
+        ? "rules-7"
+        : "rules-6"
+      : "rules-5",
 ): State {
   const state = start(scenario, seed, settings);
   state.versions =
-    rules === "rules-3"
-      ? { rules, data: "data-3", save: "save-4" }
-      : rules === "rules-4"
-        ? { rules, data: "data-4", save: "save-5" }
-        : rules === "rules-5"
-          ? { rules, data: "data-5", save: "save-6" }
-          : rules === "rules-6"
-            ? { rules, data: "data-6", save: "save-7" }
-            : { rules, data: "data-7", save: "save-8" };
+    rules === "rules-8"
+      ? { rules, data: "data-8", save: "save-9" }
+      : rules === "rules-3"
+        ? { rules, data: "data-3", save: "save-4" }
+        : rules === "rules-4"
+          ? { rules, data: "data-4", save: "save-5" }
+          : rules === "rules-5"
+            ? { rules, data: "data-5", save: "save-6" }
+            : rules === "rules-6"
+              ? { rules, data: "data-6", save: "save-7" }
+              : { rules, data: "data-7", save: "save-8" };
   if (tenPoint(state)) scaleParents(state, 0.1);
   if (automaticEventsEnabled(state))
     state.grandparents.funds = game(state).initial_grandparent_funds ?? 40;
-  if (rules === "rules-7") {
-    state.grandparents.members = clone(game(state).initial_grandparents!);
+  if (["rules-7", "rules-8"].includes(rules)) {
+    state.grandparents.members = clone(
+      rules === "rules-8"
+        ? settings.content.life_game!.initial_grandparents
+        : game(state).initial_grandparents!,
+    );
     syncGrandparents(state.grandparents);
   }
   state.draws = [];
@@ -86,6 +104,7 @@ export function startDecisions(
       state.decisions.fatigue[p] = 3;
     }
   }
+  if (rules === "rules-8") initializeLife(state);
   openDecisionTurn(state);
   return state;
 }
@@ -209,9 +228,14 @@ export function openDecisionTurn(state: State) {
     d.opened_turn = state.n + 1;
     d.special_answer = "automatic";
     d.selections = {};
+    if (state.life) {
+      state.life.notices = [];
+      normalizeLife(state);
+    }
     d.event_history = applyAutomaticEvents(state);
     state.observations = observeChild(state);
-    openThemes(state);
+    if (state.life) openLife(state);
+    else openThemes(state);
     return;
   }
   d.special = pick(state, [...game(state).events, ...packEvents(state)], "special");
@@ -256,6 +280,7 @@ function choiceDescription(state: State, option: DecisionOption) {
   );
 }
 export function decisionChoices(state: State): Choice[] {
+  if (state.life) return lifeChoices(state);
   if (state.phase !== "childhood") return [];
   const d = state.decisions!;
   const special = !d.special_answer;
@@ -289,6 +314,7 @@ export function decisionChoices(state: State): Choice[] {
   }));
 }
 export function decisionForecast(state: State): Forecast {
+  if (state.life) return lifeForecast(state);
   const d = state.decisions!;
   const reasons: Forecast["reasons"] = [];
   if (!d.special_answer)
@@ -360,6 +386,7 @@ export function decisionView(state: State) {
     event_results: clone(d.event_history?.event_results ?? []),
     previous_result: clone(state.history.findLast((h) => h.kind === "turn") ?? null),
   };
+  if (state.life) base.public.life = lifeView(state);
   base.public.family_status = familyStatus(state);
   if (state.game_over) base.public.game_over = clone(state.game_over);
   return { public: base.public, choices: decisionChoices(state) };
@@ -565,7 +592,10 @@ function endGame(state: State, reason: "divorce" | "separation") {
     reason,
     title: reason === "divorce" ? "離婚" : "一家離散",
     turn:
-      state.n + (state.decisions!.special_answer && state.decisions!.themes.length === 0 ? 1 : 0),
+      state.n +
+      (!state.life && state.decisions!.special_answer && state.decisions!.themes.length === 0
+        ? 1
+        : 0),
     text:
       reason === "divorce"
         ? "父と母は別々の道を歩むことになった。この家庭での物語は、ここで幕を閉じる。"
@@ -574,6 +604,7 @@ function endGame(state: State, reason: "divorce" | "separation") {
   state.history.at(-1)?.text.push(state.game_over.text);
 }
 export function chooseDecision(state: State, eventInstance: string, optionId: string) {
+  if (state.life) return chooseLife(state, eventInstance, optionId);
   const d = state.decisions!;
   const theme = (!d.special_answer ? [d.special] : d.themes).find(
     (t) => instance(state, t) === eventInstance,
@@ -614,7 +645,10 @@ export function chooseDecision(state: State, eventInstance: string, optionId: st
 export function advanceDecisions(state: State) {
   const d = state.decisions!;
   const f = decisionForecast(state);
-  if (!f.can_advance) throw new Error("3件すべての回答と資金を確認してください");
+  if (!f.can_advance)
+    throw new Error(
+      state.life ? "今期の予定と資金を確認してください" : "3件すべての回答と資金を確認してください",
+    );
   const cash = state.cash;
   const previousStress = state.child.stress;
   state.cash = Math.min(99999, f.projected_cash);
@@ -624,30 +658,34 @@ export function advanceDecisions(state: State) {
     config.stress_per_turn = pointDrift(config.stress_per_turn);
     config.couple_per_turn = pointDrift(config.couple_per_turn);
   }
-  for (const p of PEOPLE) {
-    d.fatigue[p] = clampParent(state, d.fatigue[p] + config.fatigue_per_turn);
-    state.parents[p].stress = clampParent(
-      state,
-      state.parents[p].stress +
-        config.stress_per_turn +
-        (parentEquivalent(state, d.fatigue[p]) >= 70 ? (tenPoint(state) ? 1 : 2) : 0),
-    );
-    state.child.trust[p] = clampStat(state.child.trust[p] + config.trust_per_turn);
+  if (!state.life) {
+    for (const p of PEOPLE) {
+      d.fatigue[p] = clampParent(state, d.fatigue[p] + config.fatigue_per_turn);
+      state.parents[p].stress = clampParent(
+        state,
+        state.parents[p].stress +
+          config.stress_per_turn +
+          (parentEquivalent(state, d.fatigue[p]) >= 70 ? (tenPoint(state) ? 1 : 2) : 0),
+      );
+      state.child.trust[p] = clampStat(state.child.trust[p] + config.trust_per_turn);
+    }
+    state.couple = clampParent(state, state.couple + config.couple_per_turn);
   }
-  state.couple = clampParent(state, state.couple + config.couple_per_turn);
   if (state.n >= 12 && state.n < 36)
     for (const domain of ["study", "craft"] as const)
       state.child.ability[domain] = clampStat(state.child.ability[domain] + 1);
   state.plan.extra_action = "none";
   state.last_repair = false;
   const lines: string[] = [];
-  const selections = d.themes.map((theme) => {
-    const option = theme.options.find(
-      (o) => `${theme.id}:${o.id}` === d.selections[instance(state, theme)],
-    )!;
-    lines.push(...applyOption(state, theme, option));
-    return { title: theme.title, label: option.label };
-  });
+  const selections = state.life
+    ? applyLife(state, lines)
+    : d.themes.map((theme) => {
+        const option = theme.options.find(
+          (o) => `${theme.id}:${o.id}` === d.selections[instance(state, theme)],
+        )!;
+        lines.push(...applyOption(state, theme, option));
+        return { title: theme.title, label: option.label };
+      });
   for (const q of state.queue.filter((q) => q.due_turn === state.n + 1)) {
     applyDecisionEffect(
       state,
