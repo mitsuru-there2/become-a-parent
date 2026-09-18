@@ -95,19 +95,7 @@
             "ability": "learning",
             "target": "child.ability.study",
             "gain": 1
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          }
         },
         {
           "id": "independent",
@@ -120,18 +108,6 @@
             {
               "path": "child.autonomy",
               "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
             }
           ]
         }
@@ -161,18 +137,6 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
           ]
         }
       ]
@@ -181,9 +145,9 @@
       "id": "base-school",
       "menu": "education",
       "title": "通園先",
-      "reason": "4歳から保育所へ。見学した園を選ぶこともできます。",
+      "reason": "見学した園への通園を検討できます。",
       "kind": "policy",
-      "min_age_months": 48,
+      "min_age_months": 24,
       "max_age_months": 71,
       "default_option": "standard",
       "once": false,
@@ -191,8 +155,8 @@
       "options": [
         {
           "id": "standard",
-          "label": "保育所に通う",
-          "description": "4歳になると自動で入所します。費用は基本生活費に含まれ、6歳で卒園します。",
+          "label": "標準の通園・家庭での生活",
+          "description": "年齢に合った標準の暮らしです。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
@@ -223,19 +187,7 @@
                 "after": 0
               }
             ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          }
         }
       ]
     },
@@ -266,18 +218,6 @@
             {
               "path": "child.trust.B",
               "delta": 3
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
             }
           ]
         }
@@ -319,18 +259,6 @@
               "path": "child.trust.A",
               "delta": 3
             }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
           ]
         }
       ]
@@ -362,18 +290,6 @@
             {
               "path": "child.stress",
               "delta": -3
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
             }
           ]
         }
@@ -425,18 +341,6 @@
               "path": "decisions.fatigue.B",
               "delta": -1
             }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
           ]
         },
         {
@@ -468,19 +372,7 @@
               "delta": 1
             }
           ],
-          "repair": true,
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "repair": true
         }
       ]
     },
@@ -511,18 +403,6 @@
             {
               "path": "decisions.fatigue.B",
               "delta": -2
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
             }
           ]
         }
@@ -582,19 +462,7 @@
                 "after": 0
               }
             ]
-          },
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          }
         }
       ],
       "requires": {
@@ -647,18 +515,6 @@
               "path": "parents.B.fulfillment",
               "delta": 1
             }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
           ]
         }
       ]
@@ -667,7 +523,7 @@
       "id": "base-grand-contact",
       "menu": "grandparents",
       "title": "実家との付き合い",
-      "reason": "実家・実家それぞれとの関係を大切にします。",
+      "reason": "祖父・祖母それぞれとの関係を大切にします。",
       "kind": "policy",
       "min_age_months": 0,
       "max_age_months": 239,
@@ -687,7 +543,7 @@
         {
           "id": "frequent",
           "label": "こまめに顔を見せる",
-          "description": "父の手間と交通費を使い、実家との関係を深めます。",
+          "description": "父の手間と交通費を使い、祖父母との関係を深めます。",
           "cost": 6,
           "income": 0,
           "setup_cost": 0,
@@ -697,20 +553,12 @@
               "delta": 1
             },
             {
-              "path": "grandparents.relation",
+              "path": "grandparents.members.grandfather.relation",
               "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
             },
             {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
+              "path": "grandparents.members.grandmother.relation",
+              "delta": 1
             }
           ]
         }
@@ -720,7 +568,7 @@
       "id": "base-grand-consult",
       "menu": "grandparents",
       "title": "預かりを相談する",
-      "reason": "実家に無理のない支援を相談できます。",
+      "reason": "祖父母に無理のない支援を相談できます。",
       "kind": "action",
       "min_age_months": 0,
       "max_age_months": 143,
@@ -730,27 +578,15 @@
       "options": [
         {
           "id": "talk",
-          "label": "実家に相談する",
-          "description": "次期から、実家の体力と関係に余裕があれば預かりを頼めます。",
+          "label": "祖父に相談する",
+          "description": "次期から、祖父の体力と関係に余裕があれば預かりを頼めます。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
           "effects": [
             {
-              "path": "grandparents.relation",
+              "path": "grandparents.members.grandfather.relation",
               "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
             }
           ]
         }
@@ -759,8 +595,8 @@
     {
       "id": "base-grand-care",
       "menu": "grandparents",
-      "title": "実家の預かり支援",
-      "reason": "以前に実家へ相談したため、支援を検討できます。",
+      "title": "祖父の預かり支援",
+      "reason": "以前に祖父へ相談したため、支援を検討できます。",
       "kind": "policy",
       "min_age_months": 0,
       "max_age_months": 143,
@@ -771,7 +607,7 @@
         {
           "id": "standard",
           "label": "預かりは頼まない",
-          "description": "実家の休息を優先します。",
+          "description": "祖父の休息を優先します。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
@@ -780,7 +616,7 @@
         {
           "id": "supported",
           "label": "定期的に預かってもらう",
-          "description": "母の負担は軽くなりますが、実家の体力を使います。",
+          "description": "母の負担は軽くなりますが、祖父の体力を使います。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
@@ -790,7 +626,7 @@
               "delta": -2
             },
             {
-              "path": "grandparents.health",
+              "path": "grandparents.members.grandfather.health",
               "delta": -1
             }
           ],
@@ -804,12 +640,12 @@
             ],
             "stats": [
               {
-                "path": "grandparents.health",
+                "path": "grandparents.members.grandfather.health",
                 "op": "gte",
                 "value": 4
               },
               {
-                "path": "grandparents.relation",
+                "path": "grandparents.members.grandfather.relation",
                 "op": "gte",
                 "value": 4
               }
@@ -818,29 +654,17 @@
           "maintains": {
             "stats": [
               {
-                "path": "grandparents.health",
+                "path": "grandparents.members.grandfather.health",
                 "op": "gte",
                 "value": 4
               },
               {
-                "path": "grandparents.relation",
+                "path": "grandparents.members.grandfather.relation",
                 "op": "gte",
                 "value": 4
               }
             ]
-          },
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          }
         }
       ],
       "requires": {
@@ -856,7 +680,7 @@
     {
       "id": "base-grand-visit",
       "menu": "grandparents",
-      "title": "実家を訪ねる",
+      "title": "祖父母を訪ねる",
       "reason": "交流やお見舞いの時間を作れます。",
       "kind": "action",
       "min_age_months": 0,
@@ -868,30 +692,26 @@
         {
           "id": "visit",
           "label": "会いに行く",
-          "description": "実家との関係を深め、休息を手伝います。",
+          "description": "祖父母との関係を深め、休息を手伝います。",
           "cost": 8,
           "income": 0,
           "setup_cost": 0,
           "effects": [
             {
-              "path": "grandparents.health",
+              "path": "grandparents.members.grandfather.health",
               "delta": 1
             },
             {
-              "path": "grandparents.relation",
+              "path": "grandparents.members.grandmother.health",
               "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
             },
             {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
+              "path": "grandparents.members.grandfather.relation",
+              "delta": 1
+            },
+            {
+              "path": "grandparents.members.grandmother.relation",
+              "delta": 1
             }
           ]
         }
@@ -934,18 +754,6 @@
               "path": "child.interest.craft",
               "delta": 1
             }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
           ]
         },
         {
@@ -963,18 +771,6 @@
             {
               "path": "child.stress",
               "delta": -1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
             }
           ]
         }
@@ -1011,18 +807,6 @@
             {
               "path": "decisions.fatigue.A",
               "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
             }
           ]
         }
@@ -1080,19 +864,7 @@
             "ability": "learning",
             "target": "child.ability.craft",
             "gain": 1
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          }
         },
         {
           "id": "paused",
@@ -1157,19 +929,7 @@
             "ability": "dialogue",
             "target": "child.trust.B",
             "gain": 2
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          }
         }
       ],
       "requires": {
@@ -1215,18 +975,6 @@
             {
               "path": "child.ability.study",
               "delta": 2
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
             }
           ]
         }
@@ -1282,19 +1030,6 @@
               "path": "child.trust.A",
               "delta": 1
             }
-          ],
-          "income_reduction": 30,
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
           ]
         },
         {
@@ -1340,19 +1075,7 @@
                 "option": "supported"
               }
             ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          }
         }
       ]
     },
@@ -1379,18 +1102,6 @@
             {
               "path": "couple",
               "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
             }
           ]
         }
@@ -1427,18 +1138,6 @@
             {
               "path": "couple",
               "delta": -1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
             }
           ]
         }
@@ -1485,19 +1184,6 @@
               "path": "child.trust.B",
               "delta": 1
             }
-          ],
-          "income_reduction": 30,
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
           ]
         },
         {
@@ -1543,19 +1229,7 @@
                 "option": "supported"
               }
             ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          }
         }
       ]
     },
@@ -1591,464 +1265,23 @@
               "path": "couple",
               "delta": -1
             }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "tree-primary",
-      "title": "小学校の進路",
-      "menu": "education",
-      "reason": "6歳から公立が既定。見学・年収・成績などの条件を満たすと別の学校を選べます。",
-      "kind": "policy",
-      "min_age_months": 72,
-      "max_age_months": 143,
-      "default_option": "public",
-      "once": false,
-      "cooldown": 1,
-      "options": [
-        {
-          "id": "public",
-          "label": "公立小学校",
-          "description": "選ばなければ6歳から通います。費用は基本生活費に含まれます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
-        {
-          "id": "private",
-          "label": "私立小学校",
-          "description": "学びの機会と期待の重さを引き受けます。12歳で終了。",
-          "cost": 48,
-          "income": 0,
-          "setup_cost": 24,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 2
-            },
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "requires": {
-            "history": [
-              {
-                "decision": "base-school-visit",
-                "option": "visit",
-                "after": 0
-              }
-            ],
-            "annual_income": 600,
-            "stats": [
-              {
-                "path": "child.ability.study",
-                "op": "gte",
-                "value": 20
-              }
-            ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
-        },
-        {
-          "id": "international",
-          "label": "インターナショナルスクール",
-          "description": "広い交流の機会と送迎の負担。12歳で終了。",
-          "cost": 72,
-          "income": 0,
-          "setup_cost": 36,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 1
-            }
-          ],
-          "requires": {
-            "history": [
-              {
-                "decision": "base-school-visit",
-                "option": "visit",
-                "after": 0
-              }
-            ],
-            "annual_income": 640,
-            "stats": [
-              {
-                "path": "decisions.skills.B.dialogue",
-                "op": "gte",
-                "value": 5
-              }
-            ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "tree-exam",
-      "title": "受験の準備",
-      "menu": "education",
-      "reason": "これまでの選択を次の進路につなげます。",
-      "kind": "action",
-      "min_age_months": 120,
-      "max_age_months": 143,
-      "default_option": null,
-      "once": true,
-      "cooldown": 1,
-      "options": [
-        {
-          "id": "prepare",
-          "label": "受験準備を始める",
-          "description": "取得後は良い出来事の成果も、悪い出来事の負担も増えます。",
-          "cost": 24,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 4
-            },
-            {
-              "path": "child.stress",
-              "delta": 4
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
-        }
-      ],
-      "requires": {
-        "history": [
-          {
-            "decision": "base-learning",
-            "option": "together",
-            "after": 0
-          }
-        ],
-        "stats": [
-          {
-            "path": "child.ability.study",
-            "op": "gte",
-            "value": 45
-          },
-          {
-            "path": "decisions.skills.A.learning",
-            "op": "gte",
-            "value": 5
-          }
-        ]
-      }
-    },
-    {
-      "id": "tree-secondary",
-      "title": "中学・高校の進路",
-      "menu": "education",
-      "reason": "受験の準備を踏まえ、次の学び方を選びます。",
-      "kind": "policy",
-      "min_age_months": 144,
-      "max_age_months": 215,
-      "default_option": "public",
-      "once": false,
-      "cooldown": 1,
-      "options": [
-        {
-          "id": "public",
-          "label": "地域の中学・高校",
-          "description": "年齢に合った標準の進路を続けます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
-        {
-          "id": "advanced",
-          "label": "進学コース",
-          "description": "受験準備と成績が必要。成果と競争の負担が大きくなります。",
-          "cost": 48,
-          "income": 0,
-          "setup_cost": 24,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 3
-            },
-            {
-              "path": "child.stress",
-              "delta": 3
-            }
-          ],
-          "requires": {
-            "history": [
-              {
-                "decision": "tree-exam",
-                "option": "prepare",
-                "after": 0
-              }
-            ],
-            "annual_income": 560,
-            "stats": [
-              {
-                "path": "child.ability.study",
-                "op": "gte",
-                "value": 55
-              }
-            ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "tree-university",
-      "title": "大学への挑戦",
-      "menu": "education",
-      "reason": "これまでの選択を次の進路につなげます。",
-      "kind": "action",
-      "min_age_months": 192,
-      "max_age_months": 215,
-      "default_option": null,
-      "once": true,
-      "cooldown": 1,
-      "options": [
-        {
-          "id": "challenge",
-          "label": "専門的な受験に挑む",
-          "description": "高い学力を次の挑戦へ。取得後のイベントへの影響は最も大きくなります。",
-          "cost": 60,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 6
-            },
-            {
-              "path": "child.stress",
-              "delta": 6
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 40
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 40
-            }
-          ]
-        }
-      ],
-      "requires": {
-        "history": [
-          {
-            "decision": "tree-secondary",
-            "option": "advanced",
-            "after": 0
-          }
-        ],
-        "annual_income": 600,
-        "stats": [
-          {
-            "path": "child.ability.study",
-            "op": "gte",
-            "value": 70
-          }
-        ]
-      }
-    },
-    {
-      "id": "tree-career",
-      "title": "責任ある仕事への挑戦",
-      "menu": "work",
-      "reason": "働き方の相談と親の段取り能力を次の仕事につなげます。",
-      "kind": "policy",
-      "min_age_months": 72,
-      "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
-      "cooldown": 1,
-      "options": [
-        {
-          "id": "standard",
-          "label": "今の役割を続ける",
-          "description": "追加の責任を引き受けず、今の収入を維持します。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
-        {
-          "id": "lead",
-          "label": "父が責任者の仕事を引き受ける",
-          "description": "父の年収が160万円増える一方、家族の時間と心身の余裕を使います。",
-          "cost": 0,
-          "income": 80,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.A.stress",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 2
-            },
-            {
-              "path": "couple",
-              "delta": -1
-            }
-          ],
-          "requires": {
-            "history": [
-              {
-                "decision": "base-work-consult",
-                "option": "talk",
-                "after": 0
-              }
-            ],
-            "stats": [
-              {
-                "path": "decisions.skills.A.planning",
-                "op": "gte",
-                "value": 6
-              }
-            ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "責任の重さ",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
-        },
-        {
-          "id": "lead-mother",
-          "label": "母が責任者の仕事を引き受ける",
-          "description": "母の年収が160万円増える一方、家族の時間と心身の余裕を使います。",
-          "cost": 0,
-          "income": 80,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.B.stress",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 2
-            },
-            {
-              "path": "couple",
-              "delta": -1
-            }
-          ],
-          "requires": {
-            "history": [
-              {
-                "decision": "base-work-consult",
-                "option": "talk",
-                "after": 0
-              }
-            ],
-            "stats": [
-              {
-                "path": "decisions.skills.B.planning",
-                "op": "gte",
-                "value": 6
-              }
-            ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "責任の重さ",
-              "kind": "bad",
-              "percent": 30
-            }
           ]
         }
       ]
     }
   ],
-  "action_tree": true,
-  "initial_family_home": {
-    "health": 8,
-    "relation": 6,
-    "funds": 100,
-    "network": true
+  "initial_grandparents": {
+    "grandfather": {
+      "health": 8,
+      "relation": 6,
+      "funds": 50,
+      "network": true
+    },
+    "grandmother": {
+      "health": 8,
+      "relation": 6,
+      "funds": 50,
+      "network": true
+    }
   }
 }

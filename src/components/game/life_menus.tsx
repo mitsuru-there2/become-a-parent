@@ -1,3 +1,4 @@
+import { ActionTree } from "./action_tree";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
@@ -7,6 +8,7 @@ export function LifeMenus({ state, choices }: { state: PublicState; choices: Cho
   const [menu, setMenu] = useState<string | null>(null);
   const busy = useStore($busy);
   const life = state.life!;
+  if (life.action_tree) return <ActionTree state={state} choices={choices} />;
   const selectedMenu = life.menus.find((m) => m.id === menu);
   const scheduled = choices.filter((c) => c.selected_option);
   const opportunities = choices.filter((c) => c.fresh);

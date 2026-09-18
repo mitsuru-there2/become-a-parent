@@ -33,7 +33,7 @@ import {
 const names = { A: "父", B: "母", both: "父母" };
 const skillNames = { dialogue: "対話", planning: "段取り", learning: "学びの支援" };
 const dynamicMoney = (state: State) =>
-  ["rules-5", "rules-6", "rules-7", "rules-8"].includes(state.versions.rules);
+  ["rules-5", "rules-6", "rules-7", "rules-8", "rules-9"].includes(state.versions.rules);
 const choiceIncome = (state: State, option: DecisionOption) =>
   dynamicMoney(state) ? (option.income ?? 0) : 0;
 const moneyChange = (before: number, after: number) =>
@@ -47,7 +47,9 @@ export function startDecisions(
   seed: number,
   settings: Settings,
   rules = settings.content.life_game
-    ? "rules-8"
+    ? settings.content.life_game.action_tree
+      ? "rules-9"
+      : "rules-8"
     : settings.content.automatic_events
       ? settings.content.decision_game?.initial_grandparents
         ? "rules-7"
@@ -56,24 +58,28 @@ export function startDecisions(
 ): State {
   const state = start(scenario, seed, settings);
   state.versions =
-    rules === "rules-8"
-      ? { rules, data: "data-8", save: "save-9" }
-      : rules === "rules-3"
-        ? { rules, data: "data-3", save: "save-4" }
-        : rules === "rules-4"
-          ? { rules, data: "data-4", save: "save-5" }
-          : rules === "rules-5"
-            ? { rules, data: "data-5", save: "save-6" }
-            : rules === "rules-6"
-              ? { rules, data: "data-6", save: "save-7" }
-              : { rules, data: "data-7", save: "save-8" };
+    rules === "rules-9"
+      ? { rules, data: "data-9", save: "save-10" }
+      : rules === "rules-8"
+        ? { rules, data: "data-8", save: "save-9" }
+        : rules === "rules-3"
+          ? { rules, data: "data-3", save: "save-4" }
+          : rules === "rules-4"
+            ? { rules, data: "data-4", save: "save-5" }
+            : rules === "rules-5"
+              ? { rules, data: "data-5", save: "save-6" }
+              : rules === "rules-6"
+                ? { rules, data: "data-6", save: "save-7" }
+                : { rules, data: "data-7", save: "save-8" };
   if (tenPoint(state)) scaleParents(state, 0.1);
   if (automaticEventsEnabled(state))
     state.grandparents.funds = game(state).initial_grandparent_funds ?? 40;
-  if (["rules-7", "rules-8"].includes(rules)) {
+  if (rules === "rules-9") {
+    state.grandparents = clone(settings.content.life_game!.initial_family_home!);
+  } else if (["rules-7", "rules-8"].includes(rules)) {
     state.grandparents.members = clone(
       rules === "rules-8"
-        ? settings.content.life_game!.initial_grandparents
+        ? settings.content.life_game!.initial_grandparents!
         : game(state).initial_grandparents!,
     );
     syncGrandparents(state.grandparents);
@@ -104,7 +110,7 @@ export function startDecisions(
       state.decisions.fatigue[p] = 3;
     }
   }
-  if (rules === "rules-8") initializeLife(state);
+  if (["rules-8", "rules-9"].includes(rules)) initializeLife(state);
   openDecisionTurn(state);
   return state;
 }

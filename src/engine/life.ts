@@ -4,7 +4,8 @@ import type { Choice, Forecast, State, PublicState } from "./types";
 import { clone } from "./shared";
 import { stage } from "./simulation";
 import { applyStat, statLabel } from "./automatic_events";
-import { meetsLifeRequirement } from "./life_requirements";
+import { annualIncome, meetsLifeRequirement } from "./life_requirements";
+import { activeTreeEffects, treeEnabled } from "./tree_effects";
 
 const config = (s: State) => contentFor(s).life_game!;
 const instance = (s: State, id: string) => `t${String(s.n + 1).padStart(2, "0")}:${id}`;
@@ -80,11 +81,24 @@ export function normalizeLife(s: State) {
 }
 export function openLife(s: State) {
   normalizeLife(s);
+  if (treeEnabled(s)) {
+    for (const node of config(s).decisions.filter(
+      (d) => d.kind === "policy" && d.min_age_months === s.n * 6 && d.min_age_months > 0,
+    )) {
+      const label = node.options.find((o) => o.id === node.default_option)!.label;
+      const notice = `${node.title}：変更しなければ「${label}」で進みます。`;
+      if (!s.life!.notices.includes(notice)) s.life!.notices.push(notice);
+    }
+  }
   const visible = config(s)
     .decisions.filter((d) => offered(s, d))
     .flatMap((d) =>
       d.options
-        .filter((o) => o.id === d.default_option || referencesMet(s, o.requires))
+        .filter((o) =>
+          treeEnabled(s)
+            ? selectionReasons(s, d, o).length === 0
+            : o.id === d.default_option || referencesMet(s, o.requires),
+        )
         .map((o) => key(d, o)),
     );
   s.life!.fresh =
@@ -97,7 +111,69 @@ export function openLife(s: State) {
         ];
   s.life!.visible = visible;
 }
+function requirementDetails(s: State, requirement?: LifeRequirement) {
+  const details: { label: string; met: boolean }[] = [];
+  const label = (decision: string, option: string) => {
+    const node = config(s).decisions.find((d) => d.id === decision)!;
+    return `${node.title}「${node.options.find((o) => o.id === option)!.label}」`;
+  };
+  for (const r of requirement?.history ?? [])
+    details.push({
+      label: `${label(r.decision, r.option)}を確定${r.after ? `後${r.after}期経過` : "済み"}`,
+      met: meetsLifeRequirement(s, { history: [r] }),
+    });
+  for (const r of requirement?.policies ?? [])
+    details.push({
+      label: `${label(r.decision, r.option)}を継続中`,
+      met: meetsLifeRequirement(s, { policies: [r] }),
+    });
+  for (const r of requirement?.stats ?? [])
+    details.push({
+      label: `${r.path === "child.ability.study" ? "子どもの成績" : statLabel(r.path, true)} ${r.value}${r.op === "gte" ? "以上" : r.op === "lt" ? "未満" : "と同じ"}`,
+      met: meetsLifeRequirement(s, { stats: [r] }),
+    });
+  if (requirement?.annual_income !== undefined)
+    details.push({
+      label: `年収 ${requirement.annual_income}万円以上（現在${annualIncome(s)}万円）`,
+      met: annualIncome(s) >= requirement.annual_income,
+    });
+  return details;
+}
+function treeConditions(s: State, node: LifeDecision, option: LifeOption) {
+  const fallback = node.kind === "policy" && option.id === node.default_option;
+  const current = node.kind === "policy" && s.life!.policies[node.id] === option.id;
+  const cost = option.cost + (node.kind === "policy" && !current ? option.setup_cost : 0);
+  const details = [
+    {
+      label: `${node.min_age_months / 12}〜${Math.floor(node.max_age_months / 12)}歳`,
+      met: inAge(s, node),
+    },
+  ];
+  if (!fallback)
+    details.push(
+      ...requirementDetails(s, node.requires),
+      ...requirementDetails(s, option.requires),
+      ...requirementDetails(s, option.maintains),
+    );
+  if (
+    node.kind === "action" &&
+    inAge(s, node) &&
+    referencesMet(s, node.requires) &&
+    !offered(s, node)
+  )
+    details.push({
+      label: node.once ? "取得済み（一度だけ）" : `再実行まで${node.cooldown}期の間隔が必要`,
+      met: false,
+    });
+  if (cost && !fallback && !current)
+    details.push({ label: `資金 ${cost}万円以上（現在${s.cash}万円）`, met: s.cash >= cost });
+  return [...new Map(details.map((detail) => [detail.label, detail])).values()];
+}
 function selectionReasons(s: State, node: LifeDecision, option: LifeOption) {
+  if (treeEnabled(s))
+    return treeConditions(s, node, option)
+      .filter((d) => !d.met)
+      .map((d, i) => ({ code: `CONDITION_REQUIRED_${i}`, path: node.id, message: d.label }));
   if (node.kind === "policy" && option.id === node.default_option) return [];
   return offered(s, node) &&
     meetsLifeRequirement(s, node.requires) &&
@@ -182,9 +258,9 @@ export function lifeForecast(s: State): Forecast {
     fallback_plan: clone(s.plan),
   };
 }
-function describe(option: LifeOption, policy: boolean) {
+function describe(option: LifeOption, policy: boolean, familyHome = false) {
   const effects = option.effects.map(
-    (e) => `${statLabel(e.path)} ${e.delta > 0 ? "+" : ""}${e.delta}`,
+    (e) => `${statLabel(e.path, familyHome)} ${e.delta > 0 ? "+" : ""}${e.delta}`,
   );
   if (option.skill)
     effects.push(
@@ -199,9 +275,31 @@ function describe(option: LifeOption, policy: boolean) {
 export function lifeChoices(s: State): Choice[] {
   if (s.phase !== "childhood") return [];
   return config(s)
-    .decisions.filter((d) => offered(s, d))
+    .decisions.filter((d) => treeEnabled(s) || offered(s, d))
     .map((node) => ({
       kind: "decision",
+      ...(treeEnabled(s)
+        ? {
+            tree: {
+              min_age_months: node.min_age_months,
+              default_label: node.options.find((o) => o.id === node.default_option)?.label ?? null,
+              parents: [
+                ...new Map(
+                  [node.requires, ...node.options.flatMap((o) => [o.requires, o.maintains])]
+                    .flatMap((r) => [...(r?.history ?? []), ...(r?.policies ?? [])])
+                    .filter((r) => r.decision !== node.id)
+                    .map((r) => [
+                      r.decision,
+                      {
+                        id: r.decision,
+                        label: config(s).decisions.find((d) => d.id === r.decision)!.title,
+                      },
+                    ]),
+                ).values(),
+              ],
+            },
+          }
+        : {}),
       visual: null,
       instance_id: instance(s, node.id),
       event_id: node.id,
@@ -219,7 +317,9 @@ export function lifeChoices(s: State): Choice[] {
         : {}),
       options: [
         ...node.options
-          .filter((o) => o.id === node.default_option || referencesMet(s, o.requires))
+          .filter(
+            (o) => treeEnabled(s) || o.id === node.default_option || referencesMet(s, o.requires),
+          )
           .map((o) => {
             const reasons = selectionReasons(s, node, o);
             // 組合せの家計超過は編集中に許容し、確定時に一括検査する。取消と安い方針への変更を妨げない。
@@ -230,7 +330,16 @@ export function lifeChoices(s: State): Choice[] {
                 o.cost +
                 (node.kind === "policy" && o.id !== s.life!.policies[node.id] ? o.setup_cost : 0),
               income: o.income,
-              description: describe(o, node.kind === "policy"),
+              description: describe(o, node.kind === "policy", treeEnabled(s)),
+              ...(treeEnabled(s)
+                ? {
+                    acquired: !!s.life!.history[key(node, o)],
+                    requirements: treeConditions(s, node, o).map(
+                      (d) => `${d.met ? "✓" : "未達"} ${d.label}`,
+                    ),
+                    event_modifiers: o.event_modifiers ?? [],
+                  }
+                : {}),
               available: reasons.length === 0,
               reasons,
             };
@@ -250,6 +359,14 @@ export function lifeChoices(s: State): Choice[] {
 export function lifeView(s: State): NonNullable<PublicState["life"]> {
   const resolved = resolvedPolicies(s, true);
   return {
+    ...(treeEnabled(s)
+      ? {
+          action_tree: true,
+          annual_income: annualIncome(s),
+          study_score: s.child.ability.study,
+          active_effects: activeTreeEffects(s),
+        }
+      : {}),
     menus: clone(config(s).menus),
     max_actions: config(s).max_actions,
     action_count: config(s).decisions.filter((d) => d.kind === "action" && plannedOption(s, d))
@@ -283,7 +400,9 @@ function applyEffects(s: State, effects: LifeOption["effects"], lines: string[])
   for (const effect of effects) {
     const { previous, current } = applyStat(s, effect);
     if (previous !== current)
-      lines.push(`${statLabel(effect.path)} ${current > previous ? "+" : ""}${current - previous}`);
+      lines.push(
+        `${statLabel(effect.path, treeEnabled(s))} ${current > previous ? "+" : ""}${current - previous}`,
+      );
   }
 }
 export function applyLife(s: State, lines: string[]) {

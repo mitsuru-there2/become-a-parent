@@ -2175,3 +2175,347 @@ meter::-moz-meter-bar {
     top: -12px;
   }
 }
+
+/* 条件未達でも閲覧できる計画用のアクションツリー。 */
+.tree-shell .rpg-party {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.tree-shell .rpg-caption {
+  position: static;
+  padding: 3px 8px 8px;
+  display: flex;
+  gap: 16px;
+}
+.tree-shell .rpg-caption p {
+  margin: 0;
+}
+.tree-shell .rpg-window {
+  width: min(100%, 1320px);
+}
+.tree-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.tree-intro h2 {
+  margin: 4px 0 16px;
+}
+.tree-eyebrow {
+  color: #c6ac77;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+}
+.tree-intro > p {
+  margin: 0 0 12px;
+  font-size: 11px;
+  line-height: 1.8;
+  text-align: right;
+  color: #bebdb1;
+}
+.action-menu-icons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.action-menu-icons button {
+  border: 1px solid #545348;
+  background: #20211d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 4px;
+  min-width: 0;
+}
+.action-menu-icons button[aria-pressed="true"] {
+  border-color: #d2b779;
+  background: #3a3427;
+  color: #f2d79b;
+  box-shadow: inset 0 -2px #c6ac77;
+}
+.action-menu-icons svg {
+  width: 28px;
+  height: 28px;
+}
+.action-menu-icons strong {
+  font-size: 12px;
+}
+.action-menu-icons small {
+  color: #acae9e;
+  font-size: 9px;
+}
+.tree-toolbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 22px;
+  gap: 12px;
+}
+.tree-toolbar button {
+  font-size: 11px;
+  color: #dfc68b;
+  text-decoration: underline;
+}
+.tree-legend {
+  font-size: 10px;
+  color: #c0c0b3;
+  margin: 4px 0 10px;
+  line-height: 1.8;
+}
+.tree-legend span {
+  color: #a6a999;
+  margin-left: 10px;
+}
+.tree-scroll {
+  overflow: auto;
+  max-height: 340px;
+  border: 1px solid #4a4c40;
+  background-color: #11150f;
+  background-image: radial-gradient(#2e3529 1px, transparent 1px);
+  background-size: 16px 16px;
+  scrollbar-color: #77735d #171a14;
+}
+.tree-canvas {
+  position: relative;
+}
+.tree-edges {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tree-edges path {
+  stroke: #7a8363;
+  stroke-width: 1.5;
+  fill: none;
+}
+.tree-node {
+  position: absolute;
+  width: 204px;
+  height: 94px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px;
+  text-align: left;
+  border: 1px solid #51574b;
+  background: #1d231a;
+  box-shadow: 3px 3px #080b07;
+}
+.tree-node strong {
+  font-size: 12px;
+}
+.tree-node small {
+  font-size: 9px;
+  color: #b4baa9;
+}
+.tree-node-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  color: #b4baa9;
+  width: 100%;
+}
+.tree-node-top svg {
+  width: 17px;
+  height: 17px;
+  color: #cbbb83;
+}
+.tree-node-top b {
+  margin-left: auto;
+  font-weight: 400;
+}
+.tree-node.is-acquired {
+  border-color: #88a26f;
+}
+.tree-node.is-available {
+  border-color: #b6a46e;
+}
+.tree-node.is-locked {
+  background: #1b1e19;
+  border-style: dashed;
+}
+.tree-node[aria-pressed="true"] {
+  outline: 2px solid #e1c78b;
+  outline-offset: 3px;
+}
+.tree-node:hover {
+  background: #303829;
+}
+.tree-prompt {
+  color: #b4baa9;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.tree-detail {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #776b4f;
+  background: #20221b;
+}
+.tree-default {
+  border-left: 2px solid #b9a271;
+  padding-left: 10px;
+}
+.tree-option-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.tree-option {
+  padding: 14px;
+  background: #151812;
+  border: 1px solid #424739;
+}
+.tree-option h4 {
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+.tree-option h4 span {
+  display: block;
+  color: #d7bd81;
+  font-size: 10px;
+  margin-top: 4px;
+}
+.tree-option p,
+.tree-requirements {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #c3c7b9;
+}
+.tree-requirements {
+  list-style: none;
+  padding: 0;
+}
+.tree-requirements .is-unmet {
+  color: #e5ac94;
+}
+.tree-modifiers {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.tree-modifiers span {
+  padding: 4px 7px;
+  border-left: 2px solid;
+}
+.tree-modifiers .buff {
+  color: #b6dba2;
+  background: #23341e;
+}
+.tree-modifiers .debuff {
+  color: #e6b19c;
+  background: #35251f;
+}
+.tree-duration {
+  display: block;
+  margin-top: 8px;
+  color: #aeb3a3;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.tree-select {
+  width: 100%;
+  border: 1px solid #bba673;
+  margin-top: 14px;
+  padding: 11px 5px;
+  color: #e4ca8c;
+  background: #302c20;
+  font-size: 11px;
+}
+.tree-select:disabled {
+  color: #b0b3a6;
+  background: #24271f;
+  border-color: #4e5146;
+  cursor: default;
+}
+.tree-current {
+  margin-top: 18px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #c0c5b5;
+}
+.tree-current summary {
+  cursor: pointer;
+  color: #e3d2a6;
+}
+.tree-shell button:focus-visible,
+.tree-scroll:focus-visible {
+  outline: 2px solid #f1d998;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .tree-intro {
+    align-items: flex-start;
+  }
+  .tree-intro h2 {
+    font-size: 15px;
+  }
+  .tree-intro > p {
+    font-size: 9px;
+    flex-shrink: 0;
+  }
+  .action-menu-icons {
+    gap: 4px;
+  }
+  .action-menu-icons button {
+    padding: 10px 2px;
+    min-height: 76px;
+  }
+  .action-menu-icons strong {
+    font-size: 9px;
+  }
+  .action-menu-icons small {
+    display: none;
+  }
+  .action-menu-icons svg {
+    width: 24px;
+    height: 24px;
+  }
+  .tree-scroll {
+    max-height: 245px;
+  }
+  .tree-legend span {
+    display: block;
+    margin-left: 0;
+  }
+  .tree-detail {
+    padding: 12px;
+  }
+}
+.tree-shell,
+.tree-shell .rpg-main {
+  grid-template-columns: minmax(0, 1fr);
+}
+.tree-shell .rpg-stage,
+.tree-shell .rpg-window,
+.tree-shell .rpg-window-body {
+  min-width: 0;
+}
+@media (min-width: 1024px) and (min-height: 601px) {
+  .tree-shell .rpg-main {
+    grid-template-rows: 58px 150px minmax(0, 1fr);
+  }
+  .tree-shell .rpg-window-body {
+    padding-top: 12px;
+  }
+  .tree-shell .tree-intro h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .tree-shell .action-menu-icons button {
+    padding: 8px 4px;
+    gap: 3px;
+  }
+  .tree-shell .action-menu-icons svg {
+    width: 24px;
+    height: 24px;
+  }
+  .tree-shell .tree-toolbar {
+    margin-top: 14px;
+  }
+}

@@ -27,6 +27,18 @@
             "path": "child.trust.B",
             "delta": 2
           }
+        ],
+        "event_modifiers": [
+          {
+            "label": "地域の刺激",
+            "kind": "good",
+            "percent": 20
+          },
+          {
+            "label": "交流の忙しさ",
+            "kind": "bad",
+            "percent": 20
+          }
         ]
       }
     ],

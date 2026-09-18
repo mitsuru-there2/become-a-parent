@@ -9,6 +9,17 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
     ensure(eventRequirements.length === 0, "automatic_events.requires: life_gameが必要です");
     return;
   }
+  if (game.action_tree) {
+    ensure(game.initial_family_home, "life_game.initial_family_home: 実家の初期状態が必要です");
+    ensure(
+      !JSON.stringify([game.decisions, content.automatic_events]).includes("grandparents.members."),
+      "life_game: 実家は共通パラメータを使用します",
+    );
+  } else
+    ensure(
+      game.initial_grandparents,
+      "life_game.initial_grandparents: 旧ルールの初期状態が必要です",
+    );
   ensure(
     content.decision_game?.initial_grandparents && content.automatic_events,
     "life_game: 家族と自動イベント設定が必要です",
@@ -36,6 +47,10 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
     );
     if (node.requires) requirements.push(node.requires);
     for (const o of node.options) {
+      ensure(
+        (o.income_reduction ?? 0) <= o.cost,
+        `${node.id}.${o.id}: 減収は家計負担costにも含めてください`,
+      );
       if (o.requires) requirements.push(o.requires);
       if (o.maintains) requirements.push(o.maintains);
     }

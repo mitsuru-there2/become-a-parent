@@ -2,6 +2,7 @@ import * as v from "valibot";
 import { contentIdSchema, integer } from "../validation/primitives";
 import { eventConditionSchema } from "./stat_schema";
 export const lifeRequirementSchema = v.strictObject({
+  annual_income: v.optional(integer()),
   history: v.optional(
     v.array(
       v.strictObject({ decision: contentIdSchema, option: contentIdSchema, after: integer(0, 40) }),

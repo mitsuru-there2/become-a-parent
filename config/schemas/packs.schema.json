@@ -11,6 +11,11 @@
             "requires": {
               "type": "object",
               "properties": {
+                "annual_income": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
                 "history": {
                   "type": "array",
                   "items": {
@@ -405,6 +410,11 @@
             "requires": {
               "type": "object",
               "properties": {
+                "annual_income": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
                 "history": {
                   "type": "array",
                   "items": {
@@ -537,6 +547,34 @@
               "items": {
                 "type": "object",
                 "properties": {
+                  "income_reduction": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 99999
+                  },
+                  "event_modifiers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "kind": {
+                          "enum": ["good", "bad"],
+                          "type": "string"
+                        },
+                        "percent": {
+                          "type": "integer",
+                          "minimum": -80,
+                          "maximum": 200
+                        }
+                      },
+                      "required": ["label", "kind", "percent"],
+                      "additionalProperties": false
+                    }
+                  },
                   "id": {
                     "type": "string",
                     "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
@@ -626,6 +664,11 @@
                   "requires": {
                     "type": "object",
                     "properties": {
+                      "annual_income": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 99999
+                      },
                       "history": {
                         "type": "array",
                         "items": {
@@ -737,6 +780,11 @@
                   "maintains": {
                     "type": "object",
                     "properties": {
+                      "annual_income": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 99999
+                      },
                       "history": {
                         "type": "array",
                         "items": {

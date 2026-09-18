@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { describe, expect, it } from "vite-plus/test";
 import base from "./fixtures/legacy_content";
-import events from "../config/events.json";
+import events from "./fixtures/life-events-8.json";
 import { Catalog } from "../src/content/catalog";
 import type { AutomaticEvent } from "../src/content/automatic_event_schema";
 import { startDecisions, openDecisionTurn } from "../src/engine/decisions";

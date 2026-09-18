@@ -6,6 +6,11 @@
       "requires": {
         "type": "object",
         "properties": {
+          "annual_income": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99999
+          },
           "history": {
             "type": "array",
             "items": {

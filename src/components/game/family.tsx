@@ -28,7 +28,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
                 <meter
                   min="0"
                   max={
-                    ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8"].includes(
+                    ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8", "rules-9"].includes(
                       publicState.versions.rules,
                     )
                       ? 10
@@ -53,7 +53,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
               <meter
                 min="0"
                 max={
-                  ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8"].includes(
+                  ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8", "rules-9"].includes(
                     publicState.versions.rules,
                   )
                     ? 10
@@ -74,7 +74,12 @@ export function Family({ publicState }: { publicState: PublicState }) {
       {(publicState.grandparents.members ? GRANDPARENTS : (["shared"] as const)).map((id) => {
         const member =
           id === "shared" ? publicState.grandparents : publicState.grandparents.members![id];
-        const name = id === "shared" ? "祖父母（共通）" : grandparentNames[id];
+        const name =
+          id === "shared"
+            ? publicState.versions.rules === "rules-9"
+              ? "実家"
+              : "祖父母（共通）"
+            : grandparentNames[id];
         return (
           <div className="parent" key={id}>
             <h3>{name}</h3>

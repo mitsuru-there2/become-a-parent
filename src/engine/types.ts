@@ -203,6 +203,10 @@ export interface State extends NumericState {
 }
 export interface PublicState {
   life?: {
+    action_tree?: boolean;
+    annual_income?: number;
+    study_score?: number;
+    active_effects?: { source: string; label: string; kind: "good" | "bad"; percent: number }[];
     menus: { id: string; label: string; description: string }[];
     policies: {
       id: string;
@@ -264,6 +268,11 @@ export interface PublicState {
   forecast: Forecast | null;
 }
 export interface Choice {
+  tree?: {
+    parents: { id: string; label: string }[];
+    min_age_months: number;
+    default_label: string | null;
+  };
   menu?: string;
   decision_kind?: "policy" | "action";
   reason?: string;
@@ -282,6 +291,9 @@ export interface Choice {
     cost: number;
     income: number;
     description?: string;
+    acquired?: boolean;
+    requirements?: string[];
+    event_modifiers?: { label: string; kind: "good" | "bad"; percent: number }[];
     available: boolean;
     reasons: Reason[];
   }[];

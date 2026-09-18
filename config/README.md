@@ -1,6 +1,6 @@
 # ゲーム設定の編集
 
-## 現行の編集先（rules-8 / S-017）
+## 現行の編集先（rules-9 / S-018）
 
 | ファイル                                                   | 編集する内容                                                                        |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -10,7 +10,7 @@
 | [packs/community-life](packs/community-life/manifest.json) | 新方式DLCの動くサンプル。開始時に選んだ場合だけ追加                                 |
 | [legacy-decisions.json](legacy-decisions.json)             | 旧rules-3〜7の判断。現行の調整には使わない                                          |
 
-保存には合成した設定とパック版を固定します。JSONの変更は新規ゲームから適用し、既存保存は旧設定で継続します。現在はrules-8 / data-8 / save-9です。共通コンテンツ形式の`data_version`とパックの`requires_data`は互換形式名`data-2`を維持し、人生のルール・保存の版とは区別します。
+保存には合成した設定とパック版を固定します。JSONの変更は新規ゲームから適用し、既存保存は旧設定で継続します。現在はrules-9 / data-9 / save-10です。共通コンテンツ形式の`data_version`とパックの`requires_data`は互換形式名`data-2`を維持し、人生のルール・保存の版とは区別します。
 
 ## ディシジョンの編集
 
@@ -61,7 +61,7 @@
 
 ## 自動イベントの項目
 
-新規ルールの祖父・祖母は`decisions.json`の`initial_grandparents.grandfather` / `grandmother`で体力・関係・資金・地域のつながりを個別に設定します。初期援助資金は各50万円、援助では本人の資金のみ50万円減ります。`initial_grandparent_funds`は旧rules-6用です。
+新規ルールの実家は`decisions.json`の`initial_family_home`で体力・関係・資金・地域のつながりを設定します。初期援助資金は合計100万円。`initial_grandparents`は旧rules-7/8の保存用、`initial_grandparent_funds`は旧rules-6用です。
 
 新規ゲームのイベントは専用の [events.json](events.json) で調整します。各期に全イベントを独立抽選し、0件でも複数件でも生活メニューに進みます。発生時に効果を自動適用し、回答は求めません。初期設定は善悪17件で、通常は1期1〜3件を中心とする調整です。独立抽選のため最低件数・上限はなく、本文・数値はゲーム用の調整仮値です。
 
@@ -75,7 +75,7 @@
 | `cooldown` / `once`                 | 再発までの期数（1なら毎期抽選可）、一度限りか                 |
 | `effects`                           | 発生時の数値変更。`path`へ`delta`を直接加算                   |
 
-条件は `{ "path": "child.ability.craft", "op": "gte", "value": 30 }` のように記述します。`op`は`eq`（等しい）、`lt`（未満）、`gte`（以上）。父母は`parents.A`（父）/`parents.B`（母）、夫婦関係は`couple`、祖父・祖母は`grandparents.members.grandfather` / `grandparents.members.grandmother`。`grandparents`直下は旧互換の集計値です。能力・疲労は`decisions.skills.A.learning`や`decisions.fatigue.B`等です。許可する全パスは[スキーマ](../src/content/stat_schema.ts)とJSON補完で確認できます。
+条件は `{ "path": "child.ability.craft", "op": "gte", "value": 30 }` のように記述します。`op`は`eq`（等しい）、`lt`（未満）、`gte`（以上）。父母は`parents.A`（父）/`parents.B`（母）、夫婦関係は`couple`、実家は`grandparents.health` / `relation` / `funds`。個人パス`grandparents.members.*`は旧保存専用で、新規ツリー用の設定では拒否します。能力・疲労は`decisions.skills.A.learning`や`decisions.fatigue.B`等です。許可する全パスは[スキーマ](../src/content/stat_schema.ts)とJSON補完で確認できます。
 
 親・祖父母・夫婦関係は10点、子どもは内部100点、金額は万円、年齢は月です。旧選択肢のような効果量の自動倍率はありません。例えば家計50万円の入金は`{ "path": "cash", "delta": 50 }`、父のストレス1点増加は`{ "path": "parents.A.stress", "delta": 1 }`。効果は上下限で止め、金銭支出は所持金までです。子どもの内部値は現在値を公開せず観察に反映し、イベントダイアログではそのイベントによる増減だけを表示します。
 
@@ -198,3 +198,9 @@ Valibot 1.5.0を利用します。[スキーマ](../src/content/schemas.ts)で�
 新規のrules-4では、decision_gameと追加パックの旧100点単位の効果値を[S-016](../docs/specs/decisions.md#10点スケールと選択の強化2026-09-17d-032)の式で10点スケールへ変換して適用する。保存済みのrules-3は同じ設定値を従来どおり適用する。金額と年齢は変換しない。
 
 rules-5は同じ10点スケールを維持し、decision_gameの選択肢に任意のincome（万円、省略時0）を追加する。特殊イベントでは即時、通常判断では半年確定時に入金する。既存保存の設定は書き換えない。金額と受け入れ条件は[S-016](../docs/specs/decisions.md#家計の選択を強める2026-09-17d-033)。
+
+## ツリーと取得効果（S-018）
+
+`action_tree: true`で全ノードを公開。`requires.annual_income`は確定中の継続方針による年収の下限（万円）を指定します。成績条件は`requires.stats`の`child.ability.study`（0〜100）、親能力は`decisions.skills.*`（0〜10）。`income_reduction`は年収算出専用の減収値（半年分）で、その金額を既存の`cost`にも含めます。臨時収入を年収に含めません。
+
+選択肢の`event_modifiers`は`{ "label": "広がる機会", "kind": "good", "percent": 20 }`等の配列。good/bad別にイベントの数値効果を補正します。利点だけでなく負担も対にして、深い枝ほど強くしてください。適用期間、加算上限、端数と援助金移転の扱いは[S-018](../docs/specs/action-tree.md)。年齢範囲と無料の`default_option`で保育所・公立学校等の既定経路を定めます。UI専用データで分岐・効果を実装しません。

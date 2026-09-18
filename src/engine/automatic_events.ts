@@ -6,9 +6,10 @@ import { contentFor } from "../content/catalog";
 import { clone } from "./shared";
 import { matches } from "./events";
 import { draw, observeChild } from "./simulation";
+import { activeTreeEffects, modifiedDelta, treeEnabled } from "./tree_effects";
 
 export const automaticEventsEnabled = (state: State) =>
-  ["rules-6", "rules-7", "rules-8"].includes(state.versions.rules);
+  ["rules-6", "rules-7", "rules-8", "rules-9"].includes(state.versions.rules);
 export function applyAutomaticEvents(state: State): History | null {
   const turn = state.n + 1;
   const age = state.n * 6;
@@ -42,15 +43,37 @@ export function applyAutomaticEvents(state: State): History | null {
   const text: string[] = [];
   const money: History["money"] = [];
   const eventResults: AutomaticEventResult[] = [];
+  const active = activeTreeEffects(state);
   for (const event of selected) {
     state.seen[`automatic:${event.id}`] = turn;
     text.push(`${event.kind === "good" ? "うれしい出来事" : "困った出来事"}：${event.text}`);
     const changes: string[] = [];
+    const modifiers = active.filter((effect) => effect.kind === event.kind);
+    const percent = Math.max(
+      -80,
+      Math.min(
+        200,
+        modifiers.reduce((sum, effect) => sum + effect.percent, 0),
+      ),
+    );
+    if (modifiers.length) {
+      const line = `取得効果：${modifiers.map((m) => `${m.source}「${m.label}」${m.percent > 0 ? "+" : ""}${m.percent}%`).join("、")}（合計${percent > 0 ? "+" : ""}${percent}%）`;
+      changes.push(line);
+      text.push(line);
+    }
+    const transfer = event.effects.some((effect) => effect.path.endsWith(".funds"));
     const before = state.cash;
     let income = 0;
     let expense = 0;
     let overflow = 0;
-    for (const effect of event.effects) {
+    for (const original of event.effects) {
+      const effect = {
+        ...original,
+        delta:
+          transfer && (original.path === "cash" || original.path.endsWith(".funds"))
+            ? original.delta
+            : modifiedDelta(original.delta, percent),
+      };
       const { previous, current } = applyStat(state, effect);
       if (effect.path === "cash") {
         if (effect.delta > 0) {
@@ -58,7 +81,7 @@ export function applyAutomaticEvents(state: State): History | null {
           overflow += effect.delta - (current - previous);
         } else expense += previous - current;
       } else if (!effect.path.startsWith("child.")) {
-        const label = statLabel(effect.path);
+        const label = statLabel(effect.path, treeEnabled(state));
         if (current !== previous) {
           const change = formatChange(label, previous, current, effect.path.endsWith(".funds"));
           text.push(change);
@@ -142,7 +165,7 @@ export function applyStat(state: State, effect: AutomaticEvent["effects"][number
   syncGrandparents(state.grandparents);
   return { previous, current };
 }
-export function statLabel(path: string) {
+export function statLabel(path: string, familyHome = false) {
   const labels: Record<string, string> = {
     parents: "",
     decisions: "",
@@ -174,7 +197,7 @@ export function statLabel(path: string) {
     craft: "創作",
   };
   if (/^grandparents\.(health|relation|funds)$/.test(path))
-    return `祖父母・${labels[path.split(".")[1]]}`;
+    return `${familyHome ? "実家" : "祖父母"}・${labels[path.split(".")[1]]}`;
   return path
     .split(".")
     .map((part) => labels[part] ?? part)

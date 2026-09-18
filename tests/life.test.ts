@@ -1,4 +1,6 @@
 import "fake-indexeddb/auto";
+import oldLife from "./fixtures/life-data-8.json";
+import oldEvents from "./fixtures/life-events-8.json";
 import { describe, expect, it } from "vite-plus/test";
 import { Catalog, defaultContent } from "../src/content/catalog";
 import directoryPacks from "../src/content/packs.gen";
@@ -19,7 +21,11 @@ import {
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
 import type { State } from "../src/engine/types";
 
-const content = () => ({ ...clone(defaultContent), automatic_events: [] });
+const content = () => ({
+  ...clone(defaultContent),
+  life_game: clone(oldLife) as typeof defaultContent.life_game,
+  automatic_events: [],
+});
 const start = (age = 0) => {
   const s = startDecisions("home-01", 0, new Catalog(content(), []).resolve());
   s.n = age / 6;
@@ -36,7 +42,11 @@ describe("S-017 生活メニューと分岐", () => {
   it("標準生活のまま40期・成人後・父母の最期へ進める", () => {
     for (const difficulty of ["easy", "normal", "hard"]) {
       for (let seed = 0; seed < 3; seed++) {
-        const s = startDecisions("home-01", seed, new Catalog().resolve(difficulty));
+        const s = startDecisions(
+          "home-01",
+          seed,
+          new Catalog({ ...content(), automatic_events: oldEvents }, []).resolve(difficulty),
+        );
         expect(s.versions.rules).toBe("rules-8");
         while (s.phase === "childhood") {
           expect(publicView(s).public.forecast!.can_advance).toBe(true);
@@ -247,7 +257,10 @@ describe("S-017 DLC・検査・保存", () => {
   });
   it("操作の再送・予定の再開・全取消・DLC削除後の再生・40期の書き出しが一致する", async () => {
     const repo = new IndexedRepository(new GameDatabase(`life-${crypto.randomUUID()}`));
-    const service = new Service(repo);
+    const service = new Service(
+      repo,
+      new Catalog({ ...content(), automatic_events: oldEvents }, directoryPacks),
+    );
     let r = await service.execute({
       command: "new",
       run: "life",

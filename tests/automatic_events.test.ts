@@ -1,4 +1,4 @@
-import bundledEvents from "../config/events.json";
+import bundledEvents from "./fixtures/life-events-8.json";
 import "fake-indexeddb/auto";
 import { describe, expect, it } from "vite-plus/test";
 import { Catalog } from "../src/content/catalog";

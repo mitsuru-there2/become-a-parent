@@ -162,7 +162,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   const ended = response.phase !== "childhood";
   const eventTurn = `${response.run_id}:${state.time.next_turn}`;
   const automaticResult =
-    ["rules-6", "rules-7", "rules-8"].includes(state.versions.rules) &&
+    ["rules-6", "rules-7", "rules-8", "rules-9"].includes(state.versions.rules) &&
     turn.event_result.length > 0 &&
     turn.answered === 0 &&
     readEventTurn !== eventTurn;
@@ -185,7 +185,9 @@ export function DecisionPlay({ response }: { response: Response }) {
     if (response.phase === "finished" && tab === "play" && !extra.result) void readExtra("result");
   }, [response.phase, tab, extra.result]);
   return (
-    <div className={`rpg-shell${life ? " life-shell" : ""}`}>
+    <div
+      className={`rpg-shell${life ? " life-shell" : ""}${state.life?.action_tree ? " tree-shell" : ""}`}
+    >
       <header className="rpg-header" inert={showingResult}>
         <Link to="/" className="brand">
           親伝説 <span>BECOME A PARENT</span>
@@ -222,9 +224,11 @@ export function DecisionPlay({ response }: { response: Response }) {
         </div>
         <PartyStatus state={state} />
         <div className="rpg-stage">
-          <div className="rpg-scenery" aria-hidden="true">
-            <img src={familyRoom} alt="" fetchPriority="high" />
-          </div>
+          {!state.life?.action_tree && (
+            <div className="rpg-scenery" aria-hidden="true">
+              <img src={familyRoom} alt="" fetchPriority="high" />
+            </div>
+          )}
           <div className="rpg-caption">
             <span>第 {state.time.next_turn} 期 / 40</span>
             <p>{state.scene?.title}</p>
@@ -236,7 +240,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                   ? ended
                     ? "人生の結末"
                     : life
-                      ? "暮らしのメニュー"
+                      ? "アクションツリー"
                       : special
                         ? "今期の特殊イベント"
                         : choice
@@ -304,7 +308,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                   </h2>
                   <ol>
                     <li>
-                      {["rules-6", "rules-7", "rules-8"].includes(state.versions.rules)
+                      {["rules-6", "rules-7", "rules-8", "rules-9"].includes(state.versions.rules)
                         ? "出来事は自動で発生し、資金や家族の状態に反映されます。"
                         : "特殊イベントへの対応を選びます。その場で確定します。"}
                     </li>

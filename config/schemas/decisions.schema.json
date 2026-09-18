@@ -1,6 +1,34 @@
 {
   "type": "object",
   "properties": {
+    "action_tree": {
+      "type": "boolean"
+    },
+    "initial_family_home": {
+      "type": "object",
+      "properties": {
+        "health": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "relation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "funds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999
+        },
+        "network": {
+          "type": "boolean"
+        }
+      },
+      "required": ["health", "relation", "funds", "network"],
+      "additionalProperties": false
+    },
     "initial_grandparents": {
       "type": "object",
       "properties": {
@@ -188,6 +216,11 @@
           "requires": {
             "type": "object",
             "properties": {
+              "annual_income": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99999
+              },
               "history": {
                 "type": "array",
                 "items": {
@@ -320,6 +353,34 @@
             "items": {
               "type": "object",
               "properties": {
+                "income_reduction": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 99999
+                },
+                "event_modifiers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "kind": {
+                        "enum": ["good", "bad"],
+                        "type": "string"
+                      },
+                      "percent": {
+                        "type": "integer",
+                        "minimum": -80,
+                        "maximum": 200
+                      }
+                    },
+                    "required": ["label", "kind", "percent"],
+                    "additionalProperties": false
+                  }
+                },
                 "id": {
                   "type": "string",
                   "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
@@ -409,6 +470,11 @@
                 "requires": {
                   "type": "object",
                   "properties": {
+                    "annual_income": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 99999
+                    },
                     "history": {
                       "type": "array",
                       "items": {
@@ -520,6 +586,11 @@
                 "maintains": {
                   "type": "object",
                   "properties": {
+                    "annual_income": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 99999
+                    },
                     "history": {
                       "type": "array",
                       "items": {
@@ -681,15 +752,7 @@
       }
     }
   },
-  "required": [
-    "initial_grandparents",
-    "schema_version",
-    "max_actions",
-    "income",
-    "standard_effects",
-    "menus",
-    "decisions"
-  ],
+  "required": ["schema_version", "max_actions", "income", "standard_effects", "menus", "decisions"],
   "additionalProperties": false,
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$defs": {

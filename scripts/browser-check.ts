@@ -1,7 +1,7 @@
 /** 公開UIのみで検証。保存・ストアの内部値は参照しない。Browser plugin not available. */
 import { chromium, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
-const out = process.env.BROWSER_ARTIFACTS ?? "/tmp/parent-browser-life";
+const out = process.env.BROWSER_ARTIFACTS ?? "/tmp/parent-browser-tree";
 const url = process.env.GAME_URL ?? "http://127.0.0.1:5173";
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
@@ -40,6 +40,7 @@ try {
       .getByRole("button", { name, exact: true })
       .click();
   const viewport = async () => {
+    await page.screenshot({ path: out + "/viewport-latest.png" });
     expect(
       await page.evaluate(() => ({
         x: document.documentElement.scrollWidth > innerWidth,
@@ -54,25 +55,46 @@ try {
   await expect(events).toHaveText(eventText, { useInnerText: true });
   await expect(page.locator(".rpg-cash")).toHaveText(cashText, { useInnerText: true });
   await dismiss();
-  await expect(page.getByRole("heading", { name: "この暮らしを、続けていく。" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "この先の暮らしを、選ぼう。" })).toBeVisible();
   await expect(next).toBeEnabled();
   await expect(
     page.getByRole("navigation", { name: "暮らしの分類" }).getByRole("button"),
-  ).toHaveCount(6);
+  ).toHaveCount(5);
   for (const meter of await page.locator(".rpg-party meter").all())
     await expect(meter).toHaveAttribute("max", "10");
+  await expect(page.getByRole("region", { name: "実家のステータス" })).toBeVisible();
   await viewport();
   await page.screenshot({ path: out + "/overview-desktop.png" });
   await page.setViewportSize({ width: 390, height: 844 });
   await viewport();
   await page.screenshot({ path: out + "/overview-mobile.png" });
-  // 全メニューを開かず、8期を標準生活で進める。
+  const node = (name: string) =>
+    page
+      .getByRole("region", { name: "アクションのつながり" })
+      .getByRole("button", { name, exact: true });
+  const pick = (label: string) =>
+    page
+      .locator(".tree-option")
+      .filter({ has: page.getByRole("heading", { name: new RegExp("^" + label) }) })
+      .getByRole("button");
+  await expect(page.locator(".rpg-scenery")).toHaveCount(0);
+  await node("小学校の進路").click();
+  await expect(pick("私立小学校")).toBeDisabled();
+  await expect(page.locator(".tree-detail")).toContainText("年収 600万円以上");
+  await expect(page.locator(".tree-detail")).toContainText("公立小学校");
+  await page.getByRole("button", { name: "ツリー全体を見る", exact: true }).click();
+  await expect(node("大学への挑戦")).toHaveCount(1);
   for (let t = 1; t <= 8; t++) await progress(t);
   await dismiss();
+  await menu("教育・進路");
+  await node("通園先").click();
+  await expect(page.locator(".tree-detail")).toContainText("保育所に通う");
   await menu("遊び・放課後");
-  await expect(page.getByRole("article", { name: "工作教室", exact: true })).toHaveCount(0);
+  await node("工作教室").click();
+  await expect(pick("工作教室に通う")).toBeDisabled();
+  await node("工作教室の体験").click();
   const trial = page.getByRole("article", { name: "工作教室の体験", exact: true });
-  await trial.getByRole("button", { name: /体験教室に参加する/ }).click();
+  await pick("体験教室に参加する").click();
   await expect(page.getByRole("region", { name: "今期の予定" })).toContainText(
     "体験教室に参加する",
   );
@@ -81,19 +103,20 @@ try {
   await dismiss();
   await expect(page.locator(".life-budget")).toHaveText(forecast, { useInnerText: true });
   await menu("遊び・放課後");
+  await node("工作教室の体験").click();
   await trial.getByRole("button", { name: "この予定を取り消す" }).click();
   await expect(page.getByRole("region", { name: "今期の予定" })).toHaveCount(0);
-  await trial.getByRole("button", { name: /体験教室に参加する/ }).click();
+  await pick("体験教室に参加する").click();
   await progress(9);
   await dismiss();
-  await expect(page.locator(".life-opportunities")).toContainText("工作教室");
-  await expect(page.locator(".life-opportunities")).toContainText("地域の工作会");
   await menu("遊び・放課後");
-  const craft = page.getByRole("article", { name: "工作教室", exact: true });
-  await craft.getByRole("button", { name: /工作教室に通う/ }).click();
+  await expect(node("工作教室")).toContainText("解放");
+  await node("工作教室").click();
+  await expect(pick("工作教室に通う")).toBeEnabled();
+  await pick("工作教室に通う").click();
   await expect(page.locator(".rpg-save")).toHaveText("保存済み");
-  await craft.scrollIntoViewIfNeeded();
   await page.setViewportSize({ width: 1280, height: 900 });
+  await page.locator(".tree-detail").scrollIntoViewIfNeeded();
   await viewport();
   await page.screenshot({ path: out + "/branch-desktop.png" });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -102,23 +125,22 @@ try {
   await progress(10);
   await dismiss();
   await menu("遊び・放課後");
-  await expect(craft.getByRole("button", { name: /工作教室に通う/ })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await craft.getByRole("button", { name: /休会する/ }).click();
+  await node("工作教室").click();
+  await expect(page.locator(".tree-detail")).toContainText("継続中");
+  await pick("休会する").click();
   await progress(11);
   await dismiss();
   await menu("遊び・放課後");
-  await expect(craft.getByRole("button", { name: /休会する/ })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await craft.getByRole("button", { name: /工作教室に通う/ }).click();
+  await node("工作教室").click();
+  await pick("工作教室に通う").click();
   await progress(12);
   await dismiss();
+  await menu("教育・進路");
+  await node("小学校の進路").click();
+  await expect(page.locator(".tree-detail")).toContainText("公立小学校継続中");
   await menu("遊び・放課後");
-  await craft.getByRole("button", { name: /通わずに過ごす/ }).click();
+  await node("工作教室").click();
+  await pick("通わずに過ごす").click();
   await progress(13);
   for (let t = 14; t <= 40; t++) await progress(t);
   await expect(page.locator(".ending h1")).toBeVisible();
@@ -142,10 +164,8 @@ try {
     if (await page.locator(".game-over").count()) break;
     await menu("仕事・家計");
     for (const name of ["今期だけの仕事", "母の今期だけの仕事"]) {
-      await page
-        .getByRole("article", { name, exact: true })
-        .getByRole("button", { name: /臨時の仕事を引き受ける/ })
-        .click();
+      await node(name).click();
+      await pick("臨時の仕事を引き受ける").click();
     }
     await next.click();
     await expect(page.locator(".rpg-save")).toHaveText("保存済み");

@@ -14,6 +14,16 @@ export const lifeEffectsSchema = v.array(
   }),
 );
 const lifeOptionSchema = v.strictObject({
+  income_reduction: v.optional(integer()),
+  event_modifiers: v.optional(
+    v.array(
+      v.strictObject({
+        label: text,
+        kind: v.picklist(["good", "bad"]),
+        percent: integer(-80, 200),
+      }),
+    ),
+  ),
   id: contentIdSchema,
   repair: v.optional(v.boolean()),
   label: text,
@@ -57,10 +67,14 @@ export const lifeDecisionSchema = v.pipe(
 );
 export const lifeDecisionsSchema = v.array(lifeDecisionSchema);
 export const lifeGameSchema = v.strictObject({
-  initial_grandparents: v.strictObject({
-    grandfather: grandparentSchema,
-    grandmother: grandparentSchema,
-  }),
+  action_tree: v.optional(v.boolean()),
+  initial_family_home: v.optional(grandparentSchema),
+  initial_grandparents: v.optional(
+    v.strictObject({
+      grandfather: grandparentSchema,
+      grandmother: grandparentSchema,
+    }),
+  ),
   schema_version: v.literal(1),
   max_actions: integer(1, 5),
   income: integer(),

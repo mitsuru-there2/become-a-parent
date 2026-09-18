@@ -24,7 +24,9 @@ function StatusMeter({
 }
 
 export function PartyStatus({ state }: { state: PublicState }) {
-  const max = ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8"].includes(state.versions.rules)
+  const max = ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8", "rules-9"].includes(
+    state.versions.rules,
+  )
     ? 10
     : 100;
   const turn = state.decision_turn;
@@ -64,14 +66,21 @@ export function PartyStatus({ state }: { state: PublicState }) {
           )}
         </section>
       ))}
-      {GRANDPARENTS.map((id) => {
-        const person = grandparentNames[id];
-        const member = state.grandparents.members?.[id] ?? state.grandparents;
+      {(state.versions.rules === "rules-9" ? (["home"] as const) : GRANDPARENTS).map((id) => {
+        const person = id === "home" ? "実家" : grandparentNames[id];
+        const member =
+          id === "home"
+            ? state.grandparents
+            : (state.grandparents.members?.[id] ?? state.grandparents);
         return (
           <section className="party-member" key={person} aria-label={`${person}のステータス`}>
             <h2>
               {person}
-              {!state.grandparents.members && <span>祖父母共通</span>}
+              {id === "home" ? (
+                <span>家族を支える仲間</span>
+              ) : (
+                !state.grandparents.members && <span>祖父母共通</span>
+              )}
             </h2>
             <div className="party-grand-stats">
               <StatusMeter max={max} person={person} label="体力" value={member.health} />
