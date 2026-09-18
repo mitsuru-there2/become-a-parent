@@ -2042,6 +2042,1860 @@
           ]
         }
       ]
+    },
+    {
+      "id": "story-keepsake",
+      "menu": "home",
+      "title": "未来へ送る小さな宝物",
+      "reason": "今しかない姿を、どんな形で残そう。選んだ宝物は18歳から振り返れます。",
+      "kind": "action",
+      "min_age_months": 0,
+      "max_age_months": 35,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "capsule",
+          "label": "未来の本人へタイムカプセル",
+          "description": "手形と手紙を封印。18歳になったら開封できます。",
+          "cost": 2,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.A.fulfillment",
+              "delta": 1
+            },
+            {
+              "path": "parents.B.fulfillment",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "album",
+          "label": "家族のへんてこ図鑑を作る",
+          "description": "寝相、口ぐせ、謎のダンス。18歳で上映会を開けます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "couple",
+              "delta": 1
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "story-cardboard",
+      "menu": "afterschool",
+      "title": "リビングに段ボール王国",
+      "reason": "箱を捨てるはずが、子どもが王国の建設を宣言しました。",
+      "kind": "action",
+      "min_age_months": 24,
+      "max_age_months": 65,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "build",
+          "label": "親子で動くお城を建てる",
+          "description": "廊下は狭くなるけれど、後で科学遊びへ発展します。",
+          "cost": 3,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 6
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "theater",
+          "label": "王様とドラゴンの劇をする",
+          "description": "衣装はタオル。歌と劇が好きなら、音楽の体験へ。",
+          "cost": 1,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 5
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 4
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "story-science-entry",
+      "menu": "education",
+      "title": "お城の次は宇宙船？",
+      "reason": "段ボール建築の経験を使って、小さな実験を始めます。",
+      "kind": "action",
+      "min_age_months": 48,
+      "max_age_months": 119,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "try",
+          "label": "親子で実験室を訪ねる",
+          "description": "科学フェアへの入口。材料と安全な実験場所を借ります。",
+          "cost": 6,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.study",
+              "delta": 4
+            },
+            {
+              "path": "child.interest.study",
+              "delta": 6
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "story-cardboard",
+            "option": "build",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-science-fair",
+      "menu": "education",
+      "title": "町の発明フェア",
+      "reason": "得意なものから挑戦できます。ロケットとロボットは違う後続につながります。",
+      "kind": "action",
+      "min_age_months": 72,
+      "max_age_months": 179,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "rocket",
+          "label": "空へ！ ペットボトル宇宙計画",
+          "description": "幼いころのお城が発射台へ。次は大きな展示会を目指せます。",
+          "cost": 18,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.study",
+              "delta": 8
+            },
+            {
+              "path": "child.stress",
+              "delta": 3
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-science-entry",
+                "option": "try",
+                "after": 0
+              }
+            ]
+          }
+        },
+        {
+          "id": "robot",
+          "label": "靴下を探すロボットを作る",
+          "description": "科学体験を経て日常の大問題に挑戦。次は製品化の展示へ。",
+          "cost": 24,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 8
+            },
+            {
+              "path": "child.stress",
+              "delta": 3
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-other-trial",
+                "option": "try",
+                "after": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-invention",
+      "menu": "education",
+      "title": "全国へ、わが家の発明",
+      "reason": "町の挑戦を次の舞台へ。賞金イベントもありますが、受賞は保証されません。",
+      "kind": "action",
+      "min_age_months": 120,
+      "max_age_months": 215,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "exhibit",
+          "label": "宇宙基地を全国展示する",
+          "description": "遠征費は大きい。仲間との制作を通して学びます。",
+          "cost": 65,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.study",
+              "delta": 10
+            },
+            {
+              "path": "child.autonomy",
+              "delta": 5
+            },
+            {
+              "path": "child.stress",
+              "delta": 6
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-science-fair",
+                "option": "rocket",
+                "after": 1
+              }
+            ]
+          },
+          "event_modifiers": [
+            {
+              "label": "大舞台の機会",
+              "kind": "good",
+              "percent": 15
+            },
+            {
+              "label": "遠征の負担",
+              "kind": "bad",
+              "percent": 10
+            }
+          ]
+        },
+        {
+          "id": "demo",
+          "label": "靴下ロボを実演販売する",
+          "description": "売れなくても試作経験は残る。製品の評判が後から届きます。",
+          "cost": 45,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 10
+            },
+            {
+              "path": "child.autonomy",
+              "delta": 6
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-science-fair",
+                "option": "robot",
+                "after": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-music-trial",
+      "menu": "afterschool",
+      "title": "はじめての音楽隊",
+      "reason": "歌う、鳴らす、踊る。上手さよりも、続けたいかを試します。",
+      "kind": "action",
+      "min_age_months": 48,
+      "max_age_months": 131,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "try",
+          "label": "楽器と歌の体験に行く",
+          "description": "気に入ったら音楽の時間を継続できます。",
+          "cost": 6,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.interest.craft",
+              "delta": 6
+            },
+            {
+              "path": "child.autonomy",
+              "delta": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "story-music",
+      "menu": "afterschool",
+      "title": "わが家の音楽活動",
+      "reason": "体験をした後は、楽しむペースを選べます。18歳で定期活動を終了します。",
+      "kind": "policy",
+      "min_age_months": 48,
+      "max_age_months": 215,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "音楽の定期活動はしない",
+          "description": "費用をかけず普段の生活に戻ります。参加を再開するときは導入費がかかります。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "casual",
+          "label": "家で気ままにセッション",
+          "description": "毎期少額で創作を楽しむ。町のステージへ進めます。",
+          "cost": 6,
+          "income": 0,
+          "setup_cost": 4,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 2
+            },
+            {
+              "path": "child.stress",
+              "delta": -2
+            }
+          ]
+        },
+        {
+          "id": "stage",
+          "label": "バンドを組んで本番を目指す",
+          "description": "毎期の練習費と疲れを引き受け、全国フェスを狙います。",
+          "cost": 18,
+          "income": 0,
+          "setup_cost": 12,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 4
+            },
+            {
+              "path": "child.autonomy",
+              "delta": 2
+            },
+            {
+              "path": "child.stress",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "story-music-trial",
+            "option": "try",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-festival",
+      "menu": "afterschool",
+      "title": "スポットライトの向こう",
+      "reason": "活動を続けた先の舞台。地元で楽しむか、全国へ挑むかを選べます。",
+      "kind": "action",
+      "min_age_months": 96,
+      "max_age_months": 209,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "local",
+          "label": "町のステージを盛り上げる",
+          "description": "気ままなセッションを近所へお披露目。大きな遠征はしません。",
+          "cost": 8,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 6
+            },
+            {
+              "path": "parents.B.social",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "policies": [
+              {
+                "decision": "story-music",
+                "option": "casual"
+              }
+            ]
+          }
+        },
+        {
+          "id": "national",
+          "label": "全国フェスに遠征する",
+          "description": "交通費と機材費をかけた一度の挑戦。結果は後から届きます。",
+          "cost": 60,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 8
+            },
+            {
+              "path": "child.stress",
+              "delta": 5
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "policies": [
+              {
+                "decision": "story-music",
+                "option": "stage"
+              }
+            ],
+            "history": [
+              {
+                "decision": "story-music",
+                "option": "stage",
+                "after": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-encore",
+      "menu": "afterschool",
+      "title": "あの舞台から、次の一曲",
+      "reason": "全国へ出た経験を持って、本人が次の形を選びます。",
+      "kind": "action",
+      "min_age_months": 180,
+      "max_age_months": 234,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "tour",
+          "label": "本人の希望で自主ツアーを支援",
+          "description": "お金も体力も使う大冒険。立派な売上が出るとは限りません。",
+          "cost": 80,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 10
+            },
+            {
+              "path": "child.stress",
+              "delta": 6
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            }
+          ]
+        },
+        {
+          "id": "record",
+          "label": "仲間と記念の一曲を残す",
+          "description": "遠征を増やさず、いまの仲間との時間を残します。",
+          "cost": 12,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 5
+            },
+            {
+              "path": "child.stress",
+              "delta": -4
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 5
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "story-festival",
+            "option": "national",
+            "after": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-sports-trial",
+      "menu": "afterschool",
+      "title": "公園のちびっこ運動会",
+      "reason": "走るより応援が好きでも大歓迎。体を動かす遊びの入口です。",
+      "kind": "action",
+      "min_age_months": 48,
+      "max_age_months": 131,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "try",
+          "label": "いろいろな種目を体験する",
+          "description": "次期からスポーツとの付き合い方を選べます。",
+          "cost": 4,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 4
+            },
+            {
+              "path": "child.stress",
+              "delta": -3
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "story-team",
+      "menu": "afterschool",
+      "title": "スポーツとの付き合い方",
+      "reason": "勝負を目指すか、遊びとして続けるか。18歳で定期活動を終了します。",
+      "kind": "policy",
+      "min_age_months": 48,
+      "max_age_months": 215,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "定期チームには入らない",
+          "description": "費用をかけず普段の生活に戻ります。参加を再開するときは導入費がかかります。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "play",
+          "label": "公園の仲間と気楽に遊ぶ",
+          "description": "毎期の小さな費用で交流。町のリレーに参加できます。",
+          "cost": 4,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 2
+            },
+            {
+              "path": "child.stress",
+              "delta": -2
+            }
+          ]
+        },
+        {
+          "id": "compete",
+          "label": "チームで大会を目指す",
+          "description": "練習費と送迎負担がかかります。全国大会への道が開きます。",
+          "cost": 16,
+          "income": 0,
+          "setup_cost": 10,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 3
+            },
+            {
+              "path": "child.stress",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "story-sports-trial",
+            "option": "try",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-cup",
+      "menu": "afterschool",
+      "title": "最後の走者は、うちの子",
+      "reason": "同じ運動の経験でも、町の大会と全国遠征では違う思い出になります。",
+      "kind": "action",
+      "min_age_months": 108,
+      "max_age_months": 203,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "relay",
+          "label": "町内リレーでアンカーに挑む",
+          "description": "いつもの仲間と一度きりの大勝負。",
+          "cost": 8,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 7
+            },
+            {
+              "path": "parents.A.social",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "policies": [
+              {
+                "decision": "story-team",
+                "option": "play"
+              }
+            ]
+          }
+        },
+        {
+          "id": "national",
+          "label": "全国大会への遠征を支える",
+          "description": "出場の思い出は残る。勝利やスポンサーは抽選です。",
+          "cost": 55,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 9
+            },
+            {
+              "path": "child.stress",
+              "delta": 5
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "policies": [
+              {
+                "decision": "story-team",
+                "option": "compete"
+              }
+            ],
+            "history": [
+              {
+                "decision": "story-team",
+                "option": "compete",
+                "after": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-coach",
+      "menu": "afterschool",
+      "title": "今度は小さな誰かのコーチ",
+      "reason": "大会を経験した本人が、次の世代と関わります。",
+      "kind": "action",
+      "min_age_months": 180,
+      "max_age_months": 234,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "neighbors",
+          "label": "町の後輩へバトンを渡す",
+          "description": "あの町内リレーを、今度は支える側で。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 5
+            },
+            {
+              "path": "child.stress",
+              "delta": -3
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-cup",
+                "option": "relay",
+                "after": 0
+              }
+            ]
+          }
+        },
+        {
+          "id": "clinic",
+          "label": "全国で覚えた技を教える",
+          "description": "小さな教室を開く材料・会場費がかかります。",
+          "cost": 10,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 7
+            },
+            {
+              "path": "parents.A.fulfillment",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-cup",
+                "option": "national",
+                "after": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-camp",
+      "menu": "home",
+      "title": "家族の冒険、第一歩",
+      "reason": "寝袋ひとつで大事件。どちらを選ぶかで次の冒険が変わります。",
+      "kind": "action",
+      "min_age_months": 60,
+      "max_age_months": 137,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "forest",
+          "label": "森で一泊キャンプ",
+          "description": "次は山と星空の遠征へ。準備で父母も疲れます。",
+          "cost": 15,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 5
+            },
+            {
+              "path": "child.trust.A",
+              "delta": 4
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "city",
+          "label": "地図を持って街を探検",
+          "description": "次は子どもが企画する鉄道の旅へ。",
+          "cost": 3,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.study",
+              "delta": 4
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "story-expedition",
+      "menu": "home",
+      "title": "冒険の地図を広げよう",
+      "reason": "前の冒険を踏まえて、今度は本人も旅の作戦会議へ参加します。",
+      "kind": "action",
+      "min_age_months": 108,
+      "max_age_months": 185,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "trek",
+          "label": "山の星空遠征へ",
+          "description": "キャンプの続き。海外交流の野外プログラムにつながります。",
+          "cost": 38,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 7
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-camp",
+                "option": "forest",
+                "after": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "rail",
+          "label": "子ども企画の鉄道横断旅行",
+          "description": "街歩きの続き。親は財布と予定の相談役です。",
+          "cost": 28,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.study",
+              "delta": 6
+            },
+            {
+              "path": "child.autonomy",
+              "delta": 6
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-camp",
+                "option": "city",
+                "after": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-exchange",
+      "menu": "education",
+      "title": "世界へ出る夏",
+      "reason": "家族の冒険や進路見学の経験が、外の世界への入口になります。",
+      "kind": "action",
+      "min_age_months": 156,
+      "max_age_months": 215,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "outdoor",
+          "label": "海外の野外交流を支える",
+          "description": "山の遠征経験を持って参加。高額な旅費と準備の負担があります。",
+          "cost": 100,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 12
+            },
+            {
+              "path": "child.stress",
+              "delta": 6
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-expedition",
+                "option": "trek",
+                "after": 0
+              }
+            ]
+          }
+        },
+        {
+          "id": "study",
+          "label": "短期の海外学習を支える",
+          "description": "進路見学の後に、本人の希望で参加。成績よりも準備が大切です。",
+          "cost": 120,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.study",
+              "delta": 10
+            },
+            {
+              "path": "child.autonomy",
+              "delta": 8
+            },
+            {
+              "path": "child.stress",
+              "delta": 6
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "base-career-visit",
+                "option": "visit",
+                "after": 0
+              }
+            ]
+          }
+        },
+        {
+          "id": "host",
+          "label": "家で世界の友人を迎える",
+          "description": "鉄道旅で育った好奇心を食卓へ。旅費は少なく、受け入れ準備に手間がかかります。",
+          "cost": 20,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 6
+            },
+            {
+              "path": "parents.B.social",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-expedition",
+                "option": "rail",
+                "after": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-recipe",
+      "menu": "grandparents",
+      "title": "実家の伝説のレシピ",
+      "reason": "実家を訪ねたら「昔は行列ができた」と秘伝のノートが出てきました。",
+      "kind": "action",
+      "min_age_months": 48,
+      "max_age_months": 167,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "learn",
+          "label": "一緒に幻のコロッケを作る",
+          "description": "屋台を出すか、家族だけのごちそうにするかは後で決められます。",
+          "cost": 4,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "grandparents.relation",
+              "delta": 1
+            },
+            {
+              "path": "child.ability.craft",
+              "delta": 4
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "base-grand-visit",
+            "option": "visit",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-stall",
+      "menu": "grandparents",
+      "title": "一日だけの家族食堂",
+      "reason": "伝説のレシピを誰に届けよう。大繁盛するかは開いてからのお楽しみです。",
+      "kind": "action",
+      "min_age_months": 84,
+      "max_age_months": 203,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "sell",
+          "label": "お祭りにコロッケ屋台を出す",
+          "description": "出店費は先払い。後から大繁盛や材料トラブルが起こることも。",
+          "cost": 22,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 7
+            },
+            {
+              "path": "grandparents.relation",
+              "delta": 1
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "stats": [
+              {
+                "path": "grandparents.health",
+                "op": "gte",
+                "value": 4
+              }
+            ]
+          }
+        },
+        {
+          "id": "feast",
+          "label": "家族だけの百個コロッケ祭り",
+          "description": "売上はないけれど、おかわりの声が止まりません。",
+          "cost": 6,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.trust.A",
+              "delta": 5
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 5
+            },
+            {
+              "path": "grandparents.relation",
+              "delta": 1
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "story-recipe",
+            "option": "learn",
+            "after": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-recipe-legacy",
+      "menu": "grandparents",
+      "title": "秘伝のノート、その次へ",
+      "reason": "あのコロッケを、本人が自分の暮らしへ持っていく年代です。",
+      "kind": "action",
+      "min_age_months": 180,
+      "max_age_months": 234,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "book",
+          "label": "屋台のレシピを小さな本にする",
+          "description": "家族食堂の経験を一冊へ。印刷代と引き換えに思い出が残ります。",
+          "cost": 18,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 6
+            },
+            {
+              "path": "grandparents.relation",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-stall",
+                "option": "sell",
+                "after": 0
+              }
+            ]
+          }
+        },
+        {
+          "id": "cook",
+          "label": "今度は本人が実家をもてなす",
+          "description": "家族だけの祭りを、料理担当を交代して再演。",
+          "cost": 5,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 5
+            },
+            {
+              "path": "grandparents.relation",
+              "delta": 2
+            },
+            {
+              "path": "grandparents.health",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-stall",
+                "option": "feast",
+                "after": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-market",
+      "menu": "work",
+      "title": "わが家のガレージマーケット",
+      "reason": "押し入れの山が、一日だけのお店に変わります。",
+      "kind": "action",
+      "min_age_months": 72,
+      "max_age_months": 179,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "sell",
+          "label": "家族で一日店長になる",
+          "description": "売上から出店費を引くと小さな臨時収入。親の副業の入口にもなります。",
+          "cost": 5,
+          "income": 18,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 4
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "swap",
+          "label": "お金を使わない交換会にする",
+          "description": "利益を追わず近所とのつながりを作ります。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.A.social",
+              "delta": 2
+            },
+            {
+              "path": "parents.B.social",
+              "delta": 1
+            },
+            {
+              "path": "child.stress",
+              "delta": -3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "story-venture",
+      "menu": "work",
+      "title": "親の小さなお店、大きな夢",
+      "reason": "一日店長と働き方相談の経験から始める副業。いつでも休業できます。",
+      "kind": "policy",
+      "min_age_months": 84,
+      "max_age_months": 239,
+      "default_option": "standard",
+      "once": false,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "standard",
+          "label": "新しいお店は休業する",
+          "description": "費用をかけず普段の生活に戻ります。参加を再開するときは導入費がかかります。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": []
+        },
+        {
+          "id": "small",
+          "label": "週末だけの小さなお店",
+          "description": "毎期10万円の費用と25万円の収入。父が準備を引き受けます。",
+          "cost": 10,
+          "income": 25,
+          "setup_cost": 25,
+          "effects": [
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            },
+            {
+              "path": "parents.A.fulfillment",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "launch",
+          "label": "母が工房を本格オープン",
+          "description": "毎期35万円の費用と75万円の収入。大口注文にもトラブルにもつながります。",
+          "cost": 35,
+          "income": 75,
+          "setup_cost": 100,
+          "effects": [
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            },
+            {
+              "path": "parents.B.stress",
+              "delta": 1
+            },
+            {
+              "path": "parents.B.fulfillment",
+              "delta": 1
+            }
+          ],
+          "event_modifiers": [
+            {
+              "label": "新事業の広がり",
+              "kind": "good",
+              "percent": 15
+            },
+            {
+              "label": "事業の責任",
+              "kind": "bad",
+              "percent": 15
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "story-market",
+            "option": "sell",
+            "after": 0
+          },
+          {
+            "decision": "base-work-consult",
+            "option": "talk",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-venture-pivot",
+      "menu": "work",
+      "title": "お店を続けるための作戦会議",
+      "reason": "本格開業から半年以上。拡大するか、休める仕組みを作るかを考えます。",
+      "kind": "action",
+      "min_age_months": 96,
+      "max_age_months": 234,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "delegate",
+          "label": "繁忙期の助っ人を育てる",
+          "description": "人に任せる仕組みを作る一度の投資。悪い出来事の影響を少し減らします。",
+          "cost": 45,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "decisions.fatigue.B",
+              "delta": -3
+            },
+            {
+              "path": "decisions.skills.B.planning",
+              "delta": 1
+            }
+          ],
+          "event_modifiers": [
+            {
+              "label": "任せられる仲間",
+              "kind": "bad",
+              "percent": -10
+            }
+          ]
+        },
+        {
+          "id": "fair",
+          "label": "大商談会へ出展する",
+          "description": "大口の取引が生まれるかもしれない賭け。出展費は返りません。",
+          "cost": 65,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "parents.B.social",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "policies": [
+          {
+            "decision": "story-venture",
+            "option": "launch"
+          }
+        ],
+        "history": [
+          {
+            "decision": "story-venture",
+            "option": "launch",
+            "after": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-home-project",
+      "menu": "home",
+      "title": "わが家の大改造会議",
+      "reason": "働き方を話した家族が、暮らす場所にも大きな一手。",
+      "kind": "action",
+      "min_age_months": 96,
+      "max_age_months": 215,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "studio",
+          "label": "一部屋を工房と仕事場に改造",
+          "description": "60万円の大きな買い物。創作と段取りに余裕が生まれます。",
+          "cost": 60,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 6
+            },
+            {
+              "path": "decisions.skills.A.planning",
+              "delta": 1
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            }
+          ]
+        },
+        {
+          "id": "move",
+          "label": "家族で新天地へ引っ越す",
+          "description": "200万円と引っ越し疲れ。新しい近所に慣れるまで時間がかかります。",
+          "cost": 200,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 8
+            },
+            {
+              "path": "child.stress",
+              "delta": 8
+            },
+            {
+              "path": "parents.A.social",
+              "delta": -1
+            },
+            {
+              "path": "parents.B.social",
+              "delta": -1
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 2
+            },
+            {
+              "path": "decisions.fatigue.B",
+              "delta": 2
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "base-work-consult",
+            "option": "talk",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-pathway",
+      "menu": "education",
+      "title": "本人が選ぶ次の扉",
+      "reason": "進路見学の後は、受験一本だけでなく、学ぶ・作る・働く道を選べます。",
+      "kind": "action",
+      "min_age_months": 180,
+      "max_age_months": 215,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "scholarship",
+          "label": "奨学生の選考に挑む",
+          "description": "準備は少額ですが勉強の負担があります。給付の結果はイベントで届きます。",
+          "cost": 12,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.study",
+              "delta": 6
+            },
+            {
+              "path": "child.stress",
+              "delta": 5
+            }
+          ],
+          "requires": {
+            "stats": [
+              {
+                "path": "child.ability.study",
+                "op": "gte",
+                "value": 45
+              }
+            ]
+          }
+        },
+        {
+          "id": "apprentice",
+          "label": "職人の工房で体験する",
+          "description": "道具代をかけて、自分の手を仕事にする可能性を試します。",
+          "cost": 18,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.ability.craft",
+              "delta": 8
+            },
+            {
+              "path": "child.autonomy",
+              "delta": 5
+            },
+            {
+              "path": "child.stress",
+              "delta": 3
+            }
+          ]
+        },
+        {
+          "id": "local",
+          "label": "地域の仕事をじっくり見学する",
+          "description": "大きな出費をせず、自分の暮らし方から進路を考えます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 5
+            },
+            {
+              "path": "child.stress",
+              "delta": -3
+            }
+          ]
+        }
+      ],
+      "requires": {
+        "history": [
+          {
+            "decision": "base-career-visit",
+            "option": "visit",
+            "after": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "story-independence",
+      "menu": "home",
+      "title": "親が口を出さない練習",
+      "reason": "自立の前に家事とお金を本人が試します。二つの巣立ち方につながります。",
+      "kind": "action",
+      "min_age_months": 180,
+      "max_age_months": 221,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "budget",
+          "label": "一人暮らしの予算を一緒に作る",
+          "description": "失敗できるうちに買い物・料理・家計を練習。次は引っ越しの支援へ。",
+          "cost": 6,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 8
+            },
+            {
+              "path": "child.ability.study",
+              "delta": 3
+            },
+            {
+              "path": "decisions.fatigue.A",
+              "delta": 1
+            }
+          ]
+        },
+        {
+          "id": "shared",
+          "label": "同居のまま家事と家計を分担する",
+          "description": "家を出ることだけを目標にせず、大人同士の暮らしを練習します。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 6
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 4
+            },
+            {
+              "path": "parents.B.stress",
+              "delta": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "story-departure",
+      "menu": "home",
+      "title": "鍵を渡す日",
+      "reason": "18歳からの節目。本人が選んだ暮らしを支えます。",
+      "kind": "action",
+      "min_age_months": 216,
+      "max_age_months": 234,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "move",
+          "label": "新生活の引っ越しを手伝う",
+          "description": "80万円で家具と引っ越しを支援。親の心には少しぽっかり穴が。",
+          "cost": 80,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 10
+            },
+            {
+              "path": "child.trust.A",
+              "delta": 5
+            },
+            {
+              "path": "parents.A.stress",
+              "delta": 1
+            },
+            {
+              "path": "parents.B.stress",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-independence",
+                "option": "budget",
+                "after": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "share",
+          "label": "大人同士の同居ルールを決める",
+          "description": "費用をかけず、家事と自由の境界を話し合います。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.autonomy",
+              "delta": 8
+            },
+            {
+              "path": "child.trust.A",
+              "delta": 4
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 4
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-independence",
+                "option": "shared",
+                "after": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "story-reunion",
+      "menu": "home",
+      "title": "小さかったあなたからの手紙",
+      "reason": "幼い日の選択が、18年後の食卓に戻ってきます。",
+      "kind": "action",
+      "min_age_months": 216,
+      "max_age_months": 234,
+      "default_option": null,
+      "once": true,
+      "cooldown": 1,
+      "options": [
+        {
+          "id": "open",
+          "label": "タイムカプセルを開ける",
+          "description": "小さな手形と、あのころの親の手紙。今日の本人から返事をもらいます。",
+          "cost": 0,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.trust.A",
+              "delta": 10
+            },
+            {
+              "path": "child.trust.B",
+              "delta": 10
+            },
+            {
+              "path": "parents.A.fulfillment",
+              "delta": 2
+            },
+            {
+              "path": "parents.B.fulfillment",
+              "delta": 2
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-keepsake",
+                "option": "capsule",
+                "after": 0
+              }
+            ]
+          }
+        },
+        {
+          "id": "screen",
+          "label": "へんてこ図鑑の上映会を開く",
+          "description": "家族の謎ダンスを再現。本人に見せてよい写真を選んでもらいます。",
+          "cost": 2,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [
+            {
+              "path": "child.stress",
+              "delta": -8
+            },
+            {
+              "path": "couple",
+              "delta": 2
+            },
+            {
+              "path": "parents.A.fulfillment",
+              "delta": 1
+            },
+            {
+              "path": "parents.B.fulfillment",
+              "delta": 1
+            }
+          ],
+          "requires": {
+            "history": [
+              {
+                "decision": "story-keepsake",
+                "option": "album",
+                "after": 0
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "action_tree": true,

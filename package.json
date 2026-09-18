@@ -16,6 +16,7 @@
     "deploy:check": "bun run build && wrangler deploy --dry-run",
     "test:browser": "bun scripts/browser-check.ts",
     "test:public": "bun scripts/public-play.ts",
+    "test:stories": "bun scripts/story-play.ts",
     "check:content": "bun scripts/check-content.ts",
     "schema:generate": "bun scripts/generate-json-schemas.ts && vp fmt config/schemas",
     "schema:check": "bun scripts/generate-json-schemas.ts --check",

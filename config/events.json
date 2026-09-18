@@ -72,7 +72,7 @@
         "add": 8
       }
     ],
-    "cooldown": 4,
+    "cooldown": 6,
     "once": false,
     "effects": [
       {
@@ -113,7 +113,7 @@
         "add": 12
       }
     ],
-    "cooldown": 4,
+    "cooldown": 6,
     "once": false,
     "effects": [
       {
@@ -162,7 +162,7 @@
     "kind": "good",
     "min_age_months": 36,
     "max_age_months": 210,
-    "probability": 35,
+    "probability": 24,
     "conditions": [],
     "modifiers": [
       {
@@ -174,7 +174,7 @@
         "add": 10
       }
     ],
-    "cooldown": 3,
+    "cooldown": 4,
     "once": false,
     "effects": [
       {
@@ -193,7 +193,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 35,
+    "probability": 24,
     "conditions": [],
     "modifiers": [
       {
@@ -221,7 +221,7 @@
         "add": 5
       }
     ],
-    "cooldown": 3,
+    "cooldown": 4,
     "once": false,
     "effects": [
       {
@@ -244,7 +244,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 20,
+    "probability": 14,
     "conditions": [],
     "modifiers": [
       {
@@ -256,7 +256,7 @@
         "add": 8
       }
     ],
-    "cooldown": 3,
+    "cooldown": 4,
     "once": false,
     "effects": [
       {
@@ -275,7 +275,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 20,
+    "probability": 14,
     "conditions": [],
     "modifiers": [
       {
@@ -287,7 +287,7 @@
         "add": 8
       }
     ],
-    "cooldown": 3,
+    "cooldown": 4,
     "once": false,
     "effects": [
       {
@@ -306,10 +306,10 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 25,
+    "probability": 18,
     "conditions": [],
     "modifiers": [],
-    "cooldown": 3,
+    "cooldown": 5,
     "once": false,
     "effects": [
       {
@@ -477,5 +477,1449 @@
         "delta": 1
       }
     ]
+  },
+  {
+    "id": "story-baby-conductor",
+    "text": "夜中の大合唱！ 赤ちゃんが指揮者、父母は交代で眠たいコーラス隊に。翌朝は家事を少し休んだ。",
+    "kind": "bad",
+    "min_age_months": 0,
+    "max_age_months": 23,
+    "probability": 20,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "decisions.fatigue.A",
+        "delta": 1
+      },
+      {
+        "path": "decisions.fatigue.B",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-first-steps",
+    "text": "はじめの一歩で家族総立ち！ 応援の声に驚いて座り込んだが、拍手は鳴りやまなかった。",
+    "kind": "good",
+    "min_age_months": 12,
+    "max_age_months": 23,
+    "probability": 65,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 4
+      },
+      {
+        "path": "parents.A.fulfillment",
+        "delta": 1
+      },
+      {
+        "path": "parents.B.fulfillment",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-baby-tissue",
+    "text": "ティッシュ雪まつり開催。リビング一面が真っ白になり、主催者だけが満面の笑み。",
+    "kind": "bad",
+    "min_age_months": 6,
+    "max_age_months": 35,
+    "probability": 22,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -2
+      },
+      {
+        "path": "decisions.fatigue.B",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-why-committee",
+    "text": "「どうして？」委員会が発足。月、影、炊飯器まで、親も知らない世界を一緒に調べた。",
+    "kind": "good",
+    "min_age_months": 30,
+    "max_age_months": 65,
+    "probability": 25,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.ability.study",
+        "delta": 5
+      },
+      {
+        "path": "child.trust.A",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "story-pocket-zoo",
+    "text": "ポケットからどんぐり、石、そして虫！ 洗濯前の持ち物検査が家族の一大行事になった。",
+    "kind": "bad",
+    "min_age_months": 30,
+    "max_age_months": 65,
+    "probability": 18,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -3
+      },
+      {
+        "path": "decisions.fatigue.A",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-imaginary-shop",
+    "text": "おままごと店が開店。「お会計は百億円です」。葉っぱのお金で払うと、おまけが山ほどついてきた。",
+    "kind": "good",
+    "min_age_months": 36,
+    "max_age_months": 65,
+    "probability": 22,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.ability.craft",
+        "delta": 4
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 4
+      }
+    ]
+  },
+  {
+    "id": "story-school-backpack",
+    "text": "大きなランドセル、小さな背中。家の前で何度も手を振り、とうとう教室へ向かった。",
+    "kind": "good",
+    "min_age_months": 72,
+    "max_age_months": 77,
+    "probability": 100,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 5
+      },
+      {
+        "path": "parents.A.fulfillment",
+        "delta": 1
+      },
+      {
+        "path": "parents.B.fulfillment",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-homework-volcano",
+    "text": "自由研究の火山が大噴火！ 台所の片付けまで含めて、忘れられない実験になった。",
+    "kind": "bad",
+    "min_age_months": 78,
+    "max_age_months": 137,
+    "probability": 18,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -8
+      },
+      {
+        "path": "child.ability.study",
+        "delta": 4
+      },
+      {
+        "path": "decisions.fatigue.A",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-library-king",
+    "text": "図書館の常連になった子どもに「おすすめ係」の称号。司書さんと本の塔を作って帰ってきた。",
+    "kind": "good",
+    "min_age_months": 78,
+    "max_age_months": 137,
+    "probability": 20,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.ability.study",
+        "delta": 6
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "story-lost-teeth",
+    "text": "歯が抜けた記念写真が、なぜか家族全員の変顔大会に。アルバムに強烈な一枚が増えた。",
+    "kind": "good",
+    "min_age_months": 72,
+    "max_age_months": 113,
+    "probability": 20,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.stress",
+        "delta": -5
+      },
+      {
+        "path": "couple",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-growth-spurt",
+    "text": "靴も服も一斉にサイズアウト。昨日まで着られたはずなのに、家計に成長の大波が来た！",
+    "kind": "bad",
+    "min_age_months": 120,
+    "max_age_months": 173,
+    "probability": 22,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -18
+      }
+    ]
+  },
+  {
+    "id": "story-school-festival",
+    "text": "文化祭でまさかの主役に抜擢。「見に来てもいいけど騒がないで」。客席の親は静かに大興奮。",
+    "kind": "good",
+    "min_age_months": 144,
+    "max_age_months": 209,
+    "probability": 20,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 6
+      },
+      {
+        "path": "parents.B.fulfillment",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-door-sign",
+    "text": "部屋のドアに「入る前にノック」の張り紙。家族会議の末、互いの時間を尊重する約束ができた。",
+    "kind": "good",
+    "min_age_months": 144,
+    "max_age_months": 185,
+    "probability": 24,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 5
+      },
+      {
+        "path": "child.trust.A",
+        "delta": 3
+      },
+      {
+        "path": "child.trust.B",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "story-group-project",
+    "text": "グループ発表の前夜に資料が消えた！ 仲間と作り直し、翌日は眠い目で発表をやり遂げた。",
+    "kind": "bad",
+    "min_age_months": 144,
+    "max_age_months": 209,
+    "probability": 18,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.stress",
+        "delta": 5
+      },
+      {
+        "path": "child.ability.study",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "story-first-pay",
+    "text": "はじめての仕事体験でもらったお礼で、本人が家族におやつをごちそう。レシートまで宝物になった。",
+    "kind": "good",
+    "min_age_months": 192,
+    "max_age_months": 227,
+    "probability": 25,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 6
+      },
+      {
+        "path": "parents.A.fulfillment",
+        "delta": 1
+      }
+    ]
+  },
+  {
+    "id": "story-deadline-storm",
+    "text": "出願、面接、提出物。締切が一斉に押し寄せ、食卓が巨大な予定表に変身した。",
+    "kind": "bad",
+    "min_age_months": 192,
+    "max_age_months": 215,
+    "probability": 20,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "decisions.fatigue.A",
+        "delta": 1
+      },
+      {
+        "path": "decisions.fatigue.B",
+        "delta": 1
+      },
+      {
+        "path": "child.stress",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "story-adult-photo",
+    "text": "大人になった記念の一枚。ポーズは昔と同じなのに、親より背が高い。撮り直すたびに笑いがこぼれた。",
+    "kind": "good",
+    "min_age_months": 216,
+    "max_age_months": 234,
+    "probability": 40,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "parents.A.fulfillment",
+        "delta": 1
+      },
+      {
+        "path": "parents.B.fulfillment",
+        "delta": 1
+      },
+      {
+        "path": "child.trust.A",
+        "delta": 4
+      },
+      {
+        "path": "child.trust.B",
+        "delta": 4
+      }
+    ]
+  },
+  {
+    "id": "story-dinner-for-parents",
+    "text": "「今日は座ってて」。子どもが夕食を用意し、親は食卓で待つ役になった。少し焦げても、忘れられない味。",
+    "kind": "good",
+    "min_age_months": 216,
+    "max_age_months": 234,
+    "probability": 25,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "decisions.fatigue.A",
+        "delta": -1
+      },
+      {
+        "path": "decisions.fatigue.B",
+        "delta": -1
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 5
+      }
+    ]
+  },
+  {
+    "id": "story-castle-parade",
+    "text": "段ボール王国にご近所の見学団！ 玉座はみかん箱だが、城主の説明には夢がぎっしり。",
+    "kind": "good",
+    "min_age_months": 30,
+    "max_age_months": 77,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.ability.craft",
+        "delta": 5
+      },
+      {
+        "path": "parents.A.social",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-cardboard",
+          "option": "build",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-dragon-encore",
+    "text": "タオルのドラゴン劇にアンコール！ 子どもが新しい歌まで作り、家族の小劇場が大盛況になった。",
+    "kind": "good",
+    "min_age_months": 30,
+    "max_age_months": 77,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.ability.craft",
+        "delta": 5
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 4
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-cardboard",
+          "option": "theater",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-rocket-launch",
+    "text": "ペットボトル宇宙計画、発射成功！ お城を作っていた手が、今度は空を指さした。",
+    "kind": "good",
+    "min_age_months": 78,
+    "max_age_months": 191,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.ability.study",
+        "delta": 7
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 5
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-science-fair",
+          "option": "rocket",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-robot-rebellion",
+    "text": "靴下ロボ、左右ちぐはぐの靴下だけを集める。「仕様です」と言い張りつつ、次の改良図が描かれた。",
+    "kind": "bad",
+    "min_age_months": 78,
+    "max_age_months": 227,
+    "probability": 28,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -12
+      },
+      {
+        "path": "child.ability.craft",
+        "delta": 4
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-science-fair",
+          "option": "robot",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-invention-award",
+    "text": "全国展示の宇宙基地に審査員が大注目！ 特別賞と活動奨励金120万円。家の小さなお城から、ずいぶん遠くへ来た。",
+    "kind": "good",
+    "min_age_months": 126,
+    "max_age_months": 234,
+    "probability": 25,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 120
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 8
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-invention",
+          "option": "exhibit",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-robot-order",
+    "text": "実演した靴下ロボに注文が入った！ 材料費を引いて80万円の収入。家族で最初の発送箱を見送った。",
+    "kind": "good",
+    "min_age_months": 126,
+    "max_age_months": 234,
+    "probability": 25,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 80
+      },
+      {
+        "path": "child.ability.craft",
+        "delta": 5
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-invention",
+          "option": "demo",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-garage-session",
+    "text": "気ままなセッションに近所の人が手拍子。予定外の小さなライブで、いつもの一曲が好きになった。",
+    "kind": "good",
+    "min_age_months": 54,
+    "max_age_months": 215,
+    "probability": 18,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.stress",
+        "delta": -5
+      },
+      {
+        "path": "parents.B.social",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "policies": [
+        {
+          "decision": "story-music",
+          "option": "casual"
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-amp-trouble",
+    "text": "本番練習でアンプが沈黙！ 修理代は痛いが、急きょ始めた生演奏に仲間が笑った。",
+    "kind": "bad",
+    "min_age_months": 54,
+    "max_age_months": 215,
+    "probability": 16,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 8,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -18
+      },
+      {
+        "path": "child.stress",
+        "delta": 3
+      }
+    ],
+    "requires": {
+      "policies": [
+        {
+          "decision": "story-music",
+          "option": "stage"
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-festival-discovery",
+    "text": "全国フェスの演奏が特別賞に！ 活動支援金70万円と、知らない誰かが口ずさんでくれた一曲が残った。",
+    "kind": "good",
+    "min_age_months": 102,
+    "max_age_months": 234,
+    "probability": 28,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 70
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 7
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-festival",
+          "option": "national",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-tour-detour",
+    "text": "自主ツアーの移動日に大遅延。追加の宿泊費が出たが、待合室で作った歌が次の演奏の一曲目になった。",
+    "kind": "bad",
+    "min_age_months": 186,
+    "max_age_months": 234,
+    "probability": 30,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -25
+      },
+      {
+        "path": "child.stress",
+        "delta": 4
+      },
+      {
+        "path": "child.ability.craft",
+        "delta": 3
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-encore",
+          "option": "tour",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-relay-finish",
+    "text": "町内リレーで大逆転！ ゴール写真は全員ぶれているが、あの歓声だけははっきり覚えている。",
+    "kind": "good",
+    "min_age_months": 114,
+    "max_age_months": 215,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 7
+      },
+      {
+        "path": "parents.A.social",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-cup",
+          "option": "relay",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-cup-sponsor",
+    "text": "全国大会での挑戦に地元のお店が感激。遠征応援金60万円と、手書きの大きな横断幕が届いた。",
+    "kind": "good",
+    "min_age_months": 114,
+    "max_age_months": 215,
+    "probability": 28,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 60
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 6
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-cup",
+          "option": "national",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-team-equipment",
+    "text": "チームの道具が一斉に限界！ 買い替えの出費に、送迎係も思わず深いため息。",
+    "kind": "bad",
+    "min_age_months": 54,
+    "max_age_months": 215,
+    "probability": 16,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 8,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -14
+      },
+      {
+        "path": "decisions.fatigue.A",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "policies": [
+        {
+          "decision": "story-team",
+          "option": "compete"
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-camp-raccoon",
+    "text": "キャンプの朝、靴が片方ない！ テントの裏で見つけた犯人らしき足跡が、家族の大捜査会議を呼んだ。",
+    "kind": "bad",
+    "min_age_months": 66,
+    "max_age_months": 149,
+    "probability": 30,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -5
+      },
+      {
+        "path": "decisions.fatigue.A",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-camp",
+          "option": "forest",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-star-sea",
+    "text": "山の遠征で雲が晴れ、空いっぱいの流れ星。誰も写真を撮らず、しばらく黙って見上げていた。",
+    "kind": "good",
+    "min_age_months": 114,
+    "max_age_months": 203,
+    "probability": 40,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.stress",
+        "delta": -8
+      },
+      {
+        "path": "child.trust.A",
+        "delta": 6
+      },
+      {
+        "path": "child.trust.B",
+        "delta": 6
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-expedition",
+          "option": "trek",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-rail-detour",
+    "text": "子ども企画の旅で降りた無名の駅に、絶品のお店。「予定変更も作戦のうち」と本人が胸を張った。",
+    "kind": "good",
+    "min_age_months": 114,
+    "max_age_months": 203,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 7
+      },
+      {
+        "path": "child.ability.study",
+        "delta": 3
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-expedition",
+          "option": "rail",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-exchange-letter",
+    "text": "海外学習で知り合った友人から手紙。辞書とにらめっこして、自分だけの返事を書き上げた。",
+    "kind": "good",
+    "min_age_months": 162,
+    "max_age_months": 234,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.ability.study",
+        "delta": 7
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 5
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-exchange",
+          "option": "study",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-outdoor-friends",
+    "text": "野外交流の仲間から世界各地の写真が届いた。「次は自分で計画したい」。地図がまた一枚増えた。",
+    "kind": "good",
+    "min_age_months": 162,
+    "max_age_months": 234,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 8
+      },
+      {
+        "path": "child.interest.study",
+        "delta": 4
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-exchange",
+          "option": "outdoor",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-host-feast",
+    "text": "家で迎えた友人と、互いの国の料理を交換。台所は大混雑、食卓は小さな世界会議になった。",
+    "kind": "good",
+    "min_age_months": 162,
+    "max_age_months": 234,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 5
+      },
+      {
+        "path": "parents.B.social",
+        "delta": 1
+      },
+      {
+        "path": "child.stress",
+        "delta": -4
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-exchange",
+          "option": "host",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-stall-queue",
+    "text": "伝説のコロッケ屋台に長蛇の列！ 材料費を引いて45万円の大繁盛。実家の得意顔まで看板になりそうだ。",
+    "kind": "good",
+    "min_age_months": 90,
+    "max_age_months": 215,
+    "probability": 32,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 45
+      },
+      {
+        "path": "grandparents.relation",
+        "delta": 1
+      },
+      {
+        "path": "parents.A.fulfillment",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-stall",
+          "option": "sell",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-stall-potatoes",
+    "text": "屋台用のじゃがいもが足りない！ 追加仕入れと運搬に大わらわ。伝説にも裏方仕事は山ほどあった。",
+    "kind": "bad",
+    "min_age_months": 90,
+    "max_age_months": 215,
+    "probability": 22,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -12
+      },
+      {
+        "path": "decisions.fatigue.A",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-stall",
+          "option": "sell",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-recipe-return",
+    "text": "家族のコロッケ祭りの写真を実家が何度も眺めている。「次は私が作る」と子どもが予約を入れた。",
+    "kind": "good",
+    "min_age_months": 90,
+    "max_age_months": 215,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "grandparents.relation",
+        "delta": 1
+      },
+      {
+        "path": "child.trust.B",
+        "delta": 5
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-stall",
+          "option": "feast",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-small-shop-fan",
+    "text": "週末のお店に初めての常連さん。「また来たよ」の一言に、準備の疲れが少し軽くなった。",
+    "kind": "good",
+    "min_age_months": 90,
+    "max_age_months": 234,
+    "probability": 18,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 8,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 18
+      },
+      {
+        "path": "parents.A.stress",
+        "delta": -1
+      }
+    ],
+    "requires": {
+      "policies": [
+        {
+          "decision": "story-venture",
+          "option": "small"
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-big-order",
+    "text": "本格オープンした工房に、まさかの大口注文！ 経費を引いて100万円の臨時収入。家族会議の声も大きくなった。",
+    "kind": "good",
+    "min_age_months": 90,
+    "max_age_months": 234,
+    "probability": 20,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 100
+      },
+      {
+        "path": "parents.B.fulfillment",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "policies": [
+        {
+          "decision": "story-venture",
+          "option": "launch"
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-shop-repair",
+    "text": "工房の機械が故障し、納期の前に大騒ぎ。修理費と調整の負担で、店主もひと休みが必要になった。",
+    "kind": "bad",
+    "min_age_months": 90,
+    "max_age_months": 234,
+    "probability": 16,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 8,
+    "once": false,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": -35
+      },
+      {
+        "path": "decisions.fatigue.B",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "policies": [
+        {
+          "decision": "story-venture",
+          "option": "launch"
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-fair-contract",
+    "text": "商談会で交わした名刺が大きな契約に！ 経費差引で150万円。あの一日店長の看板がまだ店に飾られている。",
+    "kind": "good",
+    "min_age_months": 102,
+    "max_age_months": 234,
+    "probability": 25,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 150
+      },
+      {
+        "path": "parents.B.social",
+        "delta": 1
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-venture-pivot",
+          "option": "fair",
+          "after": 0
+        }
+      ],
+      "policies": [
+        {
+          "decision": "story-venture",
+          "option": "launch"
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-new-town",
+    "text": "新天地の近所からお祭りのお誘い。引っ越し箱が片付く前に、新しい顔見知りができた。",
+    "kind": "good",
+    "min_age_months": 102,
+    "max_age_months": 234,
+    "probability": 40,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "parents.A.social",
+        "delta": 2
+      },
+      {
+        "path": "parents.B.social",
+        "delta": 2
+      },
+      {
+        "path": "child.stress",
+        "delta": -5
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-home-project",
+          "option": "move",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-scholarship-result",
+    "text": "奨学生の選考に合格！ 進学準備の給付金100万円。本人が書いた志望理由書を、家族でもう一度読んだ。",
+    "kind": "good",
+    "min_age_months": 186,
+    "max_age_months": 234,
+    "probability": 30,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 100
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 6
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-pathway",
+          "option": "scholarship",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-apprentice-piece",
+    "text": "体験先の工房から、本人の作品を店頭に置きたいと連絡。小さな売上15万円より、名札の自分の名前がまぶしい。",
+    "kind": "good",
+    "min_age_months": 186,
+    "max_age_months": 234,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "cash",
+        "delta": 15
+      },
+      {
+        "path": "child.ability.craft",
+        "delta": 7
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-pathway",
+          "option": "apprentice",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-local-path",
+    "text": "見学した地域の職場で顔を覚えてもらえた。「また話を聞きにおいで」。身近な場所に将来の入口が見えた。",
+    "kind": "good",
+    "min_age_months": 186,
+    "max_age_months": 234,
+    "probability": 35,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 7
+      },
+      {
+        "path": "child.stress",
+        "delta": -5
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-pathway",
+          "option": "local",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-first-call",
+    "text": "新生活の本人から電話。「洗濯機って、これで合ってる？」。頼られてうれしい親と、説明書を読む声が重なった。",
+    "kind": "good",
+    "min_age_months": 222,
+    "max_age_months": 234,
+    "probability": 60,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.trust.A",
+        "delta": 6
+      },
+      {
+        "path": "parents.A.stress",
+        "delta": -1
+      },
+      {
+        "path": "parents.B.stress",
+        "delta": -1
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-departure",
+          "option": "move",
+          "after": 0
+        }
+      ]
+    }
+  },
+  {
+    "id": "story-shared-breakfast",
+    "text": "同居ルールを決めた翌朝、本人が家族分の朝食を用意。「当番だからね」。同じ家で、関係が少し変わった。",
+    "kind": "good",
+    "min_age_months": 222,
+    "max_age_months": 234,
+    "probability": 60,
+    "conditions": [],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": true,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 6
+      },
+      {
+        "path": "decisions.fatigue.A",
+        "delta": -1
+      },
+      {
+        "path": "decisions.fatigue.B",
+        "delta": -1
+      }
+    ],
+    "requires": {
+      "history": [
+        {
+          "decision": "story-departure",
+          "option": "share",
+          "after": 0
+        }
+      ]
+    }
   }
 ]
