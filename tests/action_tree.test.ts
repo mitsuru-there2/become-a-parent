@@ -28,6 +28,20 @@ const choose = (s: State, id: string, value: string) =>
   chooseDecision(s, choices(s).find((c) => c.event_id === id)!.instance_id, `${id}:${value}`);
 
 describe("S-018 アクションツリー", () => {
+  it("各実行案へ画像を設定でき、未設定時は共通の仮画像を公開する", () => {
+    const s = start();
+    const action = option(s, "base-extra-work", "accept");
+    expect(action.visual).toEqual(s.settings!.content.visuals.hero);
+    const content = clone(defaultContent);
+    content.visuals.custom = { src: "/assets/test/custom.webp", alt: "個別のアクション画像" };
+    content.life_game!.decisions.find((d) => d.id === "base-extra-work")!.options[0].visual =
+      "custom";
+    const custom = startDecisions("home-01", 2, new Catalog(content, []).resolve());
+    expect(option(custom, "base-extra-work", "accept").visual).toEqual(content.visuals.custom);
+    content.life_game!.decisions.find((d) => d.id === "base-extra-work")!.options[0].visual =
+      "missing";
+    expect(() => new Catalog(content, []).resolve()).toThrow("base-extra-work.accept.visual");
+  });
   it("全ノードを公開し、未取得と同一期の連続取得を拒否。取消では履歴・効果を残さない", () => {
     const s = start(48);
     expect(choices(s)).toHaveLength(s.settings!.content.life_game!.decisions.length);

@@ -545,6 +545,10 @@
             "items": {
               "type": "object",
               "properties": {
+                "visual": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
                 "income_reduction": {
                   "type": "integer",
                   "minimum": 0,

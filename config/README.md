@@ -201,6 +201,8 @@ rules-5は同じ10点スケールを維持し、decision_gameの選択肢に任�
 
 ## ツリーと取得効果（S-018）
 
+ツリーの各実行案には任意の`visual` IDを指定できます。`visuals`に登録したIDを参照し、未指定なら暫定的に`hero`を表示します。詳細ダイアログでは一つの実行案を確定・キャンセルします。
+
 `action_tree: true`で全ノードを公開。`requires.annual_income`は確定中の継続方針による年収の下限（万円）を指定します。成績条件は`requires.stats`の`child.ability.study`（0〜100）、親能力は`decisions.skills.*`（0〜10）。`income_reduction`は年収算出専用の減収値（半年分）で、その金額を既存の`cost`にも含めます。臨時収入を年収に含めません。
 
 選択肢の`event_modifiers`は`{ "label": "広がる機会", "kind": "good", "percent": 20 }`等の配列。good/bad別にイベントの数値効果を補正します。利点だけでなく負担も対にして、深い枝ほど強くしてください。適用期間、加算上限、端数と援助金移転の扱いは[S-018](../docs/specs/action-tree.md)。年齢範囲と無料の`default_option`で保育所・公立学校等の既定経路を定めます。UI専用データで分岐・効果を実装しません。

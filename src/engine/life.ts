@@ -322,10 +322,31 @@ export function lifeChoices(s: State): Choice[] {
           )
           .map((o) => {
             const reasons = selectionReasons(s, node, o);
+            const parents = [
+              ...new Map(
+                [node.requires, o.requires, o.maintains]
+                  .flatMap((r) => [...(r?.history ?? []), ...(r?.policies ?? [])])
+                  .filter((r) => r.decision !== node.id)
+                  .map((r) => {
+                    const parent = config(s).decisions.find((d) => d.id === r.decision)!;
+                    const optionId = `${r.decision}:${r.option}`;
+                    return [
+                      optionId,
+                      {
+                        option_id: optionId,
+                        label: `${parent.title}「${parent.options.find((item) => item.id === r.option)!.label}」`,
+                      },
+                    ] as const;
+                  }),
+              ).values(),
+            ];
             // 組合せの家計超過は編集中に許容し、確定時に一括検査する。取消と安い方針への変更を妨げない。
             return {
               option_id: key(node, o),
               label: o.label,
+              ...(treeEnabled(s)
+                ? { visual: contentFor(s).visuals[o.visual ?? "hero"], parents }
+                : {}),
               cost:
                 o.cost +
                 (node.kind === "policy" && o.id !== s.life!.policies[node.id] ? o.setup_cost : 0),

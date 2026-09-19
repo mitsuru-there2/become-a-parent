@@ -14,6 +14,7 @@ export const lifeEffectsSchema = v.array(
   }),
 );
 const lifeOptionSchema = v.strictObject({
+  visual: v.optional(contentIdSchema),
   income_reduction: v.optional(integer()),
   event_modifiers: v.optional(
     v.array(

@@ -291,6 +291,8 @@ export interface Choice {
     cost: number;
     income: number;
     description?: string;
+    visual?: Visual;
+    parents?: { option_id: string; label: string }[];
     acquired?: boolean;
     requirements?: string[];
     event_modifiers?: { label: string; kind: "good" | "bad"; percent: number }[];

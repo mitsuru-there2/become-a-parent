@@ -47,6 +47,7 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
     );
     if (node.requires) requirements.push(node.requires);
     for (const o of node.options) {
+      ensure(!o.visual || Object.hasOwn(content.visuals, o.visual), `${node.id}.${o.id}.visual`);
       ensure(
         (o.income_reduction ?? 0) <= o.cost,
         `${node.id}.${o.id}: 減収は家計負担costにも含めてください`,

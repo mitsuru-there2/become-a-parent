@@ -2349,37 +2349,64 @@ meter::-moz-meter-bar {
   line-height: 1.8;
 }
 .tree-detail {
-  margin-top: 18px;
-  padding: 16px;
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(820px, calc(100dvh - 32px));
+  margin: auto;
+  padding: 0;
+  overflow: auto;
   border: 1px solid #776b4f;
   background: #20221b;
+  color: #e5e4d4;
+  box-shadow: 0 20px 70px #000b;
+}
+.tree-detail::backdrop {
+  background: #080b08cc;
+}
+.tree-detail-body {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 18px;
+  padding: 18px;
+}
+.tree-detail-body > img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: 1px solid #4a4c40;
+}
+.tree-detail-copy {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.tree-detail-copy header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tree-detail-copy h3 {
+  margin: 4px 0 8px;
+  font-size: 18px;
+}
+.tree-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 18px 18px;
+}
+.tree-dialog-actions button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid #777665;
+}
+.tree-dialog-actions .tree-select {
+  width: auto;
+  margin: 0;
 }
 .tree-default {
   border-left: 2px solid #b9a271;
   padding-left: 10px;
 }
-.tree-option-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 12px;
-  margin-top: 16px;
-}
-.tree-option {
-  padding: 14px;
-  background: #151812;
-  border: 1px solid #424739;
-}
-.tree-option h4 {
-  font-size: 13px;
-  margin: 0 0 10px;
-}
-.tree-option h4 span {
-  display: block;
-  color: #d7bd81;
-  font-size: 10px;
-  margin-top: 4px;
-}
-.tree-option p,
 .tree-requirements {
   font-size: 11px;
   line-height: 1.8;
@@ -2484,7 +2511,14 @@ meter::-moz-meter-bar {
     margin-left: 0;
   }
   .tree-detail {
+    width: calc(100vw - 20px);
+  }
+  .tree-detail-body {
+    grid-template-columns: 1fr;
     padding: 12px;
+  }
+  .tree-detail-body > img {
+    max-height: 180px;
   }
 }
 .tree-shell,

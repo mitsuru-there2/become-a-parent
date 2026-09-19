@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
 import { $busy, update } from "../../stores/game";
+import { ContentImage } from "./content_image";
+
+type ActionNode = {
+  choice: Choice;
+  option: Choice["options"][number];
+};
 
 function MenuIcon({ id }: { id: string }) {
   const paths: Record<string, string> = {
@@ -27,41 +33,50 @@ function MenuIcon({ id }: { id: string }) {
   );
 }
 
-function graphPositions(choices: Choice[]) {
-  const map = new Map(choices.map((c) => [c.event_id, c]));
+function graphPositions(actions: ActionNode[]) {
+  const map = new Map(actions.map((action) => [action.option.option_id, action]));
   const levels = new Map<string, number>();
   function level(id: string, seen = new Set<string>()): number {
     if (seen.has(id)) return 0;
     if (levels.has(id)) return levels.get(id)!;
-    const parents = map.get(id)?.tree?.parents.filter((p) => map.has(p.id)) ?? [];
+    const parents = map.get(id)?.option.parents?.filter((p) => map.has(p.option_id)) ?? [];
     const depth = parents.length
-      ? 1 + Math.max(...parents.map((p) => level(p.id, new Set(seen).add(id))))
+      ? 1 + Math.max(...parents.map((p) => level(p.option_id, new Set(seen).add(id))))
       : 0;
     levels.set(id, depth);
     return depth;
   }
   const rows = new Map<number, number>();
-  return choices.map((choice) => {
-    const column = level(choice.event_id);
+  return actions.map((action) => {
+    const column = level(action.option.option_id);
     const row = rows.get(column) ?? 0;
     rows.set(column, row + 1);
-    return { choice, x: column * 240 + 16, y: row * 116 + 16 };
+    return { ...action, x: column * 240 + 16, y: row * 116 + 16 };
   });
 }
 
 export function ActionTree({ state, choices }: { state: PublicState; choices: Choice[] }) {
   const [menu, setMenu] = useState<string | null>("education");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
   const detailHeading = useRef<HTMLHeadingElement>(null);
-  const treeRegion = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (selectedId) detailHeading.current?.focus();
+    if (selectedId && dialog.current && !dialog.current.open) {
+      dialog.current.showModal();
+      detailHeading.current?.focus();
+    }
   }, [selectedId]);
   const busy = useStore($busy);
   const life = state.life!;
   const visible = menu ? choices.filter((c) => c.menu === menu) : choices;
-  const nodes = graphPositions(visible);
-  const selected = visible.find((c) => c.event_id === selectedId);
+  const nodes = graphPositions(
+    visible.flatMap((choice) =>
+      choice.options
+        .filter((option) => !option.option_id.endsWith(":cancel"))
+        .map((option) => ({ choice, option })),
+    ),
+  );
+  const selected = nodes.find((node) => node.option.option_id === selectedId);
   const scheduled = choices.filter((c) => c.selected_option);
   const width = Math.max(240, ...nodes.map((n) => n.x + 220));
   const height = Math.max(140, ...nodes.map((n) => n.y + 112));
@@ -91,7 +106,12 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
           >
             <MenuIcon id={item.id} />
             <strong>{item.label}</strong>
-            <small>{choices.filter((c) => c.menu === item.id).length}のアクション</small>
+            <small>
+              {choices
+                .filter((c) => c.menu === item.id)
+                .reduce((count, c) => count + c.options.length - 1, 0)}
+              のアクション
+            </small>
           </button>
         ))}
       </nav>
@@ -109,50 +129,41 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
       </div>
       <p className="tree-legend">
         ○ 選択可能　✓ 取得済み　◇ 条件待ち{" "}
-        <span>未解放の枝もタップして計画できます。横・縦にスクロール →</span>
+        <span>未解放の枝もタップして詳細を確認できます。横・縦にスクロール →</span>
       </p>
-      <div
-        ref={treeRegion}
-        className="tree-scroll"
-        tabIndex={0}
-        role="region"
-        aria-label="アクションのつながり"
-      >
+      <div className="tree-scroll" tabIndex={0} role="region" aria-label="アクションのつながり">
         <div className="tree-canvas" style={{ width, height }}>
           <svg className="tree-edges" width={width} height={height} aria-hidden="true">
             {nodes.flatMap((node) =>
-              node.choice.tree!.parents.map((parent) => {
-                const from = nodes.find((n) => n.choice.event_id === parent.id);
+              (node.option.parents ?? []).map((parent) => {
+                const from = nodes.find((n) => n.option.option_id === parent.option_id);
                 return from ? (
                   <path
-                    key={`${parent.id}:${node.choice.event_id}`}
+                    key={`${parent.option_id}:${node.option.option_id}`}
                     d={`M ${from.x + 204} ${from.y + 46} C ${from.x + 230} ${from.y + 46}, ${node.x - 25} ${node.y + 46}, ${node.x} ${node.y + 46}`}
                   />
                 ) : null;
               }),
             )}
           </svg>
-          {nodes.map(({ choice, x, y }) => {
-            const options = choice.options.filter((o) => !o.option_id.endsWith(":cancel"));
-            const acquired = options.some((o) => o.acquired);
-            const current = life.policies.some((p) => p.id === choice.event_id);
-            const available = options.some(
-              (o) => o.available && o.option_id !== choice.current_option,
-            );
+          {nodes.map(({ choice, option, x, y }) => {
+            const acquired = option.acquired;
+            const current = option.option_id === choice.current_option;
+            const planned = option.option_id === choice.selected_option;
+            const available = option.available && !current && !planned;
             return (
               <button
                 className={`tree-node ${acquired || current ? "is-acquired" : available ? "is-available" : "is-locked"}`}
-                key={choice.event_id}
-                aria-label={choice.text}
+                key={option.option_id}
+                aria-label={`${choice.text}：${option.label}`}
                 style={{ left: x, top: y }}
-                aria-pressed={selected?.event_id === choice.event_id}
-                onClick={() => setSelectedId(choice.event_id)}
+                onClick={() => setSelectedId(option.option_id)}
               >
                 <span className="tree-node-top">
                   <MenuIcon id={choice.menu!} />
                   <span>{choice.tree!.min_age_months / 12}歳〜</span>
                   <b>
-                    {choice.selected_option
+                    {planned
                       ? "予定中"
                       : current
                         ? "継続中"
@@ -163,9 +174,9 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                             : "◇ 条件待ち"}
                   </b>
                 </span>
-                <strong>{choice.text}</strong>
+                <strong>{option.label}</strong>
                 <small>
-                  {choice.decision_kind === "policy" ? "継続する方針" : "取得するアクション"}
+                  {choice.text}
                   {choice.fresh ? " · 解放！" : ""}
                 </small>
               </button>
@@ -173,135 +184,126 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
           })}
         </div>
       </div>
-      {selected ? (
-        <article className="tree-detail life-decision" aria-label={selected.text}>
-          <button
-            className="life-cancel"
-            onClick={() => {
-              setSelectedId(null);
-              treeRegion.current?.focus();
-            }}
-          >
-            ← ツリーへ戻る
-          </button>
-          <header>
-            <h3 ref={detailHeading} tabIndex={-1}>
-              {selected.text}
-            </h3>
-            <span>
-              {selected.tree!.min_age_months / 12}〜{Math.floor(selected.expires_age_months! / 12)}
-              歳
-            </span>
-          </header>
-          <p>{selected.reason}</p>
-          {selected.tree!.parents.length > 0 && (
-            <p>前提の枝：{selected.tree!.parents.map((p) => p.label).join(" → ")}</p>
-          )}
-          <p className="tree-default">
-            {selected.tree!.default_label
-              ? `未選択時：${selected.tree!.default_label}。同じ枝の方針は1つだけ継続します。`
-              : "未選択時：見送り。今の暮らしを続けます。"}
-          </p>
-          <div className="tree-option-list">
-            {selected.options
-              .filter((o) => !o.option_id.endsWith(":cancel"))
-              .map((option) => {
-                const current =
-                  option.option_id === selected.current_option &&
-                  state.time.child_months >= selected.tree!.min_age_months &&
-                  state.time.child_months <= selected.expires_age_months!;
-                const planned = option.option_id === selected.selected_option;
-                return (
-                  <section className="tree-option" key={option.option_id}>
-                    <h4>
-                      {option.label}
-                      <span>
-                        {planned
-                          ? "予定中"
-                          : current
-                            ? "継続中"
-                            : option.acquired
-                              ? "取得済み"
-                              : ""}
-                      </span>
-                    </h4>
-                    <p>{option.description}</p>
-                    <p>
-                      当期の支出 {option.cost}万円
-                      {option.income ? ` ／ 半年後の入金 ＋${option.income}万円` : ""}
-                    </p>
-                    <ul className="tree-requirements">
-                      {option.requirements?.map((r, i) => (
-                        <li key={i} className={r.startsWith("未達") ? "is-unmet" : ""}>
-                          {r}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="tree-modifiers">
-                      {option.event_modifiers?.map((effect) => (
-                        <span
-                          key={`${effect.kind}:${effect.label}`}
-                          className={
-                            (effect.kind === "good" ? effect.percent > 0 : effect.percent < 0)
-                              ? "buff"
-                              : "debuff"
-                          }
-                        >
-                          {effect.label}：{effect.kind === "good" ? "良い" : "悪い"}イベントの効果{" "}
-                          {effect.percent > 0 ? "+" : ""}
-                          {effect.percent}%
-                        </span>
-                      ))}
-                    </div>
-                    {option.event_modifiers?.length ? (
-                      <small className="tree-duration">
-                        {selected.decision_kind === "policy"
-                          ? "確定後、継続している間だけ有効"
-                          : "確定後、育児終了まで有効・再取得で重複しません"}
-                      </small>
-                    ) : null}
-                    <button
-                      className="tree-select"
-                      disabled={busy || !option.available || current || planned}
-                      onClick={() =>
-                        void update("choose", {
-                          event_instance: selected.instance_id,
-                          option_id: option.option_id,
-                        })
-                      }
-                    >
-                      {planned
-                        ? "予定に追加済み"
-                        : current
-                          ? "現在の方針"
-                          : option.available
-                            ? `このアクションを選ぶ · ${option.cost}万円`
-                            : "条件を満たすと選べます"}
-                    </button>
-                  </section>
-                );
-              })}
+      {selected && (
+        <dialog
+          ref={dialog}
+          className="tree-detail"
+          aria-labelledby="tree-detail-title"
+          onCancel={(event) => {
+            event.preventDefault();
+            setSelectedId(null);
+          }}
+        >
+          <div className="tree-detail-body">
+            {selected.option.visual && <ContentImage visual={selected.option.visual} />}
+            <div className="tree-detail-copy">
+              <span className="tree-eyebrow">{selected.choice.text}</span>
+              <header>
+                <h3 id="tree-detail-title" ref={detailHeading} tabIndex={-1}>
+                  {selected.option.label}
+                </h3>
+                <span>
+                  {selected.choice.tree!.min_age_months / 12}〜
+                  {Math.floor(selected.choice.expires_age_months! / 12)}歳
+                </span>
+              </header>
+              <p>{selected.choice.reason}</p>
+              <p>{selected.option.description}</p>
+              {(selected.option.parents?.length ?? 0) > 0 && (
+                <p>前提の枝：{selected.option.parents!.map((p) => p.label).join(" → ")}</p>
+              )}
+              <p className="tree-default">
+                {selected.choice.tree!.default_label
+                  ? `未選択時：${selected.choice.tree!.default_label}。同じ枝の方針は1つだけ継続します。`
+                  : "未選択時：見送り。今の暮らしを続けます。"}
+              </p>
+              <p>
+                当期の支出 {selected.option.cost}万円
+                {selected.option.income ? ` ／ 半年後の入金 ＋${selected.option.income}万円` : ""}
+              </p>
+              <ul className="tree-requirements">
+                {selected.option.requirements?.map((requirement, index) => (
+                  <li key={index} className={requirement.startsWith("未達") ? "is-unmet" : ""}>
+                    {requirement}
+                  </li>
+                ))}
+              </ul>
+              <div className="tree-modifiers">
+                {selected.option.event_modifiers?.map((effect) => (
+                  <span
+                    key={`${effect.kind}:${effect.label}`}
+                    className={
+                      effect.kind === "good"
+                        ? effect.percent > 0
+                          ? "buff"
+                          : "debuff"
+                        : effect.percent < 0
+                          ? "buff"
+                          : "debuff"
+                    }
+                  >
+                    {effect.label}：{effect.kind === "good" ? "良い" : "悪い"}
+                    イベントの効果 {effect.percent > 0 ? "+" : ""}
+                    {effect.percent}%
+                  </span>
+                ))}
+              </div>
+              {!!selected.option.event_modifiers?.length && (
+                <small className="tree-duration">
+                  {selected.choice.decision_kind === "policy"
+                    ? "確定後、継続している間だけ有効"
+                    : "確定後、育児終了まで有効・再取得で重複しません"}
+                </small>
+              )}
+            </div>
           </div>
-          {selected.selected_option && (
-            <button
-              className="life-cancel"
-              disabled={busy}
-              onClick={() =>
-                void update("choose", {
-                  event_instance: selected.instance_id,
-                  option_id: `${selected.event_id}:cancel`,
-                })
-              }
-            >
-              この予定を取り消す
-            </button>
-          )}
-        </article>
-      ) : (
-        <p className="tree-prompt">
-          アイコンの枝を選ぶと、取得条件・費用・バフとデバフを確認できます。
-        </p>
+          <div className="tree-dialog-actions">
+            <button onClick={() => setSelectedId(null)}>キャンセル</button>
+            {selected.choice.selected_option === selected.option.option_id ? (
+              <button
+                className="tree-select"
+                disabled={busy}
+                onClick={async () => {
+                  if (
+                    await update("choose", {
+                      event_instance: selected.choice.instance_id,
+                      option_id: `${selected.choice.event_id}:cancel`,
+                    })
+                  )
+                    setSelectedId(null);
+                }}
+              >
+                予定を取り消す
+              </button>
+            ) : (
+              <button
+                className="tree-select"
+                disabled={
+                  busy ||
+                  !selected.option.available ||
+                  selected.option.option_id === selected.choice.current_option
+                }
+                onClick={async () => {
+                  if (
+                    await update("choose", {
+                      event_instance: selected.choice.instance_id,
+                      option_id: selected.option.option_id,
+                    })
+                  )
+                    setSelectedId(null);
+                }}
+              >
+                {selected.option.option_id === selected.choice.current_option
+                  ? "現在の方針"
+                  : selected.option.available
+                    ? "このアクションを確定"
+                    : "条件を満たすと選べます"}
+              </button>
+            )}
+          </div>
+        </dialog>
       )}
+      <p className="tree-prompt">アクションを選ぶと、取得条件・費用・効果を確認できます。</p>
       {scheduled.length > 0 && (
         <section className="life-scheduled" aria-label="今期の予定">
           <h3>今期の予定</h3>
