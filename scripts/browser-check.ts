@@ -34,19 +34,144 @@ try {
     await next.click();
     if (turn < 40) await expect(page.locator(".rpg-caption")).toContainText(`第 ${turn + 1} 期`);
   };
-  const menu = async (name: string) =>
-    page
-      .getByRole("navigation", { name: "暮らしの分類" })
-      .getByRole("button", { name, exact: true })
+  const backToMap = async () => page.getByRole("button", { name: "← マップに戻る" }).click();
+  const menu = async (name: string) => {
+    if (await page.getByRole("button", { name: "← マップに戻る" }).count()) await backToMap();
+    await page
+      .getByRole("group", { name: "アクションの地図" })
+      .getByRole("button", { name: new RegExp(name) })
       .click();
+  };
   const viewport = async () => {
+    await page.waitForTimeout(200);
     await page.screenshot({ path: out + "/viewport-latest.png" });
-    expect(
-      await page.evaluate(() => ({
-        x: document.documentElement.scrollWidth > innerWidth,
-        y: document.documentElement.scrollHeight > innerHeight,
-      })),
-    ).toEqual({ x: false, y: false });
+    const issues = await page.evaluate(() => {
+      const found: string[] = [];
+      if (document.documentElement.scrollWidth > innerWidth)
+        found.push("document horizontal scroll");
+      if (document.documentElement.scrollHeight > innerHeight)
+        found.push("document vertical scroll");
+      const body = document.querySelector<HTMLElement>(".rpg-window-body");
+      if (body && body.scrollHeight > body.clientHeight + 1) found.push("main vertical scroll");
+      if (body && body.scrollWidth > body.clientWidth + 1) found.push("main horizontal scroll");
+      const dock = document.querySelector<HTMLElement>(".rpg-dock");
+      if (dock) {
+        const bounds = dock.getBoundingClientRect();
+        const window = document.querySelector<HTMLElement>(".rpg-window")?.getBoundingClientRect();
+        if (bounds.left < -1 || bounds.right > innerWidth + 1 || bounds.bottom > innerHeight + 1)
+          found.push("dock outside viewport");
+        if (window && window.right - bounds.right < 12) found.push("dock touches main frame");
+        if (bounds.width > 100 || bounds.height > 100) found.push("dock too large");
+        if (innerWidth - bounds.right < 12 || innerHeight - bounds.bottom < 12)
+          found.push("dock edge margin too small");
+        if (innerWidth > 800 && bounds.left < innerWidth / 2)
+          found.push("dock is not right aligned");
+        const controls = [...dock.querySelectorAll<HTMLElement>(".rpg-dock-controls button")].map(
+          (button) => button.getBoundingClientRect(),
+        );
+        const advance = dock
+          .querySelector<HTMLElement>(".rpg-dock-advance")
+          ?.getBoundingClientRect();
+        const above = [
+          ...dock.querySelectorAll<HTMLElement>(
+            "[data-dock='play'], [data-dock='family'], [data-dock='history']",
+          ),
+        ];
+        const right = [
+          ...dock.querySelectorAll<HTMLElement>("[data-dock='help'], .rpg-dock-events"),
+        ];
+        if (
+          advance &&
+          above.some((button) => button.getBoundingClientRect().bottom > advance.top + 1)
+        )
+          found.push("dock top icons misplaced");
+        if (
+          advance &&
+          right.some((button) => button.getBoundingClientRect().left < advance.right - 1)
+        )
+          found.push("dock right icons misplaced");
+        controls.forEach((button, index) => {
+          if (
+            button.left < bounds.left - 1 ||
+            button.right > bounds.right + 1 ||
+            button.top < bounds.top - 1 ||
+            button.bottom > bounds.bottom + 1
+          )
+            found.push(`dock button ${index} outside`);
+          controls.slice(index + 1).forEach((other, offset) => {
+            if (
+              button.left < other.right - 1 &&
+              button.right > other.left + 1 &&
+              button.top < other.bottom - 1 &&
+              button.bottom > other.top + 1
+            )
+              found.push(`dock buttons ${index} and ${index + offset + 1} overlap`);
+          });
+        });
+      }
+      const hud = document.querySelector<HTMLElement>(".rpg-hud");
+      const age = document.querySelector<HTMLElement>(".rpg-age");
+      const right = document.querySelector<HTMLElement>(".rpg-hud-right");
+      const finance = document.querySelector<HTMLElement>(".rpg-money-summary");
+      if (hud && age && right) {
+        const hudBounds = hud.getBoundingClientRect();
+        const ageBounds = age.getBoundingClientRect();
+        const rightBounds = right.getBoundingClientRect();
+        if (ageBounds.right > rightBounds.left + 1) found.push("age and finance overlap");
+        if (rightBounds.right > hudBounds.right + 1 || rightBounds.bottom > hudBounds.bottom + 1)
+          found.push("finance outside header");
+        if (finance && finance.scrollWidth > finance.clientWidth + 1)
+          found.push("finance text overflow");
+      }
+      const map = document.querySelector<HTMLElement>(".action-map");
+      if (map) {
+        const bounds = map.getBoundingClientRect();
+        if (dock) {
+          const dockBounds = dock.getBoundingClientRect();
+          if (dockBounds.right > bounds.right - 1 || dockBounds.top < bounds.bottom + 4)
+            found.push("dock crosses map frame");
+        }
+        const markers = [...map.querySelectorAll<HTMLElement>(".map-marker")].map((marker) =>
+          marker.getBoundingClientRect(),
+        );
+        markers.forEach((marker, index) => {
+          if (
+            marker.left < bounds.left - 1 ||
+            marker.right > bounds.right + 1 ||
+            marker.top < bounds.top - 1 ||
+            marker.bottom > bounds.bottom + 1
+          )
+            found.push(`marker ${index} outside map`);
+          if (dock) {
+            const dockBounds = dock.getBoundingClientRect();
+            if (
+              marker.left < dockBounds.right - 1 &&
+              marker.right > dockBounds.left + 1 &&
+              marker.top < dockBounds.bottom - 1 &&
+              marker.bottom > dockBounds.top + 1
+            )
+              found.push(`marker ${index} covered by dock`);
+          }
+          markers.slice(index + 1).forEach((other, offset) => {
+            if (
+              marker.left < other.right &&
+              marker.right > other.left &&
+              marker.top < other.bottom &&
+              marker.bottom > other.top
+            )
+              found.push(`markers ${index} and ${index + offset + 1} overlap`);
+          });
+        });
+      }
+      const tree = document.querySelector<HTMLElement>(
+        ".action-tree-content.is-category .tree-scroll",
+      );
+      if (tree && tree.clientHeight < 60) found.push("category tree too short");
+      return found;
+    });
+    expect(issues, `viewport ${page.viewportSize()?.width}x${page.viewportSize()?.height}`).toEqual(
+      [],
+    );
   };
   await expect(events).toBeVisible();
   const eventText = await events.innerText();
@@ -55,19 +180,63 @@ try {
   await expect(events).toHaveText(eventText, { useInnerText: true });
   await expect(page.locator(".rpg-cash")).toHaveText(cashText, { useInnerText: true });
   await dismiss();
-  await expect(page.getByRole("heading", { name: "この先の暮らしを、選ぼう。" })).toBeVisible();
+  await expect(page.locator(".tree-map-heading")).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "アクションの地図" })).toBeVisible();
+  await expect(page.locator(".rpg-window-bar, .rpg-family-status > span")).toHaveCount(0);
+  await expect(page.locator(".rpg-money-summary")).toContainText("▲");
+  await expect(page.locator(".rpg-money-summary")).toContainText("▼");
+  await expect(page.locator(".rpg-dock-budget")).toHaveCount(0);
+  await page.locator(".rpg-money-summary").click();
+  const moneyDialog = page.getByRole("dialog", { name: "半年の資金予定" });
+  await expect(moneyDialog).toBeVisible();
+  await expect(moneyDialog).toContainText("基本生活費");
+  await expect(moneyDialog).toContainText("半年後の資金予定");
+  await moneyDialog.getByRole("button", { name: "閉じる" }).click();
+  await expect(page.getByText("地図のアイコンから、選びたい暮らしの分野へ進みます。")).toHaveCount(
+    0,
+  );
+  await expect(page.getByText("何も選ばずに半年を進められます。")).toHaveCount(0);
+  await expect(page.locator(".map-footer")).toHaveCount(0);
   await expect(next).toBeEnabled();
+  const dockMenu = page.getByRole("navigation", { name: "ゲーム内" });
+  await expect(dockMenu.getByRole("button")).toHaveCount(6);
+  await expect(dockMenu.getByRole("button")).toHaveText(["", "", "", "", "", ""]);
+  await expect(dockMenu.getByRole("button", { name: "今期の出来事 ↗" })).toBeVisible();
+  await expect(page.locator(".rpg-menu, .life-advance")).toHaveCount(0);
+  await expect(next.locator(".rpg-dock-advance-icon")).toBeVisible();
+  await page.getByRole("button", { name: "今期の出来事 ↗" }).click();
+  await expect(events).toBeVisible();
+  await dismiss();
   await expect(
-    page.getByRole("navigation", { name: "暮らしの分類" }).getByRole("button"),
+    page.getByRole("group", { name: "アクションの地図" }).getByRole("button"),
   ).toHaveCount(5);
+  await expect(page.getByRole("region", { name: "アクションのつながり" })).toHaveCount(0);
+  await expect(page.getByText("現在の暮らしと取得効果")).toHaveCount(0);
+  await page.getByRole("button", { name: "家族の様子", exact: true }).click();
+  await expect(page.getByRole("region", { name: "現在の暮らしと取得効果" })).toBeVisible();
+  await page.getByRole("button", { name: "いまの暮らし", exact: true }).click();
   for (const meter of await page.locator(".rpg-party meter").all())
     await expect(meter).toHaveAttribute("max", "10");
   await expect(page.getByRole("region", { name: "実家のステータス" })).toBeVisible();
-  await viewport();
-  await page.screenshot({ path: out + "/overview-desktop.png" });
+  await page.waitForTimeout(450);
+  for (const [width, height] of [
+    [1280, 900],
+    [1280, 720],
+    [1026, 760],
+    [1024, 600],
+    [789, 760],
+    [641, 600],
+    [390, 844],
+    [360, 640],
+    [320, 568],
+    [320, 480],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await viewport();
+    if ((width === 1280 && height === 900) || (width === 390 && height === 844) || height === 480)
+      await page.screenshot({ path: `${out}/overview-${width}x${height}.png` });
+  }
   await page.setViewportSize({ width: 390, height: 844 });
-  await viewport();
-  await page.screenshot({ path: out + "/overview-mobile.png" });
   const node = (name: string) =>
     page
       .getByRole("region", { name: "アクションのつながり" })
@@ -76,6 +245,19 @@ try {
   const confirm = () => detail.locator(".tree-select");
   const cancel = async () => detail.getByRole("button", { name: "キャンセル" }).click();
   await expect(page.locator(".rpg-scenery")).toHaveCount(0);
+  await menu("教育・進路");
+  await expect(page.getByRole("group", { name: "アクションの地図" })).toHaveCount(0);
+  for (const [width, height] of [
+    [390, 844],
+    [320, 568],
+    [320, 480],
+    [1280, 720],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await viewport();
+    if (height === 480) await page.screenshot({ path: out + "/category-320x480.png" });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
   await node("小学校の進路：私立小学校").click();
   await expect(confirm()).toBeDisabled();
   await expect(detail).toContainText("年収 600万円以上");
@@ -86,8 +268,15 @@ try {
   await page.screenshot({ path: out + "/dialog-desktop.png" });
   await page.setViewportSize({ width: 390, height: 844 });
   await cancel();
-  await page.getByRole("button", { name: "ツリー全体を見る", exact: true }).click();
   await expect(node("大学への挑戦：専門的な受験に挑む")).toHaveCount(1);
+  await backToMap();
+  await expect(page.getByRole("group", { name: "アクションの地図" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "アクションのつながり" })).toHaveCount(0);
+  await expect(
+    page.getByRole("group", { name: "アクションの地図" }).getByRole("button", {
+      name: /教育・進路/,
+    }),
+  ).toBeFocused();
   for (let t = 1; t <= 8; t++) await progress(t);
   await dismiss();
   await menu("教育・進路");
@@ -100,17 +289,26 @@ try {
   await cancel();
   await node("工作教室の体験：体験教室に参加する").click();
   await confirm().click();
+  await backToMap();
   await expect(page.getByRole("region", { name: "今期の予定" })).toContainText(
     "体験教室に参加する",
   );
-  const forecast = await page.locator(".life-budget").innerText();
+  await page.setViewportSize({ width: 320, height: 480 });
+  await viewport();
+  await page.screenshot({ path: out + "/planned-320x480.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const forecast = await page.locator(".rpg-money-summary").innerText();
   await page.reload();
   await dismiss();
-  await expect(page.locator(".life-budget")).toHaveText(forecast, { useInnerText: true });
+  await expect(page.locator(".rpg-money-summary")).toHaveText(forecast, {
+    useInnerText: true,
+  });
   await menu("遊び・放課後");
   await node("工作教室の体験：体験教室に参加する").click();
   await detail.getByRole("button", { name: "予定を取り消す" }).click();
+  await backToMap();
   await expect(page.getByRole("region", { name: "今期の予定" })).toHaveCount(0);
+  await menu("遊び・放課後");
   await node("工作教室の体験：体験教室に参加する").click();
   await confirm().click();
   await progress(9);
@@ -191,7 +389,18 @@ try {
         url,
         browser: "Chrome / Playwright",
         reason: "Browser plugin not available",
-        viewports: ["1280x900", "390x844"],
+        viewports: [
+          "1280x900",
+          "1280x720",
+          "1026x760",
+          "1024x600",
+          "789x760",
+          "641x600",
+          "390x844",
+          "360x640",
+          "320x568",
+          "320x480",
+        ],
         turns: 40,
         ending,
         errors,

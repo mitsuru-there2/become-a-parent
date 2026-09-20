@@ -3,6 +3,7 @@ import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
 import { $busy, update } from "../../stores/game";
 import { ContentImage } from "./content_image";
+import actionMap from "../../../assets/scenes/action-map.svg";
 
 type ActionNode = {
   choice: Choice;
@@ -56,10 +57,18 @@ function graphPositions(actions: ActionNode[]) {
 }
 
 export function ActionTree({ state, choices }: { state: PublicState; choices: Choice[] }) {
-  const [menu, setMenu] = useState<string | null>("education");
+  const [menu, setMenu] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const detailHeading = useRef<HTMLHeadingElement>(null);
+  const categoryHeading = useRef<HTMLHeadingElement>(null);
+  const mapButtons = useRef<Record<string, HTMLButtonElement | null>>({});
+  const previousMenu = useRef<string | null>(null);
+  useEffect(() => {
+    if (menu) categoryHeading.current?.focus();
+    else if (previousMenu.current) mapButtons.current[previousMenu.current]?.focus();
+    previousMenu.current = menu;
+  }, [menu]);
   useEffect(() => {
     if (selectedId && dialog.current && !dialog.current.open) {
       dialog.current.showModal();
@@ -68,6 +77,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
   }, [selectedId]);
   const busy = useStore($busy);
   const life = state.life!;
+  const selectedMenu = life.menus.find((item) => item.id === menu);
   const visible = menu ? choices.filter((c) => c.menu === menu) : choices;
   const nodes = graphPositions(
     visible.flatMap((choice) =>
@@ -81,109 +91,120 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
   const width = Math.max(240, ...nodes.map((n) => n.x + 220));
   const height = Math.max(140, ...nodes.map((n) => n.y + 112));
   return (
-    <section className="life-content action-tree-content" aria-label="アクションツリー">
-      <div className="tree-intro">
-        <div>
-          <span className="tree-eyebrow">FAMILY DECISIONS</span>
-          <h2>この先の暮らしを、選ぼう。</h2>
-        </div>
-        <p>
-          年収 <b>{life.annual_income}万円</b>
-          <br />
-          子どもの成績 <b>{life.study_score} / 100</b>
-        </p>
-      </div>
-      <nav className="action-menu-icons" aria-label="暮らしの分類">
-        {life.menus.map((item) => (
-          <button
-            key={item.id}
-            aria-label={item.label}
-            aria-pressed={menu === item.id}
-            onClick={() => {
-              setMenu(item.id);
-              setSelectedId(null);
-            }}
-          >
-            <MenuIcon id={item.id} />
-            <strong>{item.label}</strong>
-            <small>
-              {choices
-                .filter((c) => c.menu === item.id)
-                .reduce((count, c) => count + c.options.length - 1, 0)}
-              のアクション
-            </small>
-          </button>
-        ))}
-      </nav>
-      <div className="tree-toolbar">
-        <h3>{life.menus.find((m) => m.id === menu)?.label ?? "すべてのアクション"}</h3>
-        <button
-          aria-pressed={menu === null}
-          onClick={() => {
-            setMenu(null);
-            setSelectedId(null);
-          }}
-        >
-          ツリー全体を見る
-        </button>
-      </div>
-      <p className="tree-legend">
-        ○ 選択可能　✓ 取得済み　◇ 条件待ち{" "}
-        <span>未解放の枝もタップして詳細を確認できます。横・縦にスクロール →</span>
-      </p>
-      <div className="tree-scroll" tabIndex={0} role="region" aria-label="アクションのつながり">
-        <div className="tree-canvas" style={{ width, height }}>
-          <svg className="tree-edges" width={width} height={height} aria-hidden="true">
-            {nodes.flatMap((node) =>
-              (node.option.parents ?? []).map((parent) => {
-                const from = nodes.find((n) => n.option.option_id === parent.option_id);
-                return from ? (
-                  <path
-                    key={`${parent.option_id}:${node.option.option_id}`}
-                    d={`M ${from.x + 204} ${from.y + 46} C ${from.x + 230} ${from.y + 46}, ${node.x - 25} ${node.y + 46}, ${node.x} ${node.y + 46}`}
-                  />
-                ) : null;
-              }),
-            )}
-          </svg>
-          {nodes.map(({ choice, option, x, y }) => {
-            const acquired = option.acquired;
-            const current = option.option_id === choice.current_option;
-            const planned = option.option_id === choice.selected_option;
-            const available = option.available && !current && !planned;
-            return (
+    <section
+      className={`life-content action-tree-content ${selectedMenu ? "is-category" : "is-map"}`}
+      aria-label={selectedMenu ? "アクションツリー" : "アクションマップ"}
+    >
+      {selectedMenu ? (
+        <>
+          <div className="tree-category-heading">
+            <button
+              className="tree-back"
+              onClick={() => {
+                setSelectedId(null);
+                setMenu(null);
+              }}
+            >
+              ← マップに戻る
+            </button>
+            <div>
+              <span className="tree-eyebrow">ACTION CATEGORY</span>
+              <h2 ref={categoryHeading} tabIndex={-1}>
+                <MenuIcon id={selectedMenu.id} />
+                {selectedMenu.label}
+              </h2>
+              <p>{selectedMenu.description}</p>
+            </div>
+            <span className="tree-category-count">{nodes.length} アクション</span>
+          </div>
+          <p className="tree-legend">
+            ○ 選択可能　✓ 取得済み　◇ 条件待ち{" "}
+            <span>未解放の枝もタップして詳細を確認できます。横・縦にスクロール →</span>
+          </p>
+          <div className="tree-scroll" tabIndex={0} role="region" aria-label="アクションのつながり">
+            <div className="tree-canvas" style={{ width, height }}>
+              <svg className="tree-edges" width={width} height={height} aria-hidden="true">
+                {nodes.flatMap((node) =>
+                  (node.option.parents ?? []).map((parent) => {
+                    const from = nodes.find((n) => n.option.option_id === parent.option_id);
+                    return from ? (
+                      <path
+                        key={`${parent.option_id}:${node.option.option_id}`}
+                        d={`M ${from.x + 204} ${from.y + 46} C ${from.x + 230} ${from.y + 46}, ${node.x - 25} ${node.y + 46}, ${node.x} ${node.y + 46}`}
+                      />
+                    ) : null;
+                  }),
+                )}
+              </svg>
+              {nodes.map(({ choice, option, x, y }) => {
+                const acquired = option.acquired;
+                const current = option.option_id === choice.current_option;
+                const planned = option.option_id === choice.selected_option;
+                const available = option.available && !current && !planned;
+                return (
+                  <button
+                    className={`tree-node ${acquired || current ? "is-acquired" : available ? "is-available" : "is-locked"}`}
+                    key={option.option_id}
+                    aria-label={`${choice.text}：${option.label}`}
+                    style={{ left: x, top: y }}
+                    onClick={() => setSelectedId(option.option_id)}
+                  >
+                    <span className="tree-node-top">
+                      <MenuIcon id={choice.menu!} />
+                      <span>{choice.tree!.min_age_months / 12}歳〜</span>
+                      <b>
+                        {planned
+                          ? "予定中"
+                          : current
+                            ? "継続中"
+                            : acquired
+                              ? "✓ 取得済み"
+                              : available
+                                ? "○ 選択可能"
+                                : "◇ 条件待ち"}
+                      </b>
+                    </span>
+                    <strong>{option.label}</strong>
+                    <small>
+                      {choice.text}
+                      {choice.fresh ? " · 解放！" : ""}
+                    </small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="action-map" role="group" aria-label="アクションの地図">
+            <img src={actionMap} alt="" aria-hidden="true" />
+            {life.menus.map((item) => (
               <button
-                className={`tree-node ${acquired || current ? "is-acquired" : available ? "is-available" : "is-locked"}`}
-                key={option.option_id}
-                aria-label={`${choice.text}：${option.label}`}
-                style={{ left: x, top: y }}
-                onClick={() => setSelectedId(option.option_id)}
+                ref={(element) => {
+                  mapButtons.current[item.id] = element;
+                }}
+                key={item.id}
+                className="map-marker"
+                data-menu={item.id}
+                onClick={() => setMenu(item.id)}
               >
-                <span className="tree-node-top">
-                  <MenuIcon id={choice.menu!} />
-                  <span>{choice.tree!.min_age_months / 12}歳〜</span>
-                  <b>
-                    {planned
-                      ? "予定中"
-                      : current
-                        ? "継続中"
-                        : acquired
-                          ? "✓ 取得済み"
-                          : available
-                            ? "○ 選択可能"
-                            : "◇ 条件待ち"}
-                  </b>
+                <span className="map-marker-icon">
+                  <MenuIcon id={item.id} />
                 </span>
-                <strong>{option.label}</strong>
+                <strong>{item.label}</strong>
                 <small>
-                  {choice.text}
-                  {choice.fresh ? " · 解放！" : ""}
+                  {choices.some((choice) => choice.menu === item.id && choice.selected_option)
+                    ? "予定中"
+                    : `${choices
+                        .filter((choice) => choice.menu === item.id)
+                        .reduce((count, choice) => count + choice.options.length - 1, 0)}件`}
                 </small>
               </button>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
+        </>
+      )}
       {selected && (
         <dialog
           ref={dialog}
@@ -303,43 +324,24 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
           </div>
         </dialog>
       )}
-      <p className="tree-prompt">アクションを選ぶと、取得条件・費用・効果を確認できます。</p>
-      {scheduled.length > 0 && (
-        <section className="life-scheduled" aria-label="今期の予定">
-          <h3>今期の予定</h3>
-          {scheduled.map((c) => (
-            <p key={c.event_id}>
-              {c.text} → {c.options.find((o) => o.option_id === c.selected_option)?.label}
-            </p>
-          ))}
-          <button disabled={busy} onClick={() => void update("reset-plan")}>
-            今期の予定をすべて取り消す
-          </button>
-        </section>
+      {!selectedMenu && scheduled.length > 0 && (
+        <div className="map-footer">
+          <section aria-label="今期の予定">
+            <strong>今期の予定 {scheduled.length}件</strong>
+            <span>
+              {scheduled
+                .map((choice) =>
+                  choice.options.find((option) => option.option_id === choice.selected_option),
+                )
+                .map((option) => option?.label)
+                .join("・")}
+            </span>
+            <button disabled={busy} onClick={() => void update("reset-plan")}>
+              すべて取り消す
+            </button>
+          </section>
+        </div>
       )}
-      <details className="tree-current">
-        <summary>現在の暮らしと取得効果（{life.active_effects?.length ?? 0}）</summary>
-        {life.policies.map((p) => (
-          <p key={p.id}>
-            {p.title}：{p.planned_label}（{p.planned_cost}万円／半年）
-          </p>
-        ))}
-        {life.active_effects?.map((e, i) => (
-          <p key={i}>
-            {e.source} · {e.label}：{e.kind === "good" ? "良い" : "悪い"}イベント{" "}
-            {e.percent > 0 ? "+" : ""}
-            {e.percent}%
-          </p>
-        ))}
-      </details>
-      {life.notices.map((notice) => (
-        <p className="warning" key={notice}>
-          {notice}
-        </p>
-      ))}
-      <p className="tree-prompt">
-        何も選ばずに半年を進められます。選択は半年を進めるまで取り消せます。
-      </p>
     </section>
   );
 }

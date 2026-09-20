@@ -625,6 +625,50 @@ progress::-moz-progress-bar {
   font-size: 17px;
   margin-bottom: 26px;
 }
+.family-tree-effects {
+  margin: 22px 0 30px;
+  padding: 16px;
+  border: 1px solid #555848;
+  background: #20241d;
+}
+.family-tree-effects h3,
+.family-tree-effects h4 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #e1c990;
+}
+.family-tree-policies {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 22px;
+}
+.family-tree-policies p {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 8px 0;
+  border-top: 1px solid #3c4637;
+  font-size: 10px;
+}
+.family-tree-policies span,
+.family-tree-policies small,
+.family-tree-modifiers p {
+  color: #b9c0ac;
+}
+.family-tree-policies strong {
+  font-size: 11px;
+}
+.family-tree-modifiers {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #555848;
+}
+.family-tree-modifiers p {
+  margin: 6px 0;
+  font-size: 10px;
+  line-height: 1.6;
+}
 .parent {
   margin-bottom: 25px;
 }
@@ -1430,8 +1474,9 @@ meter::-moz-meter-bar {
 /* ひとつの舞台とコマンド欄で進める新方式のプレイ画面。 */
 .rpg-shell {
   height: 100dvh;
+  position: relative;
   display: grid;
-  grid-template-rows: 58px minmax(0, 1fr) 58px;
+  grid-template-rows: 58px minmax(0, 1fr);
   padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
   max-width: 1440px;
   margin: auto;
@@ -1463,6 +1508,13 @@ meter::-moz-meter-bar {
   align-items: center;
   gap: 40px;
 }
+.rpg-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-left: auto;
+  min-width: 0;
+}
 .rpg-age {
   display: flex;
   align-items: baseline;
@@ -1476,19 +1528,13 @@ meter::-moz-meter-bar {
   font-size: 14px;
   margin-left: 4px;
 }
-.rpg-age > span,
-.rpg-family-status > span,
-.rpg-cash > span {
+.rpg-age > span {
   font-size: 10px;
   color: #a8a79e;
 }
-.rpg-family-status {
-  margin-left: auto;
-}
 .rpg-family-status,
 .rpg-cash {
-  display: grid;
-  gap: 1px;
+  white-space: nowrap;
 }
 .rpg-family-status strong,
 .rpg-cash strong {
@@ -1496,6 +1542,176 @@ meter::-moz-meter-bar {
 }
 .rpg-cash small {
   font-size: 10px;
+}
+.rpg-money-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid #66634d;
+  border-radius: 3px;
+  background: #24261f;
+  color: #f3f0e4;
+  white-space: nowrap;
+}
+.rpg-money-summary:hover,
+.rpg-money-summary:focus-visible {
+  border-color: #ddc68d;
+  background: #333526;
+}
+.rpg-money-summary:focus-visible {
+  outline: 2px solid #ddc68d;
+  outline-offset: 2px;
+}
+.rpg-money-income,
+.rpg-money-cost {
+  font-size: 11px;
+  font-weight: 700;
+}
+.rpg-money-income {
+  color: #bdd99f;
+}
+.rpg-money-cost {
+  color: #e0aaa0;
+}
+.rpg-money-more {
+  color: #d8c184;
+  font-size: 16px;
+  line-height: 1;
+}
+@media (max-width: 900px) {
+  .rpg-hud {
+    gap: 12px;
+  }
+  .rpg-hud-right {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-items: end;
+    gap: 3px 14px;
+  }
+  .rpg-hud-right.has-money-summary {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+.rpg-finance-dialog {
+  width: min(540px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid #a89265;
+  background: #1e231d;
+  color: #eee9d7;
+  box-shadow: 0 16px 60px #000c;
+}
+.rpg-finance-dialog::backdrop {
+  background: #080b08cc;
+}
+.rpg-finance-dialog header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #555848;
+}
+.rpg-finance-dialog h2 {
+  margin: 4px 0 0;
+  font-size: 19px;
+}
+.rpg-finance-dialog header button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #747664;
+  font-size: 20px;
+  line-height: 1;
+}
+.rpg-finance-dialog-body {
+  padding: 18px 20px 22px;
+}
+.rpg-finance-current,
+.rpg-finance-projected {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rpg-finance-current {
+  padding-bottom: 14px;
+  color: #c2c5b5;
+  font-size: 12px;
+}
+.rpg-finance-current strong {
+  color: #f0ead4;
+  font-size: 19px;
+}
+.rpg-finance-lines {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.rpg-finance-lines section {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #4c5747;
+  background: #192019;
+}
+.rpg-finance-lines h3 {
+  margin: 0 0 10px;
+  color: #e3d09e;
+  font-size: 12px;
+}
+.rpg-finance-lines dl {
+  margin: 0;
+}
+.rpg-finance-lines dl > div,
+.rpg-finance-lines p {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.rpg-finance-lines dl > div + div {
+  border-top: 1px solid #343f33;
+}
+.rpg-finance-lines dt {
+  min-width: 0;
+  color: #c4c8b7;
+}
+.rpg-finance-lines dd {
+  flex: none;
+  margin: 0;
+  white-space: nowrap;
+}
+.rpg-finance-lines p {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #67715d;
+  font-weight: 700;
+}
+.rpg-finance-projected {
+  margin-top: 16px;
+  padding: 15px 2px 0;
+  border-top: 1px solid #77745f;
+  font-size: 12px;
+}
+.rpg-finance-projected strong {
+  color: #e8d293;
+  font-size: 21px;
+}
+.rpg-finance-cap {
+  color: #d6ba96;
+  font-size: 10px;
+}
+@media (max-width: 560px) {
+  .rpg-finance-lines {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
 }
 .rpg-stage {
   min-height: 0;
@@ -1545,16 +1761,6 @@ meter::-moz-meter-bar {
   background: #161615;
   box-shadow: 0 8px 0 #080808;
   margin: 4px 4px 8px;
-}
-.rpg-window-bar {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid #44443e;
-  padding: 9px 22px;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: #bebdb1;
 }
 .rpg-window-body {
   min-height: 0;
@@ -1627,22 +1833,103 @@ meter::-moz-meter-bar {
   color: #fff;
   box-shadow: inset 0 -2px #e8e8de;
 }
-.rpg-menu {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 40px;
-  padding-bottom: env(safe-area-inset-bottom);
+.rpg-dock {
+  position: absolute;
+  right: max(48px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 4;
+  width: 98px;
+  height: 98px;
+  border: 1px solid #9a8b61;
+  border-radius: 3px;
+  background: #182019;
+  box-shadow: 0 6px 18px #000c;
 }
-.rpg-menu button {
-  font-size: 12px;
-  color: #9c9c91;
-  border-top: 2px solid transparent;
-  padding: 10px;
+.rpg-dock-controls {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
+  grid-template-rows: repeat(3, 32px);
+  grid-template-areas:
+    "play family history"
+    "advance advance help"
+    "advance advance events";
 }
-.rpg-menu button[aria-current] {
-  border-color: #eae9df;
-  color: #fff;
+.rpg-dock-controls button {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  color: #d2d3c4;
+}
+.rpg-dock-controls button svg {
+  width: 19px;
+  height: 19px;
+}
+.rpg-dock-tab,
+.rpg-dock-events {
+  border-right: 1px solid #565c4c;
+  border-bottom: 1px solid #565c4c;
+  background: #222920;
+}
+.rpg-dock-tab[data-dock="play"] {
+  grid-area: play;
+}
+.rpg-dock-tab[data-dock="family"] {
+  grid-area: family;
+}
+.rpg-dock-tab[data-dock="history"] {
+  grid-area: history;
+}
+.rpg-dock-tab[data-dock="help"] {
+  grid-area: help;
+}
+.rpg-dock-events {
+  grid-area: events;
+  background: #303126;
+  color: #e9d7a6 !important;
+}
+.rpg-dock-tab:hover,
+.rpg-dock-tab[aria-current],
+.rpg-dock-events:hover {
+  color: #f1dfae;
+  border-color: #dfc885;
+  background: #3a3d2d;
+}
+.rpg-dock-tab[aria-current] {
+  box-shadow: inset 0 0 0 2px #c5a96c;
+}
+.rpg-dock-advance {
+  grid-area: advance;
+  color: #f0dcaa !important;
+  background: #3a3629;
+}
+.rpg-dock-advance-icon {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border: 2px solid #e3cc90;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 3px #171b16;
+}
+.rpg-dock-advance-icon svg {
+  width: 29px !important;
+  height: 29px !important;
+}
+.rpg-dock-advance:hover:not(:disabled) .rpg-dock-advance-icon,
+.rpg-dock-advance:focus-visible .rpg-dock-advance-icon {
+  background: #685b36;
+  border-color: #f5e5b5;
+}
+.rpg-dock-advance:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.rpg-dock button:focus-visible {
+  outline: 2px solid #f5e5b5;
+  outline-offset: 2px;
 }
 .rpg-review {
   display: grid;
@@ -1718,7 +2005,11 @@ meter::-moz-meter-bar {
 @media (max-width: 640px) {
   .rpg-shell {
     padding-inline: 12px;
-    grid-template-rows: 48px minmax(0, 1fr) 54px;
+    grid-template-rows: 48px minmax(0, 1fr);
+  }
+  .rpg-dock {
+    right: max(32px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
   }
   .rpg-header {
     gap: 14px;
@@ -1733,7 +2024,7 @@ meter::-moz-meter-bar {
     grid-template-rows: 68px minmax(0, 1fr);
   }
   .rpg-hud {
-    gap: 12px;
+    gap: 4px;
   }
   .rpg-age {
     display: grid;
@@ -1749,6 +2040,20 @@ meter::-moz-meter-bar {
   .rpg-cash strong {
     font-size: 12px;
   }
+  .rpg-hud-right {
+    column-gap: 7px;
+  }
+  .rpg-money-summary {
+    gap: 4px;
+    padding: 4px;
+  }
+  .rpg-money-income,
+  .rpg-money-cost {
+    font-size: 9px;
+  }
+  .rpg-money-more {
+    font-size: 12px;
+  }
   .rpg-caption {
     top: 0;
     left: 4px;
@@ -1759,10 +2064,6 @@ meter::-moz-meter-bar {
   }
   .rpg-window {
     max-height: 80%;
-  }
-  .rpg-window-bar {
-    padding: 7px 12px;
-    font-size: 9px;
   }
   .rpg-window-body {
     padding: 12px;
@@ -1794,14 +2095,6 @@ meter::-moz-meter-bar {
   .rpg-steps > span {
     padding: 11px 9px;
   }
-  .rpg-menu {
-    gap: 10px;
-    justify-content: space-between;
-  }
-  .rpg-menu button {
-    font-size: 11px;
-    padding: 10px 5px;
-  }
   .rpg-budget {
     flex-direction: column;
     gap: 4px;
@@ -1815,7 +2108,7 @@ meter::-moz-meter-bar {
 }
 @media (max-height: 600px) and (min-width: 641px) {
   .rpg-shell {
-    grid-template-rows: 42px minmax(0, 1fr) 44px;
+    grid-template-rows: 42px minmax(0, 1fr);
   }
   .rpg-main {
     grid-template-rows: 52px minmax(0, 1fr);
@@ -2077,38 +2370,23 @@ meter::-moz-meter-bar {
   text-decoration: underline;
   font-size: 12px;
 }
-.life-advance {
-  flex-shrink: 0;
-  padding: 12px 24px;
-  border-top: 1px solid #65655b;
-  background: #20201d;
+.rpg-dock-warnings {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 5px);
+  z-index: 2;
+  width: min(300px, calc(100vw - 24px));
+  max-height: 70px;
+  overflow: auto;
+  padding: 7px 9px;
+  border: 1px solid #807259;
+  border-radius: 5px;
+  background: #1b231d;
+  box-shadow: 0 5px 14px #0009;
 }
-.life-budget {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 12px;
-}
-.life-advance-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-}
-.life-advance-actions > button:first-child {
-  font-size: 11px;
-  text-decoration: underline;
-  flex-shrink: 0;
-}
-.life-advance .warning {
-  font-size: 11px;
-  margin: 4px 0;
-}
-.life-advance .rpg-action {
+.rpg-dock-warnings .warning {
   margin: 0;
-  padding: 10px 16px;
-  font-size: 13px;
+  font-size: 10px;
 }
 @media (max-width: 640px) {
   .life-shell .rpg-scenery {
@@ -2130,19 +2408,6 @@ meter::-moz-meter-bar {
   .life-summary {
     grid-template-columns: 1fr;
   }
-  .life-advance {
-    padding: 10px 12px;
-  }
-  .life-budget {
-    flex-direction: column;
-    gap: 3px;
-    font-size: 11px;
-  }
-  .life-advance .rpg-action {
-    width: auto;
-    font-size: 11px;
-    padding: 10px;
-  }
 }
 @media (max-height: 600px) {
   .life-shell .rpg-scenery {
@@ -2152,7 +2417,7 @@ meter::-moz-meter-bar {
     display: none;
   }
   .life-shell .rpg-main {
-    grid-template-rows: 52px minmax(0, 1fr);
+    grid-template-rows: 68px minmax(0, 1fr);
   }
 }
 .life-tabs {
@@ -2192,70 +2457,183 @@ meter::-moz-meter-bar {
 .tree-shell .rpg-window {
   width: min(100%, 1320px);
 }
-.tree-intro {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.tree-intro h2 {
-  margin: 4px 0 16px;
-}
 .tree-eyebrow {
   color: #c6ac77;
   font-size: 9px;
   letter-spacing: 0.18em;
 }
-.tree-intro > p {
-  margin: 0 0 12px;
-  font-size: 11px;
-  line-height: 1.8;
-  text-align: right;
-  color: #bebdb1;
+.action-map {
+  position: relative;
+  height: clamp(245px, 39vh, 360px);
+  overflow: hidden;
+  border: 1px solid #6e745e;
+  background: #18221e;
+  box-shadow: inset 0 0 0 6px #141b17;
+  animation: map-arrive 240ms ease-out;
 }
-.action-menu-icons {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+.action-map > img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
 }
-.action-menu-icons button {
-  border: 1px solid #545348;
-  background: #20211d;
+.map-marker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 112px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 12px 4px;
-  min-width: 0;
+  gap: 3px;
+  padding: 7px 10px;
+  border: 1px solid #c4b17f;
+  border-radius: 3px;
+  background: #171e18f2;
+  color: #eee6c9;
+  box-shadow:
+    0 5px 0 #090e0be6,
+    0 0 0 5px #111b1966;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
+  animation: marker-arrive 300ms ease-out both;
 }
-.action-menu-icons button[aria-pressed="true"] {
-  border-color: #d2b779;
+.map-marker[data-menu="education"] {
+  left: 22%;
+  top: 27%;
+}
+.map-marker[data-menu="home"] {
+  left: 49%;
+  top: 49%;
+}
+.map-marker[data-menu="grandparents"] {
+  left: 18%;
+  top: 74%;
+}
+.map-marker[data-menu="afterschool"] {
+  left: 75%;
+  top: 27%;
+}
+.map-marker[data-menu="work"] {
+  left: 82%;
+  top: 74%;
+}
+.map-marker:nth-of-type(2) {
+  animation-delay: 35ms;
+}
+.map-marker:nth-of-type(3) {
+  animation-delay: 70ms;
+}
+.map-marker:nth-of-type(4) {
+  animation-delay: 105ms;
+}
+.map-marker:nth-of-type(5) {
+  animation-delay: 140ms;
+}
+.map-marker:hover,
+.map-marker:focus-visible {
   background: #3a3427;
-  color: #f2d79b;
-  box-shadow: inset 0 -2px #c6ac77;
+  box-shadow:
+    0 5px 0 #090e0be6,
+    0 0 0 5px #c4b17f66;
 }
-.action-menu-icons svg {
-  width: 28px;
-  height: 28px;
+.map-marker-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #c4b17f;
+  background: #34382b;
+  color: #ead29a;
 }
-.action-menu-icons strong {
-  font-size: 12px;
+.map-marker svg {
+  width: 24px;
+  height: 24px;
 }
-.action-menu-icons small {
-  color: #acae9e;
+.map-marker strong {
+  white-space: nowrap;
+  font-size: 11px;
+}
+.map-marker small {
+  color: #c9c5ac;
   font-size: 9px;
 }
-.tree-toolbar {
+.tree-category-heading {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-top: 22px;
-  gap: 12px;
+  align-items: end;
+  gap: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #555848;
+  animation: category-arrive 180ms ease-out;
 }
-.tree-toolbar button {
+.tree-category-heading > div {
+  min-width: 0;
+  flex: 1;
+}
+.tree-category-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0;
+  font-size: 18px;
+}
+.tree-category-heading h2 svg {
+  width: 24px;
+  height: 24px;
+  color: #d8c28e;
+}
+.tree-category-heading p {
+  margin: 0;
+  color: #bfc2ae;
   font-size: 11px;
-  color: #dfc68b;
-  text-decoration: underline;
+}
+.tree-back {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #777665;
+  color: #e5d2a2;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.tree-back:hover {
+  background: #34382b;
+}
+.tree-category-count {
+  margin-bottom: 3px;
+  color: #c8c5b0;
+  white-space: nowrap;
+  font-size: 10px;
+}
+@keyframes map-arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes marker-arrive {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes category-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 .tree-legend {
   font-size: 10px;
@@ -2278,6 +2656,9 @@ meter::-moz-meter-bar {
 }
 .tree-canvas {
   position: relative;
+}
+.action-tree-content.is-category .tree-canvas {
+  margin-bottom: 76px;
 }
 .tree-edges {
   position: absolute;
@@ -2460,48 +2841,46 @@ meter::-moz-meter-bar {
   border-color: #4e5146;
   cursor: default;
 }
-.tree-current {
-  margin-top: 18px;
-  font-size: 11px;
-  line-height: 1.8;
-  color: #c0c5b5;
-}
-.tree-current summary {
-  cursor: pointer;
-  color: #e3d2a6;
-}
 .tree-shell button:focus-visible,
 .tree-scroll:focus-visible {
   outline: 2px solid #f1d998;
   outline-offset: 3px;
 }
 @media (max-width: 640px) {
-  .tree-intro {
-    align-items: flex-start;
+  .action-map {
+    height: 320px;
   }
-  .tree-intro h2 {
-    font-size: 15px;
+  .map-marker {
+    min-width: 83px;
+    padding: 6px 5px;
   }
-  .tree-intro > p {
-    font-size: 9px;
-    flex-shrink: 0;
+  .map-marker-icon {
+    width: 35px;
+    height: 35px;
   }
-  .action-menu-icons {
-    gap: 4px;
+  .map-marker svg {
+    width: 21px;
+    height: 21px;
   }
-  .action-menu-icons button {
-    padding: 10px 2px;
-    min-height: 76px;
-  }
-  .action-menu-icons strong {
+  .map-marker strong {
     font-size: 9px;
   }
-  .action-menu-icons small {
+  .tree-category-heading {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+  .tree-back {
+    min-height: 32px;
+    padding: 6px 9px;
+  }
+  .tree-category-heading > div {
+    flex-basis: calc(100% - 145px);
+  }
+  .tree-category-heading p {
+    font-size: 10px;
+  }
+  .tree-category-count {
     display: none;
-  }
-  .action-menu-icons svg {
-    width: 24px;
-    height: 24px;
   }
   .tree-scroll {
     max-height: 245px;
@@ -2530,6 +2909,63 @@ meter::-moz-meter-bar {
 .tree-shell .rpg-window-body {
   min-width: 0;
 }
+.tree-shell .rpg-window-body:has(.action-tree-content) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.action-tree-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.tree-category-heading,
+.tree-legend,
+.map-footer {
+  flex-shrink: 0;
+}
+.action-tree-content.is-map .action-map {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.action-tree-content.is-map {
+  padding-bottom: 108px;
+}
+.action-tree-content.is-category .tree-scroll {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+.map-footer {
+  min-height: 22px;
+  padding-top: 6px;
+  font-size: 10px;
+  color: #bdc3b4;
+}
+.map-footer section {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.map-footer strong,
+.map-footer button {
+  flex: none;
+  white-space: nowrap;
+}
+.map-footer span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-footer button {
+  color: #e4ca8c;
+  text-decoration: underline;
+}
 @media (min-width: 1024px) and (min-height: 601px) {
   .tree-shell .rpg-main {
     grid-template-rows: 58px 150px minmax(0, 1fr);
@@ -2537,19 +2973,185 @@ meter::-moz-meter-bar {
   .tree-shell .rpg-window-body {
     padding-top: 12px;
   }
-  .tree-shell .tree-intro h2 {
-    font-size: 18px;
-    margin-bottom: 10px;
+}
+@media (min-width: 1024px) and (max-height: 800px) {
+  .tree-shell .map-marker {
+    top: 50%;
   }
-  .tree-shell .action-menu-icons button {
-    padding: 8px 4px;
-    gap: 3px;
+  .tree-shell .map-marker[data-menu="education"] {
+    left: 12%;
   }
-  .tree-shell .action-menu-icons svg {
-    width: 24px;
-    height: 24px;
+  .tree-shell .map-marker[data-menu="home"] {
+    left: 31%;
   }
-  .tree-shell .tree-toolbar {
-    margin-top: 14px;
+  .tree-shell .map-marker[data-menu="grandparents"] {
+    left: 50%;
+  }
+  .tree-shell .map-marker[data-menu="afterschool"] {
+    left: 69%;
+  }
+  .tree-shell .map-marker[data-menu="work"] {
+    left: 88%;
+  }
+}
+@media (min-width: 1024px) and (max-height: 760px) {
+  .tree-shell .map-marker {
+    gap: 2px;
+    padding: 4px 8px;
+  }
+  .tree-shell .map-marker-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .tree-shell .map-marker svg {
+    width: 19px;
+    height: 19px;
+  }
+}
+@media (max-height: 760px) {
+  .tree-category-heading {
+    align-items: center;
+    padding-bottom: 6px;
+  }
+  .tree-category-heading .tree-eyebrow,
+  .tree-category-heading p,
+  .tree-legend span {
+    display: none;
+  }
+  .tree-category-heading h2 {
+    margin: 0;
+    font-size: 15px;
+  }
+  .tree-category-heading h2 svg {
+    width: 18px;
+    height: 18px;
+  }
+  .tree-legend {
+    margin: 4px 0 6px;
+    line-height: 1.4;
+  }
+}
+@media (max-width: 640px) and (max-height: 700px) {
+  .tree-shell .rpg-window-body:has(.action-tree-content) {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .map-marker {
+    flex-direction: row;
+    gap: 4px;
+    min-width: 0;
+    min-height: 32px;
+    padding: 3px 6px;
+  }
+  .map-marker-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .map-marker svg {
+    width: 15px;
+    height: 15px;
+  }
+  .map-marker small {
+    display: none;
+  }
+  .tree-category-heading {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .tree-category-heading > div {
+    flex-basis: auto;
+  }
+  .tree-back {
+    min-height: 28px;
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+  .tree-legend {
+    font-size: 9px;
+  }
+  .map-marker[data-menu="education"],
+  .map-marker[data-menu="afterschool"] {
+    top: 20%;
+  }
+  .map-marker[data-menu="home"] {
+    top: 50%;
+  }
+  .map-marker[data-menu="grandparents"],
+  .map-marker[data-menu="work"] {
+    top: 80%;
+  }
+}
+@media (max-width: 640px) and (max-height: 520px) {
+  .map-marker[data-menu="education"] {
+    left: 17%;
+    top: 26%;
+  }
+  .map-marker[data-menu="home"] {
+    left: 50%;
+    top: 26%;
+  }
+  .map-marker[data-menu="afterschool"] {
+    left: 82%;
+    top: 26%;
+  }
+  .map-marker[data-menu="grandparents"] {
+    left: 33%;
+    top: 74%;
+  }
+  .map-marker[data-menu="work"] {
+    left: 68%;
+    top: 74%;
+  }
+}
+@media (max-width: 640px) and (max-height: 600px) {
+  .map-marker[data-menu="grandparents"],
+  .map-marker[data-menu="work"] {
+    top: 65%;
+  }
+}
+@media (max-width: 640px) and (max-height: 520px) {
+  .map-marker[data-menu="grandparents"],
+  .map-marker[data-menu="work"] {
+    top: 58%;
+  }
+}
+@media (min-width: 641px) and (max-width: 1023px) and (max-height: 700px) {
+  .tree-shell .map-marker {
+    top: 50%;
+    width: 96px;
+    min-width: 0;
+    gap: 2px;
+    padding: 4px 6px;
+  }
+  .tree-shell .map-marker-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .tree-shell .map-marker svg {
+    width: 19px;
+    height: 19px;
+  }
+  .tree-shell .map-marker[data-menu="education"] {
+    left: 10%;
+  }
+  .tree-shell .map-marker[data-menu="home"] {
+    left: 30%;
+  }
+  .tree-shell .map-marker[data-menu="grandparents"] {
+    left: 50%;
+  }
+  .tree-shell .map-marker[data-menu="afterschool"] {
+    left: 70%;
+  }
+  .tree-shell .map-marker[data-menu="work"] {
+    left: 90%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .action-map,
+  .map-marker,
+  .tree-category-heading {
+    animation: none;
+    transition: none;
   }
 }

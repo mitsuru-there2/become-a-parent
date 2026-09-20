@@ -28,6 +28,24 @@ const choose = (s: State, id: string, value: string) =>
   chooseDecision(s, choices(s).find((c) => c.event_id === id)!.instance_id, `${id}:${value}`);
 
 describe("S-018 アクションツリー", () => {
+  it("資金予測の内訳は、予定を追加した後も収入・支出の合計と一致する", () => {
+    const s = start();
+    const incomeChoice = choices(s)
+      .flatMap((choice) => choice.options.map((option) => ({ choice, option })))
+      .find(({ option }) => option.available && option.income > 0)!;
+    chooseDecision(s, incomeChoice.choice.instance_id, incomeChoice.option.option_id);
+    const forecast = publicView(s).public.forecast!;
+    expect(forecast.cash_flow?.reduce((sum, line) => sum + (line.income ?? 0), 0)).toBe(
+      forecast.income,
+    );
+    expect(forecast.cash_flow?.reduce((sum, line) => sum + (line.cost ?? 0), 0)).toBe(
+      forecast.cost,
+    );
+    expect(forecast.cash_flow?.some((line) => line.income === incomeChoice.option.income)).toBe(
+      true,
+    );
+    expect(forecast.projected_cash).toBe(s.cash + forecast.income - forecast.cost);
+  });
   it("各実行案へ画像を設定でき、未設定時は共通の仮画像を公開する", () => {
     const s = start();
     const action = option(s, "base-extra-work", "accept");

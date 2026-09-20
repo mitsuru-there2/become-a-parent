@@ -1,4 +1,5 @@
-import { LifeMenus, LifeAdvance } from "./life_menus";
+import { LifeMenus } from "./life_menus";
+import { CashForecast } from "./cash_forecast";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { Link } from "@tanstack/react-router";
 import { useStore } from "@nanostores/react";
@@ -10,6 +11,67 @@ import { PartyStatus } from "./party_status";
 import { Timeline } from "./timeline";
 import { Ending } from "./ending";
 import familyRoom from "../../../assets/scenes/family-room.png";
+
+function DockIcon({
+  kind,
+}: {
+  kind: "play" | "family" | "history" | "help" | "events" | "advance";
+}) {
+  const common = {
+    width: 22,
+    height: 22,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.7,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
+  if (kind === "play")
+    return (
+      <svg {...common}>
+        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z" />
+        <path d="M9 21v-7h6v7" />
+      </svg>
+    );
+  if (kind === "family")
+    return (
+      <svg {...common}>
+        <circle cx="8" cy="8" r="2.5" />
+        <circle cx="16" cy="8" r="2.5" />
+        <path d="M2.5 19v-2a5.5 5.5 0 0 1 11 0v2M10.5 19v-2a5.5 5.5 0 0 1 11 0v2" />
+      </svg>
+    );
+  if (kind === "history")
+    return (
+      <svg {...common}>
+        <path d="M12 6c-2.4-1.5-5.5-1.6-9-.6V20c3.5-1 6.6-.9 9 .6 2.4-1.5 5.5-1.6 9-.6V5.4c-3.5-1-6.6-.9-9 .6Z" />
+        <path d="M12 6v14.6" />
+      </svg>
+    );
+  if (kind === "help")
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2.5-2.5 4.5M12 17h.01" />
+      </svg>
+    );
+  if (kind === "events")
+    return (
+      <svg {...common}>
+        <path d="M4 5h16v15H4zM8 3v4M16 3v4M4 9h16" />
+        <path d="m12 12 .8 1.8 2 .2-1.5 1.3.5 2-1.8-1-1.8 1 .5-2-1.5-1.3 2-.2z" />
+      </svg>
+    );
+  return (
+    <svg {...common}>
+      <path d="M5 12h13M13 7l5 5-5 5" />
+      <path d="M4 5v14" />
+    </svg>
+  );
+}
+
 function Options({
   choice,
   state,
@@ -173,6 +235,10 @@ export function DecisionPlay({ response }: { response: Response }) {
     : `${tab}:${state.time.next_turn}:${ended ? response.phase : showingResult ? "result" : (choice?.instance_id ?? "review")}`;
   const heading = useRef<HTMLHeadingElement>(null);
   const eventHeading = useRef<HTMLHeadingElement>(null);
+  const changeTab = (next: typeof tab) => {
+    setTab(next);
+    if (next === "history") void readExtra("history");
+  };
   useEffect(() => {
     // 予定を持つ保存から再開した期は、全取消しても出来事を自動再表示しない。
     if (turn.answered > 0) setReadEventTurn(eventTurn);
@@ -210,16 +276,25 @@ export function DecisionPlay({ response }: { response: Response }) {
               {state.time.season} · {state.time.school_label}
             </span>
           </div>
-          <div className="rpg-family-status">
-            <span>家族の様子</span>
-            <strong>{state.family_status?.label}</strong>
-          </div>
-          <div className="rpg-cash">
-            <span>いまの資金</span>
-            <strong>
-              {state.cash}
-              <small> 万円</small>
-            </strong>
+          <div
+            className={`rpg-hud-right${life && !ended && projection ? " has-money-summary" : ""}`}
+          >
+            <div
+              className="rpg-family-status"
+              aria-label={`家族の状態 ${state.family_status?.label}`}
+            >
+              <strong>{state.family_status?.label}</strong>
+            </div>
+            {life && !ended && projection ? (
+              <CashForecast cash={state.cash!} forecast={projection} />
+            ) : (
+              <div className="rpg-cash" aria-label={`現在の資金 ${state.cash}万円`}>
+                <strong>
+                  {state.cash}
+                  <small> 万円</small>
+                </strong>
+              </div>
+            )}
           </div>
         </div>
         <PartyStatus state={state} />
@@ -234,30 +309,6 @@ export function DecisionPlay({ response }: { response: Response }) {
             <p>{state.scene?.title}</p>
           </div>
           <section className="rpg-window" aria-label="家族の物語">
-            <div className="rpg-window-bar">
-              <span>
-                {tab === "play"
-                  ? ended
-                    ? "人生の結末"
-                    : life
-                      ? "アクションツリー"
-                      : special
-                        ? "今期の特殊イベント"
-                        : choice
-                          ? `判断 ${decisions.indexOf(choice) + 1} / 3`
-                          : "この半年の確認"
-                  : tab === "family"
-                    ? "家族の様子"
-                    : tab === "history"
-                      ? "家族の記録"
-                      : "遊び方"}
-              </span>
-              <span>
-                {life
-                  ? `今期だけの予定 ${state.life!.action_count}件`
-                  : `${turn.answered} / 3 回答済み`}
-              </span>
-            </div>
             {error && (
               <p role="alert" className="error">
                 {error}
@@ -314,7 +365,9 @@ export function DecisionPlay({ response }: { response: Response }) {
                     </li>
                     <li>
                       {life
-                        ? "生活メニューから継続する方針や今期だけの行動を選べます。何も選ばなくても進められます。"
+                        ? state.life?.action_tree
+                          ? "地図のカテゴリーを開き、ツリーのアクションを選んで詳細から確定します。何も選ばなくても進められます。"
+                          : "生活メニューから継続する方針や今期だけの行動を選べます。何も選ばなくても進められます。"
                         : "3つの判断に、ひとつずつ回答します。「何もしない」も回答です。"}
                     </li>
                     <li>
@@ -348,8 +401,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                   <button
                     className="rpg-action"
                     onClick={() => {
-                      setTab("history");
-                      void readExtra("history");
+                      changeTab("history");
                     }}
                   >
                     家族の記録を振り返る
@@ -430,21 +482,11 @@ export function DecisionPlay({ response }: { response: Response }) {
                           {reason.message}
                         </p>
                       ))}
-                      <button
-                        className="rpg-action"
-                        disabled={busy || !projection.can_advance}
-                        onClick={() => void update("advance")}
-                      >
-                        半年を進める →
-                      </button>
                     </>
                   )}
                 </>
               )}
             </div>
-            {tab === "play" && !ended && life && (
-              <LifeAdvance state={state} onEvents={() => setEventResult(true)} />
-            )}
             {tab === "play" && !ended && !life && (
               <nav className="rpg-steps" aria-label="今期の進行">
                 <button
@@ -486,28 +528,63 @@ export function DecisionPlay({ response }: { response: Response }) {
           </section>
         </div>
       </main>
-      <nav className="rpg-menu" aria-label="ゲーム内" inert={showingResult}>
-        {(["play", "family", "history", "help"] as const).map((item) => (
+      <footer className="rpg-dock" inert={showingResult}>
+        {life && !ended && projection && projection.reasons.length > 0 && (
+          <div className="rpg-dock-warnings" role="status">
+            {projection.reasons.map((reason) => (
+              <p className="warning" key={`${reason.path}:${reason.code}`}>
+                {reason.message}
+              </p>
+            ))}
+          </div>
+        )}
+        <nav className="rpg-dock-controls" aria-label="ゲーム内">
+          {(["play", "family", "history", "help"] as const).map((item) => (
+            <button
+              key={item}
+              className="rpg-dock-tab"
+              data-dock={item}
+              aria-label={
+                item === "play"
+                  ? ended
+                    ? "人生の結末"
+                    : "いまの暮らし"
+                  : item === "family"
+                    ? "家族の様子"
+                    : item === "history"
+                      ? "家族の記録"
+                      : "遊び方"
+              }
+              aria-current={tab === item ? "page" : undefined}
+              onClick={() => changeTab(item)}
+            >
+              <DockIcon kind={item} />
+            </button>
+          ))}
+          {life && !ended && (
+            <button
+              className="rpg-dock-events"
+              aria-label="今期の出来事 ↗"
+              disabled={busy}
+              onClick={() => setEventResult(true)}
+            >
+              <DockIcon kind="events" />
+            </button>
+          )}
           <button
-            key={item}
-            aria-current={tab === item ? "page" : undefined}
-            onClick={() => {
-              setTab(item);
-              if (item === "history") void readExtra("history");
-            }}
+            className="rpg-dock-advance"
+            aria-label={life ? "この暮らしで半年進める →" : "半年を進める →"}
+            disabled={
+              busy || ended || !!special || !projection?.can_advance || (!life && turn.answered < 3)
+            }
+            onClick={() => void update("advance")}
           >
-            {item === "play"
-              ? ended
-                ? "人生の結末"
-                : "いまの暮らし"
-              : item === "family"
-                ? "家族の様子"
-                : item === "history"
-                  ? "家族の記録"
-                  : "遊び方"}
+            <span className="rpg-dock-advance-icon">
+              <DockIcon kind="advance" />
+            </span>
           </button>
-        ))}
-      </nav>
+        </nav>
+      </footer>
       {showingResult && (
         <EventDialog
           events={turn.event_results}

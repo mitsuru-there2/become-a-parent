@@ -61,6 +61,7 @@ export interface Forecast {
   income: number;
   cost: number;
   projected_cash: number;
+  cash_flow?: { label: string; income?: number; cost?: number }[];
   time_used: Record<Person, number>;
   time_limit: number;
   care_required: number;

@@ -170,35 +170,3 @@ export function LifeMenus({ state, choices }: { state: PublicState; choices: Cho
     </section>
   );
 }
-
-export function LifeAdvance({ state, onEvents }: { state: PublicState; onEvents: () => void }) {
-  const busy = useStore($busy);
-  const f = state.forecast!;
-  return (
-    <footer className="life-advance">
-      <div className="life-budget">
-        <span>
-          半年の収入 ＋{f.income}万円 ／ 支出 −{f.cost}万円
-        </span>
-        <strong>半年後の資金 {f.projected_cash}万円</strong>
-      </div>
-      {f.reasons.map((r) => (
-        <p className="warning" key={`${r.path}:${r.code}`}>
-          {r.message}
-        </p>
-      ))}
-      <div className="life-advance-actions">
-        <button disabled={busy} onClick={onEvents}>
-          今期の出来事
-        </button>
-        <button
-          className="rpg-action"
-          disabled={busy || !f.can_advance}
-          onClick={() => void update("advance")}
-        >
-          この暮らしで半年進める →
-        </button>
-      </div>
-    </footer>
-  );
-}

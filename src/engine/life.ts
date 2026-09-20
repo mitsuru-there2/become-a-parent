@@ -192,7 +192,14 @@ export function lifeForecast(s: State): Forecast {
   const game = config(s);
   const reasons: Forecast["reasons"] = [];
   const resolved = resolvedPolicies(s, true);
-  let cost = difficultyFor(s).living_cost + stage(s.n, s).cost;
+  const livingCost = difficultyFor(s).living_cost;
+  const stageCost = stage(s.n, s).cost;
+  const cashFlow: NonNullable<Forecast["cash_flow"]> = [
+    { label: "半年の基本収入", income: game.income },
+    { label: "基本生活費", cost: livingCost },
+  ];
+  if (stageCost) cashFlow.push({ label: "年齢に応じた生活費", cost: stageCost });
+  let cost = livingCost + stageCost;
   let income = game.income;
   let count = 0;
   const known = new Set<string>();
@@ -221,10 +228,14 @@ export function lifeForecast(s: State): Forecast {
     )
       continue;
     if (node.kind === "action") count++;
-    cost +=
-      option.cost +
-      (node.kind === "policy" && s.life!.policies[node.id] !== option.id ? option.setup_cost : 0);
+    const setupCost =
+      node.kind === "policy" && s.life!.policies[node.id] !== option.id ? option.setup_cost : 0;
+    cost += option.cost + setupCost;
     income += option.income;
+    if (option.income)
+      cashFlow.push({ label: `${node.title}：${option.label}`, income: option.income });
+    if (option.cost) cashFlow.push({ label: `${node.title}：${option.label}`, cost: option.cost });
+    if (setupCost) cashFlow.push({ label: `${node.title}：開始費`, cost: setupCost });
   }
   if (Object.keys(s.decisions!.selections).some((id) => !known.has(id)))
     reasons.push({
@@ -248,6 +259,7 @@ export function lifeForecast(s: State): Forecast {
     income,
     cost,
     projected_cash: Math.min(99999, s.cash + income - cost),
+    cash_flow: cashFlow,
     can_advance: s.phase === "childhood" && reasons.length === 0,
     reasons,
     time_used: { A: 0, B: 0 },

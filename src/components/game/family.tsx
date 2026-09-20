@@ -15,6 +15,42 @@ export function Family({ publicState }: { publicState: PublicState }) {
           <p>{publicState.family_status.description}</p>
         </div>
       )}
+      {publicState.life?.action_tree && (
+        <section className="family-tree-effects" aria-label="現在の暮らしと取得効果">
+          <h3>現在の暮らしと取得効果</h3>
+          {publicState.life.notices.map((notice) => (
+            <p className="warning" key={notice}>
+              {notice}
+            </p>
+          ))}
+          <div className="family-tree-policies">
+            {publicState.life.policies.map((policy) => (
+              <p key={policy.id}>
+                <span>{policy.title}</span>
+                <strong>{policy.label}</strong>
+                {policy.cost > 0 && <small>{policy.cost}万円／半年</small>}
+                {policy.planned_label !== policy.label && (
+                  <small>今期の予定：{policy.planned_label}</small>
+                )}
+              </p>
+            ))}
+          </div>
+          <div className="family-tree-modifiers">
+            <h4>取得効果（{publicState.life.active_effects?.length ?? 0}）</h4>
+            {publicState.life.active_effects?.length ? (
+              publicState.life.active_effects.map((effect, index) => (
+                <p key={`${effect.source}:${effect.label}:${index}`}>
+                  {effect.source} · {effect.label}：{effect.kind === "good" ? "良い" : "悪い"}
+                  イベント {effect.percent > 0 ? "+" : ""}
+                  {effect.percent}%
+                </p>
+              ))
+            ) : (
+              <p>取得効果はまだありません。</p>
+            )}
+          </div>
+        </section>
+      )}
       {PEOPLE.map((parentId) => (
         <div className="parent" key={parentId}>
           <h3>
