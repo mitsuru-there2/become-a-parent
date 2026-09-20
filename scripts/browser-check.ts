@@ -25,7 +25,7 @@ try {
     await expect(page.locator(".rpg-save")).not.toHaveText("保存中…");
     await page.waitForTimeout(100);
     if (await events.isVisible())
-      await events.getByRole("button", { name: "暮らしのメニューへ →" }).click();
+      await events.getByRole("button", { name: "閉じる" }).last().click();
   };
   const next = page.getByRole("button", { name: "この暮らしで半年進める →", exact: true });
   const progress = async (turn: number) => {
@@ -126,14 +126,27 @@ try {
       const map = document.querySelector<HTMLElement>(".action-map");
       if (map) {
         const bounds = map.getBoundingClientRect();
-        if (dock) {
-          const dockBounds = dock.getBoundingClientRect();
-          if (dockBounds.right > bounds.right - 1 || dockBounds.top < bounds.bottom + 4)
-            found.push("dock crosses map frame");
+        if (bounds.width > 1002) found.push("map exceeds fixed width");
+        const markerElements = [...map.querySelectorAll<HTMLElement>(".map-marker")];
+        const markers = markerElements.map((marker) => marker.getBoundingClientRect());
+        if (innerWidth > 640) {
+          const roadEnds: Record<string, [number, number]> = {
+            education: [218, 154],
+            home: [480, 276],
+            grandparents: [184, 417],
+            afterschool: [742, 155],
+            work: [700, 336],
+          };
+          markerElements.forEach((element, index) => {
+            const end = roadEnds[element.dataset.menu ?? ""];
+            if (!end) return;
+            const marker = markers[index];
+            const x = ((marker.left + marker.right) / 2 - bounds.left) / bounds.width;
+            const y = ((marker.top + marker.bottom) / 2 - bounds.top) / bounds.height;
+            if (Math.abs(x - end[0] / 1000) > 0.04 || Math.abs(y - end[1] / 560) > 0.04)
+              found.push(`${element.dataset.menu} misses map road`);
+          });
         }
-        const markers = [...map.querySelectorAll<HTMLElement>(".map-marker")].map((marker) =>
-          marker.getBoundingClientRect(),
-        );
         markers.forEach((marker, index) => {
           if (
             marker.left < bounds.left - 1 ||
@@ -206,7 +219,9 @@ try {
   await expect(next.locator(".rpg-dock-advance-icon")).toBeVisible();
   await page.getByRole("button", { name: "今期の出来事 ↗" }).click();
   await expect(events).toBeVisible();
-  await dismiss();
+  await expect(events.getByRole("button", { name: "閉じる" })).toHaveCount(2);
+  await events.getByRole("button", { name: "閉じる" }).first().click();
+  await expect(events).toHaveCount(0);
   await expect(
     page.getByRole("group", { name: "アクションの地図" }).getByRole("button"),
   ).toHaveCount(5);
@@ -220,6 +235,7 @@ try {
   await expect(page.getByRole("region", { name: "実家のステータス" })).toBeVisible();
   await page.waitForTimeout(450);
   for (const [width, height] of [
+    [1600, 760],
     [1280, 900],
     [1280, 720],
     [1026, 760],
@@ -233,7 +249,12 @@ try {
   ]) {
     await page.setViewportSize({ width, height });
     await viewport();
-    if ((width === 1280 && height === 900) || (width === 390 && height === 844) || height === 480)
+    if (
+      (width === 1600 && height === 760) ||
+      (width === 1280 && height === 900) ||
+      (width === 390 && height === 844) ||
+      height === 480
+    )
       await page.screenshot({ path: `${out}/overview-${width}x${height}.png` });
   }
   await page.setViewportSize({ width: 390, height: 844 });

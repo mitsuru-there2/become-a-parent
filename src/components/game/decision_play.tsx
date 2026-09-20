@@ -127,14 +127,12 @@ function Options({
 function EventDialog({
   events,
   legacyLines,
-  nextLabel,
-  onContinue,
+  onClose,
   headingRef,
 }: {
   events: AutomaticEventResult[];
   legacyLines: string[];
-  nextLabel: string;
-  onContinue: () => void;
+  onClose: () => void;
   headingRef: RefObject<HTMLHeadingElement | null>;
 }) {
   return (
@@ -146,15 +144,44 @@ function EventDialog({
         aria-modal="true"
         aria-labelledby="turn-event-title"
         onKeyDown={(event) => {
-          if (event.key === "Tab") {
+          if (event.key === "Escape") {
             event.preventDefault();
-            event.currentTarget.querySelector("button")?.focus();
+            onClose();
+          }
+          if (event.key === "Tab") {
+            const buttons = event.currentTarget.querySelectorAll("button");
+            const first = buttons[0];
+            const last = buttons[buttons.length - 1];
+            if (
+              event.shiftKey &&
+              (document.activeElement === first || document.activeElement === headingRef.current)
+            ) {
+              event.preventDefault();
+              last?.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault();
+              first?.focus();
+            }
           }
         }}
       >
         <div className="turn-event-illustration">
           <img src={familyRoom} alt="家族に起きた出来事を表す仮の挿絵" />
           <span>TURN EVENT</span>
+          <button className="turn-event-close" type="button" aria-label="閉じる" onClick={onClose}>
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M5 5 19 19M19 5 5 19" />
+            </svg>
+          </button>
         </div>
         <div className="turn-event-heading">
           <p>この半年のはじまり</p>
@@ -193,8 +220,8 @@ function EventDialog({
             <p className="turn-event-empty">今期は特別な出来事はありません。</p>
           )}
         </div>
-        <button className="rpg-action" onClick={onContinue}>
-          {nextLabel}
+        <button className="rpg-action" onClick={onClose}>
+          閉じる
         </button>
       </section>
     </>
@@ -590,14 +617,7 @@ export function DecisionPlay({ response }: { response: Response }) {
           events={turn.event_results}
           legacyLines={turn.event_result}
           headingRef={eventHeading}
-          nextLabel={
-            life
-              ? "暮らしのメニューへ →"
-              : turn.answered === 3 && !choice
-                ? "半年の確認へ →"
-                : "3つの判断へ →"
-          }
-          onContinue={() => {
+          onClose={() => {
             setEventResult(false);
             setReadEventTurn(eventTurn);
           }}
