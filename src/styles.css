@@ -3514,6 +3514,22 @@ meter::-moz-meter-bar {
 .stage-tree {
   min-height: 0;
 }
+.required-routes-alert {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 6px;
+}
+.required-routes-alert nav {
+  display: flex;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+}
+.required-routes-alert button {
+  flex-shrink: 0;
+  min-height: 44px;
+  white-space: nowrap;
+}
 .stage-tree.is-map {
   overflow: auto;
 }
@@ -3643,18 +3659,40 @@ meter::-moz-meter-bar {
   padding: 12px;
   min-height: 116px;
   background: #191e16;
-  border: 1px solid #555f44;
+  border: 2px solid #555f44;
   box-shadow: 0 2px 0 #11150f;
 }
 .stage-selection.is-available {
-  border-color: #849768;
+  background: #35432a;
+  border: 2px solid #e2c783;
+  box-shadow: 0 3px 0 #11150f;
+}
+.stage-selection > span {
+  align-self: flex-start;
+  padding: 4px 7px;
+  font-weight: 700;
+}
+.stage-selection.is-available > span {
+  background: #e2c783;
+  color: #24281d;
+}
+.stage-selection.is-available:hover {
+  background: #425335;
 }
 .stage-selection.is-acquired {
-  background: #34452b;
-  border-color: #9aa77c;
+  background: #242b22;
+  border-color: #68755e;
+  color: #c1c8b7;
 }
 .stage-selection.is-locked {
   color: #aeb49d;
+  background: #1c1e1c;
+  border-style: dashed;
+  border-color: #565a53;
+  box-shadow: none;
+}
+.stage-selection:not(.is-available) .stage-selection-impact {
+  color: #b8bab0;
 }
 .stage-selection > span,
 .stage-selection small {

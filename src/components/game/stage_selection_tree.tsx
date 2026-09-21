@@ -36,10 +36,16 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
   const missing = life.crossroad?.missing ?? [];
   const changeable = life.crossroad?.changeable ?? [];
   const canChangeRoute = changeable.some((item) => item.menu === menu);
-  const availableMenus = new Set(
-    choices
-      .filter((choice) => !choice.route_choice && choice.options.some((option) => option.available))
-      .map((choice) => choice.menu),
+  const availableCounts = new Map<string, number>();
+  for (const choice of choices) {
+    if (choice.route_choice || !choice.menu) continue;
+    const count = choice.options.filter((option) => option.available).length;
+    if (count > 0)
+      availableCounts.set(choice.menu, (availableCounts.get(choice.menu) ?? 0) + count);
+  }
+  const availableTotal = Array.from(availableCounts.values()).reduce(
+    (sum, count) => sum + count,
+    0,
   );
   useEffect(() => {
     if (menu) heading.current?.focus();
@@ -76,11 +82,12 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
       aria-label={menu ? "選択ツリー" : "ホーム"}
     >
       {missing.length > 0 && (
-        <aside className="crossroad-alert" role="alert" aria-label="岐路の必須選択">
-          <div>
-            <strong>{life.crossroad!.label}</strong>
-            <span>全カテゴリのルートを確定すると、半年を進められます。</span>
-          </div>
+        <aside
+          className="crossroad-alert required-routes-alert"
+          role="alert"
+          aria-label="岐路の必須選択"
+        >
+          <strong>ルートを選択</strong>
           <nav aria-label="未実施の必須選択">
             {missing.map((item) => (
               <button key={item.decision_id} onClick={() => openMenu(item.menu)}>
@@ -90,7 +97,7 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
           </nav>
         </aside>
       )}
-      {changeable.length > 0 && (
+      {missing.length === 0 && changeable.length > 0 && (
         <aside className="crossroad-alert" role="alert" aria-label="岐路のルート変更">
           <div>
             <strong>{life.crossroad!.label} · ルートを変更できます</strong>
@@ -224,8 +231,8 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                                   : !group.current
                                     ? "◇ 先にルートを選択"
                                     : option.available
-                                      ? "○ 取得できます"
-                                      : "◇ 条件待ち"}
+                                      ? "＋ 今すぐ取得できます"
+                                      : "◇ 取得不可 · 条件待ち"}
                           </span>
                           <strong>{option.label}</strong>
                           {(choice.text !== option.label ||
@@ -268,15 +275,16 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
         </>
       ) : (
         <>
-          {availableMenus.size > 0 && (
+          {missing.length === 0 && changeable.length === 0 && availableTotal > 0 && (
             <aside className="judgment-alert" role="alert" aria-label="取得可能な判断">
-              <strong>選択中のルートに、取得できる判断があります</strong>
+              <strong>選択中のルートに、取得できる判断が{availableTotal}件あります</strong>
               <nav aria-label="判断を取得できるカテゴリ">
                 {life.menus
-                  .filter((item) => availableMenus.has(item.id))
+                  .filter((item) => availableCounts.has(item.id))
                   .map((item) => (
                     <button key={item.id} onClick={() => openMenu(item.id)}>
-                      {item.id === "grandparents" ? "実家との関わり" : item.label}へ →
+                      {item.id === "grandparents" ? "実家との関わり" : item.label}（
+                      {availableCounts.get(item.id)}件）
                     </button>
                   ))}
               </nav>

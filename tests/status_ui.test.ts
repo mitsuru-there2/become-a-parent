@@ -8,7 +8,7 @@ import { PartyStatus } from "../src/components/game/party_status";
 import { publicView, start } from "../src/engine/simulation";
 import { chooseDecision } from "../src/engine/decisions";
 import { StageSelectionTree } from "../src/components/game/stage_selection_tree";
-import { chooseStage, startStage, until } from "./fixtures/stage_helpers";
+import { chooseStage, satisfyStage, startStage, until } from "./fixtures/stage_helpers";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: ReactNode }) => createElement("a", null, children),
@@ -170,9 +170,21 @@ it("現在ルートの取得可能な判断だけを通知し、取得後に通�
   expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
   chooseStage(state, "crossroad-school", "public");
   rerender(createElement(StageSelectionTree, props()));
+  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+  expect(screen.getAllByRole("alert")).toHaveLength(1);
+  expect(screen.getByText("ルートを選択")).toBeTruthy();
+  satisfyStage(state);
+  rerender(createElement(StageSelectionTree, props()));
   const alert = screen.getByRole("alert", { name: "取得可能な判断" });
-  expect(within(alert).getAllByRole("button")).toHaveLength(1);
-  fireEvent.click(within(alert).getByRole("button", { name: "教育・進路へ →" }));
+  expect(screen.getAllByRole("alert")).toHaveLength(1);
+  expect(within(alert).getAllByRole("button")).toHaveLength(5);
+  const count = publicView(state).choices.flatMap((choice) =>
+    choice.route_choice ? [] : choice.options.filter((option) => option.available),
+  ).length;
+  expect(
+    within(alert).getByText(`選択中のルートに、取得できる判断が${count}件あります`),
+  ).toBeTruthy();
+  fireEvent.click(within(alert).getByRole("button", { name: /教育・進路/ }));
   expect(screen.getByRole("heading", { name: "教育・進路" })).toBeTruthy();
   expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "← ホームに戻る" }));
@@ -189,6 +201,53 @@ it("現在ルートの取得可能な判断だけを通知し、取得後に通�
   expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
 });
 
+it("資金とパラメータの現在値に応じて通知の合計とカテゴリ件数が増減する", () => {
+  const state = startStage();
+  chooseStage(state, "crossroad-home", "daily");
+  satisfyStage(state);
+  const target = state.settings!.content.life_game!.decisions.find(
+    (item) => item.id === "home-daily-0-04",
+  )!.options[0];
+  target.requires = { stats: [{ path: "child.ability.study", op: "gte", value: 60 }] };
+  const props = () => {
+    const view = publicView(state);
+    return { state: view.public, choices: view.choices };
+  };
+  const { rerender } = render(createElement(StageSelectionTree, props()));
+  const verifyCount = () => {
+    const current = props();
+    rerender(createElement(StageSelectionTree, current));
+    const count = current.choices.flatMap((choice) =>
+      choice.route_choice ? [] : choice.options.filter((option) => option.available),
+    ).length;
+    if (count === 0) expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+    else {
+      const alert = screen.getByRole("alert", { name: "取得可能な判断" });
+      expect(
+        within(alert).getByText(`選択中のルートに、取得できる判断が${count}件あります`),
+      ).toBeTruthy();
+      expect(
+        within(alert).getByRole("button", {
+          name: `家庭生活（${current.choices.filter((choice) => choice.menu === "home" && !choice.route_choice).flatMap((choice) => choice.options.filter((option) => option.available)).length}件）`,
+        }),
+      ).toBeTruthy();
+    }
+    return count;
+  };
+  state.cash = 0;
+  const poorCount = verifyCount();
+  state.cash = 10000;
+  expect(verifyCount()).toBeGreaterThan(poorCount);
+  state.child.ability.study = 59;
+  const belowThreshold = verifyCount();
+  state.child.ability.study = 60;
+  expect(verifyCount()).toBe(belowThreshold + 1);
+  state.child.ability.study = 59;
+  expect(verifyCount()).toBe(belowThreshold);
+  state.cash = 0;
+  expect(verifyCount()).toBe(poorCount);
+});
+
 it("別ルートは閲覧専用と示して取得を拒否し、将来ステージと岐路の変更を区別する", () => {
   const state = startStage();
   chooseStage(state, "crossroad-school", "public");
@@ -196,9 +255,12 @@ it("別ルートは閲覧専用と示して取得を拒否し、将来ステー�
     const view = publicView(state);
     return { state: view.public, choices: view.choices };
   };
+  satisfyStage(state);
   const { container, rerender } = render(createElement(StageSelectionTree, props()));
   fireEvent.click(
-    within(screen.getByRole("alert", { name: "取得可能な判断" })).getByRole("button"),
+    within(screen.getByRole("alert", { name: "取得可能な判断" })).getByRole("button", {
+      name: /教育・進路/,
+    }),
   );
   expect(screen.getByText("✓ 選択中のルート")).toBeTruthy();
   expect(screen.getAllByText("— 選択不可・閲覧のみ")).toHaveLength(3);
@@ -220,4 +282,59 @@ it("別ルートは閲覧専用と示して取得を拒否し、将来ステー�
   rerender(createElement(StageSelectionTree, props()));
   expect(screen.getByText("✓ 選択中のルート")).toBeTruthy();
   expect(screen.getAllByRole("button", { name: /このルートを確認/ })).toHaveLength(3);
+});
+
+it("取得や資金変更でもルート内の判断の並び順を維持する", () => {
+  const state = startStage();
+  chooseStage(state, "crossroad-home", "daily");
+  satisfyStage(state);
+  state.cash = 10000;
+  const props = () => {
+    const view = publicView(state);
+    return { state: view.public, choices: view.choices };
+  };
+  satisfyStage(state);
+  const { container, rerender } = render(createElement(StageSelectionTree, props()));
+  fireEvent.click(
+    within(screen.getByRole("alert", { name: "取得可能な判断" })).getByRole("button", {
+      name: /家庭生活/,
+    }),
+  );
+  const cards = () =>
+    Array.from(container.querySelectorAll(".stage-route.is-current .stage-selection"));
+  const before = cards();
+  const first = before.find((card) => card.classList.contains("is-available"))!;
+  expect(first.textContent).toContain("今すぐ取得できます");
+  const choice = props().choices.find(
+    (item) =>
+      !item.route_choice &&
+      item.options.some(
+        (option) => first.getAttribute("aria-label") === `${item.text}：${option.label}`,
+      ),
+  )!;
+  chooseDecision(state, choice.instance_id, choice.options[0].option_id);
+  rerender(createElement(StageSelectionTree, props()));
+  expect(first.classList.contains("is-acquired")).toBe(true);
+  expect(cards()).toEqual(before);
+  state.cash = 0;
+  rerender(createElement(StageSelectionTree, props()));
+  expect(cards()).toEqual(before);
+});
+
+it("後続の岐路ではルート変更案内を優先し、次期に取得通知へ戻る", () => {
+  const state = startStage();
+  until(state, 8);
+  const props = () => {
+    const view = publicView(state);
+    return { state: view.public, choices: view.choices };
+  };
+  const { rerender } = render(createElement(StageSelectionTree, props()));
+  expect(screen.getByRole("alert", { name: "岐路のルート変更" })).toBeTruthy();
+  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+  expect(screen.getAllByRole("alert")).toHaveLength(1);
+  until(state, 9);
+  rerender(createElement(StageSelectionTree, props()));
+  expect(screen.queryByRole("alert", { name: "岐路のルート変更" })).toBeNull();
+  expect(screen.getByRole("alert", { name: "取得可能な判断" })).toBeTruthy();
+  expect(screen.getAllByRole("alert")).toHaveLength(1);
 });
