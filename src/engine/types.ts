@@ -85,6 +85,7 @@ export interface AutomaticEventResult {
   kind: "good" | "bad";
   text: string;
   changes: string[];
+  visual?: Visual;
 }
 export interface ChildResult {
   age: number;

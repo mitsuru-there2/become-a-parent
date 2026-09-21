@@ -1304,14 +1304,42 @@ meter::-moz-meter-bar {
 }
 .turn-event-dialog {
   width: min(760px, calc(100vw - 32px));
+  height: min(470px, calc(100dvh - 96px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: turn-event-open 240ms ease-out both;
   padding: 0;
   border-color: #d3d2c5;
+  transform: translate(calc(-50% - var(--stack-shift, 0px)), calc(-50% - var(--stack-shift, 0px)));
   box-shadow:
     10px 10px 0 rgb(0 0 0 / 35%),
     inset 0 0 0 1px #56564f;
 }
+@keyframes turn-event-open {
+  from {
+    opacity: 0;
+    scale: 0.97;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+.turn-event-dialog[data-depth="1"] {
+  --stack-shift: 18px;
+}
+.turn-event-dialog[data-depth="2"] {
+  --stack-shift: 36px;
+}
+.turn-event-dialog[data-depth="3"] {
+  --stack-shift: 54px;
+}
+.turn-event-dialog[aria-hidden="true"] {
+  pointer-events: none;
+}
 .turn-event-illustration {
-  height: 154px;
+  flex: 0 0 154px;
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid #696960;
@@ -1381,7 +1409,11 @@ meter::-moz-meter-bar {
 }
 .turn-event-list {
   display: grid;
+  align-content: start;
   gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 0 22px;
 }
 .turn-event-card {
@@ -1440,6 +1472,7 @@ meter::-moz-meter-bar {
   color: #c6c5ba;
 }
 .turn-event-dialog > .rpg-action {
+  flex: 0 0 auto;
   margin: 16px 22px 20px auto;
 }
 .event-dialog h2 {
@@ -1459,6 +1492,20 @@ meter::-moz-meter-bar {
   display: inline-block;
   margin: 2rem;
 }
+@media (max-width: 900px) {
+  .turn-event-dialog[data-stacked="true"] {
+    width: min(760px, calc(100vw - 80px));
+  }
+  .turn-event-dialog[data-depth="1"] {
+    --stack-shift: 10px;
+  }
+  .turn-event-dialog[data-depth="2"] {
+    --stack-shift: 20px;
+  }
+  .turn-event-dialog[data-depth="3"] {
+    --stack-shift: 30px;
+  }
+}
 @media (max-width: 720px) {
   .decision-heading {
     align-items: start;
@@ -1468,10 +1515,10 @@ meter::-moz-meter-bar {
     padding: 0.75rem;
   }
   .turn-event-dialog {
-    max-height: calc(100dvh - 20px);
+    height: min(440px, calc(100dvh - 72px));
   }
   .turn-event-illustration {
-    height: 112px;
+    flex-basis: 112px;
   }
   .turn-event-heading {
     padding: 14px 16px 11px;

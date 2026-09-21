@@ -245,6 +245,7 @@ export const contentPackSchema = v.strictObject({
 });
 export const settingsSchema = v.strictObject({
   difficulty: difficultyIdSchema,
+  max_automatic_events: v.optional(v.literal(3)),
   packs: v.pipe(
     v.array(v.strictObject({ id: contentIdSchema, version: v.string(), label: v.string() })),
     v.check(

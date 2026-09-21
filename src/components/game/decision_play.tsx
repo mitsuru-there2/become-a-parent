@@ -1,9 +1,10 @@
 import { LifeMenus } from "./life_menus";
+import { EventDialogs } from "./event_dialogs";
 import { CashForecast } from "./cash_forecast";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useStore } from "@nanostores/react";
-import type { AutomaticEventResult, Choice, PublicState } from "../../engine/types";
+import type { Choice, PublicState } from "../../engine/types";
 import type { Response } from "../../service/service";
 import { $busy, $error, $notice, $extra, update, readExtra, downloadSave } from "../../stores/game";
 import { Family } from "./family";
@@ -123,110 +124,6 @@ function Options({
         );
       })}
     </div>
-  );
-}
-
-function EventDialog({
-  events,
-  legacyLines,
-  onClose,
-  headingRef,
-}: {
-  events: AutomaticEventResult[];
-  legacyLines: string[];
-  onClose: () => void;
-  headingRef: RefObject<HTMLHeadingElement | null>;
-}) {
-  return (
-    <>
-      <div className="event-overlay" aria-hidden="true" />
-      <section
-        className="event-dialog turn-event-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="turn-event-title"
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            onClose();
-          }
-          if (event.key === "Tab") {
-            const buttons = event.currentTarget.querySelectorAll("button");
-            const first = buttons[0];
-            const last = buttons[buttons.length - 1];
-            if (
-              event.shiftKey &&
-              (document.activeElement === first || document.activeElement === headingRef.current)
-            ) {
-              event.preventDefault();
-              last?.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-              event.preventDefault();
-              first?.focus();
-            }
-          }
-        }}
-      >
-        <div className="turn-event-illustration">
-          <img src={familyRoom} alt="家族に起きた出来事を表す仮の挿絵" />
-          <span>TURN EVENT</span>
-          <button className="turn-event-close" type="button" aria-label="閉じる" onClick={onClose}>
-            <svg
-              viewBox="0 0 24 24"
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path d="M5 5 19 19M19 5 5 19" />
-            </svg>
-          </button>
-        </div>
-        <div className="turn-event-heading">
-          <p>この半年のはじまり</p>
-          <h2 id="turn-event-title" ref={headingRef} tabIndex={-1}>
-            今期の出来事
-          </h2>
-          {events.length > 0 && <span>{events.length}件発生</span>}
-        </div>
-        <div className="turn-event-list">
-          {events.length > 0 ? (
-            events.map((event) => (
-              <article
-                key={event.event_id}
-                className={`turn-event-card turn-event-card--${event.kind}`}
-              >
-                <span className="turn-event-kind">
-                  {event.kind === "good" ? "良い出来事" : "困った出来事"}
-                </span>
-                <p>{event.text}</p>
-                {event.changes.length > 0 && (
-                  <ul aria-label="パラメータの変更">
-                    {event.changes.map((change) => (
-                      <li key={change}>{change}</li>
-                    ))}
-                  </ul>
-                )}
-              </article>
-            ))
-          ) : legacyLines.length > 0 ? (
-            <div className="turn-event-card turn-event-card--neutral">
-              {legacyLines.map((line, index) => (
-                <p key={index}>{line}</p>
-              ))}
-            </div>
-          ) : (
-            <p className="turn-event-empty">今期は特別な出来事はありません。</p>
-          )}
-        </div>
-        <button className="rpg-action" onClick={onClose}>
-          閉じる
-        </button>
-      </section>
-    </>
   );
 }
 
@@ -646,10 +543,11 @@ export function DecisionPlay({ response }: { response: Response }) {
         </StatusDetail>
       )}
       {showingResult && (
-        <EventDialog
+        <EventDialogs
           events={turn.event_results}
           legacyLines={turn.event_result}
           headingRef={eventHeading}
+          stagger={automaticResult && !eventResult}
           onClose={() => {
             setEventResult(false);
             setReadEventTurn(eventTurn);

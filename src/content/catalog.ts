@@ -109,7 +109,12 @@ export class Catalog {
       return { id: pack.id, version: pack.version, label: pack.label };
     });
     validateContent(content);
-    const data = { difficulty: difficulty as Settings["difficulty"], packs: selected, content };
+    const data = {
+      difficulty: difficulty as Settings["difficulty"],
+      max_automatic_events: 3 as const,
+      packs: selected,
+      content,
+    };
     return { ...data, fingerprint: hash(canonical(data)) };
   }
 }

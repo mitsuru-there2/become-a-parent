@@ -168,6 +168,9 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
         expect(s.phase).toBe("finished");
         expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
         expect(s.result!.parents.B.death_age).toBeGreaterThan(50);
+        expect(
+          s.history.every((entry) => entry.kind !== "special" || entry.events.length <= 3),
+        ).toBe(true);
         const events = s.history.flatMap((h) =>
           h.kind === "special" ? h.events.map((e) => e.event_id) : [],
         );

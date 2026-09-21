@@ -4,10 +4,10 @@ import { describe, expect, it } from "vite-plus/test";
 import { Catalog } from "../src/content/catalog";
 import { startDecisions, openDecisionTurn, chooseDecision } from "../src/engine/decisions";
 import { advance, publicView } from "../src/engine/simulation";
-import { clone } from "../src/engine/shared";
+import { canonical, clone, hash } from "../src/engine/shared";
 import { validateContent } from "../src/content/validation";
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
-import { Service, replayRun, exportRun, importRun } from "../src/service/service";
+import { Service, replayRun, exportRun, importRun, digest } from "../src/service/service";
 import base from "./fixtures/legacy_content";
 import type { AutomaticEvent } from "../src/content/automatic_event_schema";
 
@@ -76,6 +76,50 @@ describe("S-016 自動イベント", () => {
     openDecisionTurn(state);
     expect(state).toEqual(saved);
     expect(publicView(state).public.forecast!.can_advance).toBe(false);
+  });
+  it("4件以上当選しても補正後の発生確率が高い3件だけを適用する", () => {
+    const quiet = start([]);
+    const state = start([
+      event({ id: "a", probability: 80, effects: [{ path: "cash", delta: 1 }] }),
+      event({ id: "b", probability: 90, effects: [{ path: "cash", delta: 2 }] }),
+      event({
+        id: "c",
+        probability: 50,
+        modifiers: [{ condition: { path: "cash", op: "gte", value: 0 }, add: 45 }],
+        effects: [{ path: "cash", delta: 4 }],
+      }),
+      event({ id: "d", probability: 100, effects: [{ path: "cash", delta: 8 }] }),
+    ]);
+    expect(state.history[0].event_results!.map((result) => result.event_id)).toEqual([
+      "b",
+      "c",
+      "d",
+    ]);
+    expect(state.cash).toBe(quiet.cash + 14);
+    expect(state.seen["automatic:a"]).toBeUndefined();
+    const tied = start(["d", "c", "b", "a"].map((id) => event({ id })));
+    expect(tied.history[0].event_results!.map((result) => result.event_id)).toEqual([
+      "a",
+      "b",
+      "c",
+    ]);
+  });
+  it("上限を記録していない既存保存は4件以上でも元の結果で再生する", () => {
+    const settings = catalog(["a", "b", "c", "d"].map((id) => event({ id }))).resolve();
+    const { max_automatic_events: _limit, fingerprint: _fingerprint, ...data } = settings;
+    const oldSettings = { ...data, fingerprint: hash(canonical(data)) };
+    const state = startDecisions("home-01", 0, oldSettings);
+    expect(state.history[0].event_results).toHaveLength(4);
+    const run = {
+      id: "old-four-events",
+      revision: 0,
+      state,
+      digest: digest(state),
+      commits: [],
+      receipts: {},
+      updated_at: new Date().toISOString(),
+    };
+    expect(replayRun(run)).toEqual(state);
   });
   it("月齢の両境界、状態条件、確率補正、0%と100%を判定する", () => {
     for (const [n, count] of [
@@ -167,6 +211,40 @@ describe("S-016 自動イベント", () => {
       [{ ...event(), effects: [{ path: "__proto__.x", delta: 1 }] }],
     ])
       expect(() => validateContent({ ...base, automatic_events: events })).toThrow();
+  });
+  it("イベントごとの画像IDを公開結果と保存へ解決し、未知の画像を拒否する", async () => {
+    const content = {
+      ...base,
+      visuals: {
+        ...base.visuals,
+        eventPortrait: { src: "/assets/marketing/hero.png", alt: "イベント固有の挿絵" },
+      },
+      automatic_events: [event({ visual: "eventPortrait" })],
+    };
+    const state = startDecisions("home-01", 0, new Catalog(content).resolve());
+    expect(state.history[0].event_results![0].visual).toEqual(content.visuals.eventPortrait);
+    expect(publicView(state).public.decision_turn!.event_results[0].visual).toEqual(
+      content.visuals.eventPortrait,
+    );
+    const repo = new IndexedRepository(new GameDatabase(`event-visual-${crypto.randomUUID()}`));
+    const service = new Service(repo, new Catalog(content));
+    const response = await service.execute({
+      command: "new",
+      run: "visual",
+      scenario: "home-01",
+      seed: 0,
+      request_id: "new-visual",
+    });
+    expect(response.public!.decision_turn!.event_results[0].visual).toEqual(
+      content.visuals.eventPortrait,
+    );
+    const saved = (await repo.read("visual"))!;
+    expect(replayRun(saved)).toEqual(saved.state);
+    expect(importRun(exportRun(saved))).toEqual(saved);
+    repo.db.close();
+    expect(
+      () => new Catalog({ ...content, automatic_events: [event({ visual: "missing" })] }),
+    ).toThrow("automatic_events.gift.visual");
   });
   it("40期と成人後、保存・再開・再送・再生で効果を一度だけ適用する", async () => {
     const repo = new IndexedRepository(new GameDatabase(`auto-${crypto.randomUUID()}`));

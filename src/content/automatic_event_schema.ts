@@ -8,6 +8,7 @@ export const automaticEventSchema = v.pipe(
     requires: v.optional(lifeRequirementSchema),
     id: contentIdSchema,
     text: v.pipe(v.string(), v.minLength(1)),
+    visual: v.optional(contentIdSchema),
     kind: v.picklist(["good", "bad"]),
     min_age_months: integer(0, 239),
     max_age_months: integer(0, 239),

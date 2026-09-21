@@ -101,6 +101,8 @@ function references(c: Content) {
     ensure(visual(event.visual), `events.${id}.visual`);
     [...event.trigger.all, ...event.trigger.any].forEach((value) => condition(value, c));
   }
+  for (const event of c.automatic_events ?? [])
+    ensure(!event.visual || visual(event.visual), `automatic_events.${event.id}.visual`);
   for (const oddity of c.oddities)
     ensure(!Object.hasOwn(c.events, oddity.id), `oddities.${oddity.id}`);
   ensure(

@@ -13,10 +13,11 @@ export const automaticEventsEnabled = (state: State) =>
 export function applyAutomaticEvents(state: State): History | null {
   const turn = state.n + 1;
   const age = state.n * 6;
+  const content = contentFor(state);
   // 効果によって同じ期の他イベントの当選条件を変えない。
-  const selected = [...(contentFor(state).automatic_events ?? [])]
+  const selected = [...(content.automatic_events ?? [])]
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-    .filter((event) => {
+    .flatMap((event) => {
       const seen = state.seen[`automatic:${event.id}`];
       if (
         age < event.min_age_months ||
@@ -25,7 +26,7 @@ export function applyAutomaticEvents(state: State): History | null {
         !event.conditions.every((c) => matches(state, c)) ||
         !meetsLifeRequirement(state, event.requires)
       )
-        return false;
+        return [];
       const probability = Math.max(
         0,
         Math.min(
@@ -37,8 +38,18 @@ export function applyAutomaticEvents(state: State): History | null {
             ),
         ),
       );
-      return draw(state, "automatic-event", turn, event.id) < probability;
-    });
+      return draw(state, "automatic-event", turn, event.id) < probability
+        ? [{ event, probability }]
+        : [];
+    })
+    .sort(
+      (a, b) =>
+        b.probability - a.probability ||
+        (a.event.id < b.event.id ? -1 : a.event.id > b.event.id ? 1 : 0),
+    )
+    .slice(0, state.settings?.max_automatic_events ?? Number.MAX_SAFE_INTEGER)
+    .map(({ event }) => event)
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   if (!selected.length) return null;
   const text: string[] = [];
   const money: History["money"] = [];
@@ -97,7 +108,13 @@ export function applyAutomaticEvents(state: State): History | null {
       text.push(change);
       changes.push(change);
     }
-    eventResults.push({ event_id: event.id, kind: event.kind, text: event.text, changes });
+    eventResults.push({
+      event_id: event.id,
+      kind: event.kind,
+      text: event.text,
+      changes,
+      ...(event.visual ? { visual: clone(content.visuals[event.visual]) } : {}),
+    });
     money.push({
       scope: "household",
       before,

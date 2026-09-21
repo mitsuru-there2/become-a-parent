@@ -139,7 +139,7 @@ describe("TanStack Formの方針編集", () => {
 });
 
 describe("開始・取り込みフォーム", () => {
-  it("難易度とシードを送信し、非同期送信中の重複を防ぐ", async () => {
+  it("難易度だけを選択して開始し、非同期送信中の重複を防ぐ", async () => {
     let finish!: () => void;
     const onCreated = vi.fn(
       () =>
@@ -148,13 +148,24 @@ describe("開始・取り込みフォーム", () => {
         }),
     );
     render(createElement(StartForm, { onCreated }));
+    expect(screen.getAllByRole("combobox")).toHaveLength(1);
+    expect(document.querySelector('[name="scenario"]')).toBeNull();
+    expect(document.querySelector('[name="seed"]')).toBeNull();
+    expect(document.querySelector('[name="packs"]')).toBeNull();
+    expect(screen.queryByText("追加シナリオ")).toBeNull();
+    const random = vi.spyOn(crypto, "getRandomValues");
     change("difficulty", "hard");
-    change("seed", "42");
     fireEvent.click(screen.getByRole("button", { name: /新しい人生をはじめる/ }));
     await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
+    expect(random).toHaveBeenCalledTimes(1);
+    const saved = await repository.read($response.get()!.run_id!);
+    expect(saved!.state.scenario).toBe("home-01");
+    expect(saved!.state.seed).toBeGreaterThanOrEqual(0);
+    expect(saved!.state.seed).toBeLessThanOrEqual(4294967295);
+    expect(saved!.state.settings?.packs).toEqual([]);
     expect($response.get()!.public!.content.difficulty_label).toBe("むずかしい");
-    expect(input("seed").closest("fieldset")!.disabled).toBe(true);
-    fireEvent.submit(input("seed").closest("form")!);
+    expect(input("difficulty").closest("fieldset")!.disabled).toBe(true);
+    fireEvent.submit(input("difficulty").closest("form")!);
     expect(onCreated).toHaveBeenCalledTimes(1);
     await act(async () => {
       finish();

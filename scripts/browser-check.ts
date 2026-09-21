@@ -8,6 +8,16 @@ const browser = await chromium.launch({ channel: "chrome", headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   page.setDefaultTimeout(15000);
+  await page.addInitScript(() => {
+    const getRandomValues = crypto.getRandomValues.bind(crypto);
+    crypto.getRandomValues = <T extends ArrayBufferView>(array: T): T => {
+      if (array instanceof Uint32Array && array.length === 1) {
+        array[0] = 3;
+        return array;
+      }
+      return getRandomValues(array);
+    };
+  });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
@@ -16,15 +26,16 @@ try {
   await page.goto(url);
   await expect(page).toHaveTitle(/親伝説/);
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
+  await expect(page.getByRole("combobox")).toHaveCount(1);
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await expect(page.getByLabel("人生のシード（偶然を決める番号）")).toHaveCount(0);
   await page.getByLabel("難易度").selectOption("hard");
-  await page.getByLabel("人生のシード（偶然を決める番号）").fill("3");
-  await page.getByLabel("地域の創作活動（開発用サンプル）").check();
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
   const events = page.getByRole("dialog", { name: "今期の出来事" });
   const dismiss = async () => {
     await expect(page.locator(".rpg-save")).not.toHaveText("保存中…");
     await page.waitForTimeout(100);
-    if (await events.isVisible())
+    while (await events.isVisible())
       await events.getByRole("button", { name: "閉じる" }).last().click();
   };
   const next = page.getByRole("button", { name: "この暮らしで半年進める →", exact: true });
@@ -219,6 +230,7 @@ try {
   await expect(events).toBeVisible();
   await expect(events.getByRole("button", { name: "閉じる" })).toHaveCount(2);
   await events.getByRole("button", { name: "閉じる" }).first().click();
+  await dismiss();
   await expect(events).toHaveCount(0);
   await expect(
     page.getByRole("group", { name: "アクションの地図" }).getByRole("button"),
@@ -481,7 +493,7 @@ try {
         ending,
         errors,
         branching: true,
-        dlc: true,
+        dlc: false,
         cancel: true,
         resume: true,
         gameOver: true,

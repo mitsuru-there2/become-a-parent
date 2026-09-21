@@ -193,13 +193,9 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                   <MenuIcon id={item.id} />
                 </span>
                 <strong>{item.label}</strong>
-                <small>
-                  {choices.some((choice) => choice.menu === item.id && choice.selected_option)
-                    ? "予定中"
-                    : `${choices
-                        .filter((choice) => choice.menu === item.id)
-                        .reduce((count, choice) => count + choice.options.length - 1, 0)}件`}
-                </small>
+                {choices.some((choice) => choice.menu === item.id && choice.selected_option) && (
+                  <small>予定中</small>
+                )}
               </button>
             ))}
           </ActionMap>
