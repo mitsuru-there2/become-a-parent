@@ -3,13 +3,13 @@ import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
 import { $busy, update } from "../../stores/game";
 import { ContentImage } from "./content_image";
-import { ActionMap, markerPosition } from "./action_map";
+import { SelectionMap, markerPosition } from "./selection_map";
 
-type ActionNode = {
+type SelectionNode = {
   choice: Choice;
   option: Choice["options"][number];
 };
-type PositionedNode = ActionNode & { x: number; y: number };
+type PositionedNode = SelectionNode & { x: number; y: number };
 type RouteGroup = NonNullable<NonNullable<PublicState["life"]>["route_groups"]>[number];
 
 function MenuIcon({ id }: { id: string }) {
@@ -36,8 +36,8 @@ function MenuIcon({ id }: { id: string }) {
   );
 }
 
-function graphPositions(actions: ActionNode[]) {
-  const map = new Map(actions.map((action) => [action.option.option_id, action]));
+function graphPositions(selections: SelectionNode[]) {
+  const map = new Map(selections.map((selection) => [selection.option.option_id, selection]));
   const levels = new Map<string, number>();
   function level(id: string, seen = new Set<string>()): number {
     if (seen.has(id)) return 0;
@@ -49,17 +49,17 @@ function graphPositions(actions: ActionNode[]) {
     levels.set(id, depth);
     return depth;
   }
-  const groups = new Map<number, ActionNode[]>();
-  for (const action of actions) {
-    const depth = level(action.option.option_id);
-    groups.set(depth, [...(groups.get(depth) ?? []), action]);
+  const groups = new Map<number, SelectionNode[]>();
+  for (const selection of selections) {
+    const depth = level(selection.option.option_id);
+    groups.set(depth, [...(groups.get(depth) ?? []), selection]);
   }
   let top = 16;
   const positions: PositionedNode[] = [];
   for (const [, group] of [...groups].sort(([a], [b]) => a - b)) {
-    group.forEach((action, index) => {
+    group.forEach((selection, index) => {
       positions.push({
-        ...action,
+        ...selection,
         x: (index % 4) * 240 + 16,
         y: top + Math.floor(index / 4) * 116,
       });
@@ -71,22 +71,22 @@ function graphPositions(actions: ActionNode[]) {
 
 const routeColumn = 320;
 const routeLeft = 520;
-const routeOf = ({ choice, option }: ActionNode) => option.route ?? choice.tree?.route;
-const laneOf = ({ choice, option }: ActionNode) =>
+const routeOf = ({ choice, option }: SelectionNode) => option.route ?? choice.tree?.route;
+const laneOf = ({ choice, option }: SelectionNode) =>
   option.tree_route ?? choice.tree?.tree_route ?? option.switch_to ?? routeOf({ choice, option });
 
-function routePositions(actions: ActionNode[], group: RouteGroup) {
-  const switchActions = actions.filter((action) => action.option.switch_to);
-  const school = actions.filter(
+function routePositions(selections: SelectionNode[], group: RouteGroup) {
+  const switchSelections = selections.filter((selection) => selection.option.switch_to);
+  const school = selections.filter(
     ({ choice, option }) =>
       choice.tree?.route_group === group.id &&
       choice.tree.route_stage !== undefined &&
       !option.switch_to &&
       laneOf({ choice, option }),
   );
-  const nodes: PositionedNode[] = switchActions.map((action) => ({
-    ...action,
-    x: routeLeft + group.routes.findIndex((route) => route.id === laneOf(action)) * routeColumn,
+  const nodes: PositionedNode[] = switchSelections.map((selection) => ({
+    ...selection,
+    x: routeLeft + group.routes.findIndex((route) => route.id === laneOf(selection)) * routeColumn,
     y: 68,
   }));
   const stageTops: number[] = [];
@@ -95,12 +95,13 @@ function routePositions(actions: ActionNode[], group: RouteGroup) {
     stageTops.push(top);
     const lanes = group.routes.map((route) =>
       school.filter(
-        (action) => action.choice.tree?.route_stage === stage && laneOf(action) === route.id,
+        (selection) =>
+          selection.choice.tree?.route_stage === stage && laneOf(selection) === route.id,
       ),
     );
     lanes.forEach((lane, index) =>
-      lane.forEach((action, row) =>
-        nodes.push({ ...action, x: routeLeft + index * routeColumn, y: top + row * 116 }),
+      lane.forEach((selection, row) =>
+        nodes.push({ ...selection, x: routeLeft + index * routeColumn, y: top + row * 116 }),
       ),
     );
     top += Math.max(1, ...lanes.map((lane) => lane.length)) * 116 + 64;
@@ -108,10 +109,10 @@ function routePositions(actions: ActionNode[], group: RouteGroup) {
   const lowerTop = top;
   const included = new Set(nodes.map(({ option }) => option.option_id));
   nodes.push(
-    ...actions
+    ...selections
       .filter(({ option }) => !included.has(option.option_id))
-      .map((action, index) => ({
-        ...action,
+      .map((selection, index) => ({
+        ...selection,
         x: routeLeft + (index % group.routes.length) * routeColumn,
         y: lowerTop + Math.floor(index / group.routes.length) * 116,
       })),
@@ -127,8 +128,8 @@ function routePositions(actions: ActionNode[], group: RouteGroup) {
   };
 }
 
-function branchPositions(actions: ActionNode[], group: RouteGroup) {
-  const branch = actions.filter(
+function branchPositions(selections: SelectionNode[], group: RouteGroup) {
+  const branch = selections.filter(
     ({ choice, option }) =>
       choice.tree?.route_group === group.id &&
       choice.tree.route_stage !== undefined &&
@@ -144,24 +145,24 @@ function branchPositions(actions: ActionNode[], group: RouteGroup) {
     stageTops.push(top);
     const lanes = Array.from({ length: group.routes.length + 1 }, (_, index) =>
       branch.filter(
-        (action) =>
-          action.choice.tree?.route_stage === stage &&
-          (laneOf(action)
-            ? group.routes.findIndex((route) => route.id === laneOf(action)) === index
+        (selection) =>
+          selection.choice.tree?.route_stage === stage &&
+          (laneOf(selection)
+            ? group.routes.findIndex((route) => route.id === laneOf(selection)) === index
             : index === group.routes.length),
       ),
     );
     lanes.forEach((lane, index) =>
-      lane.forEach((action, row) =>
-        nodes.push({ ...action, x: laneLeft + index * laneColumn, y: top + row * 116 }),
+      lane.forEach((selection, row) =>
+        nodes.push({ ...selection, x: laneLeft + index * laneColumn, y: top + row * 116 }),
       ),
     );
     top += Math.max(1, ...lanes.map((lane) => lane.length)) * 116 + 52;
   }
   const lowerTop = top + 12;
   nodes.push(
-    ...graphPositions(actions.filter(({ option }) => !branchIds.has(option.option_id))).map(
-      (action) => ({ ...action, y: action.y + lowerTop }),
+    ...graphPositions(selections.filter(({ option }) => !branchIds.has(option.option_id))).map(
+      (selection) => ({ ...selection, y: selection.y + lowerTop }),
     ),
   );
   return {
@@ -175,9 +176,10 @@ function branchPositions(actions: ActionNode[], group: RouteGroup) {
   };
 }
 
-export function ActionTree({ state, choices }: { state: PublicState; choices: Choice[] }) {
+export function SelectionTree({ state, choices }: { state: PublicState; choices: Choice[] }) {
   const [menu, setMenu] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [crossroadTarget, setCrossroadTarget] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const treeScroll = useRef<HTMLDivElement>(null);
   const detailHeading = useRef<HTMLHeadingElement>(null);
@@ -199,20 +201,20 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
   const life = state.life!;
   const selectedMenu = life.menus.find((item) => item.id === menu);
   const visible = menu ? choices.filter((c) => c.menu === menu) : choices;
-  const actions = visible.flatMap((choice) =>
+  const selections = visible.flatMap((choice) =>
     choice.options
       .filter((option) => !option.option_id.endsWith(":cancel"))
       .map((option) => ({ choice, option })),
   );
   const routeGroup = life.route_groups?.find(
-    (group) => menu && actions.some(({ choice }) => choice.tree?.route_group === group.id),
+    (group) => menu && selections.some(({ choice }) => choice.tree?.route_group === group.id),
   );
   const routeLayout = routeGroup
     ? routeGroup.layout === "branches"
-      ? branchPositions(actions, routeGroup)
-      : routePositions(actions, routeGroup)
+      ? branchPositions(selections, routeGroup)
+      : routePositions(selections, routeGroup)
     : null;
-  const nodes = routeLayout?.nodes ?? graphPositions(actions);
+  const nodes = routeLayout?.nodes ?? graphPositions(selections);
   const switchNode =
     nodes.find((node) => node.option.switch_to === routeGroup?.current) ??
     nodes.find((node) => node.option.switch_to);
@@ -232,9 +234,9 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                   node.choice.tree?.route_stage !== undefined,
               )
               .sort((a, b) =>
-                a.choice.decision_kind === b.choice.decision_kind
+                a.choice.selection_kind === b.choice.selection_kind
                   ? 0
-                  : a.choice.decision_kind === "policy"
+                  : a.choice.selection_kind === "policy"
                     ? 1
                     : -1,
               )
@@ -257,6 +259,21 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
           top: routeLayout!.stageTops[stage],
         }));
   useEffect(() => {
+    if (!crossroadTarget || !menu || !treeScroll.current) return;
+    const target = nodes.find((node) => node.choice.event_id === crossroadTarget);
+    if (!target) return;
+    treeScroll.current.scrollTo({
+      left: Math.max(0, target.x - 24),
+      top: Math.max(0, target.y - 36),
+      behavior: "smooth",
+    });
+    const button = treeScroll.current.querySelector<HTMLButtonElement>(
+      `[data-decision="${crossroadTarget}"]`,
+    );
+    button?.focus({ preventScroll: true });
+    setCrossroadTarget(null);
+  }, [crossroadTarget, menu, nodes]);
+  useEffect(() => {
     if (!routeGroup || !treeScroll.current) return;
     const current = routeStages.find(
       ([, choice]) =>
@@ -277,9 +294,31 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
   }, [menu, routeGroup?.id, routeGroup?.current, state.time.child_months]);
   return (
     <section
-      className={`life-content action-tree-content ${selectedMenu ? "is-category" : "is-map"}`}
-      aria-label={selectedMenu ? "アクションツリー" : "アクションマップ"}
+      className={`life-content selection-tree-content ${selectedMenu ? "is-category" : "is-map"}`}
+      aria-label={selectedMenu ? "選択ツリー" : "選択マップ"}
     >
+      {life.crossroad && life.crossroad.missing.length > 0 && (
+        <aside className="crossroad-alert" role="alert" aria-label="岐路の必須選択">
+          <div>
+            <strong>{life.crossroad.label}</strong>
+            <span>方針を選ぶまで半年を進められません。</span>
+          </div>
+          <nav aria-label="未実施の必須選択">
+            {life.crossroad.missing.map((item) => (
+              <button
+                key={item.decision_id}
+                type="button"
+                onClick={() => {
+                  setMenu(item.menu);
+                  setCrossroadTarget(item.decision_id);
+                }}
+              >
+                {item.title}へ →
+              </button>
+            ))}
+          </nav>
+        </aside>
+      )}
       {selectedMenu ? (
         <>
           <div className="tree-category-heading">
@@ -313,8 +352,8 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
               </strong>
               <span>
                 別ルートへの転換は前期の準備が必要
-                {actions.find((action) => action.option.switch_to)?.option.cost
-                  ? `・${actions.find((action) => action.option.switch_to)!.option.cost}万円`
+                {selections.find((selection) => selection.option.switch_to)?.option.cost
+                  ? `・${selections.find((selection) => selection.option.switch_to)!.option.cost}万円`
                   : ""}
               </span>
               {switchNode && (
@@ -337,7 +376,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
             className={`tree-scroll ${routeGroup ? "has-route-lanes" : ""}`}
             tabIndex={0}
             role="region"
-            aria-label="アクションのつながり"
+            aria-label="選択のつながり"
           >
             <div className="tree-canvas" style={{ width, height }}>
               {routeGroup && routeLayout && (
@@ -440,6 +479,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                     className={`tree-node ${laneOf({ choice, option }) ? "is-route-node" : ""} ${acquired || current ? "is-acquired" : available ? "is-available" : "is-locked"}`}
                     key={option.option_id}
                     aria-label={`${choice.text}：${option.label}`}
+                    data-decision={choice.event_id}
                     data-route={laneOf({ choice, option })}
                     data-stage={choice.tree?.route_stage}
                     style={{ left: x, top: y }}
@@ -473,7 +513,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
         </>
       ) : (
         <>
-          <ActionMap>
+          <SelectionMap>
             {life.menus.map((item) => (
               <button
                 ref={(element) => {
@@ -494,7 +534,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                 )}
               </button>
             ))}
-          </ActionMap>
+          </SelectionMap>
         </>
       )}
       {selected && (
@@ -527,7 +567,9 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
               )}
               <p className="tree-default">
                 {selected.choice.tree!.default_label
-                  ? `未選択時：${selected.choice.tree!.default_label}。同じ枝の方針は1つだけ継続します。`
+                  ? selected.choice.crossroad_required
+                    ? "岐路では、この方針を明示的に選ぶ必要があります。"
+                    : `未選択時：${selected.choice.tree!.default_label}。同じ枝の方針は1つだけ継続します。`
                   : "未選択時：見送り。今の暮らしを続けます。"}
               </p>
               <p>
@@ -563,14 +605,14 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
               </div>
               {!!selected.option.event_modifiers?.length && (
                 <small className="tree-duration">
-                  {selected.choice.decision_kind === "policy"
+                  {selected.choice.selection_kind === "policy"
                     ? "確定後、継続している間だけ有効"
                     : "確定後、育児終了まで有効・再取得で重複しません"}
                 </small>
               )}
             </div>
           </div>
-          <div className="tree-dialog-actions">
+          <div className="tree-dialog-controls">
             <button onClick={() => setSelectedId(null)}>キャンセル</button>
             {selected.choice.selected_option === selected.option.option_id ? (
               <button
@@ -594,7 +636,8 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                 disabled={
                   busy ||
                   !selected.option.available ||
-                  selected.option.option_id === selected.choice.current_option
+                  (selected.option.option_id === selected.choice.current_option &&
+                    !selected.choice.crossroad_required)
                 }
                 onClick={async () => {
                   if (
@@ -606,10 +649,11 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                     setSelectedId(null);
                 }}
               >
-                {selected.option.option_id === selected.choice.current_option
+                {selected.option.option_id === selected.choice.current_option &&
+                !selected.choice.crossroad_required
                   ? "現在の方針"
                   : selected.option.available
-                    ? "このアクションを確定"
+                    ? "この選択を確定"
                     : "条件を満たすと選べます"}
               </button>
             )}

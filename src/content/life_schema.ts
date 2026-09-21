@@ -62,7 +62,7 @@ export const lifeDecisionSchema = v.pipe(
     tree_route: v.optional(contentIdSchema),
     title: text,
     reason: text,
-    kind: v.picklist(["policy", "action"]),
+    kind: v.picklist(["policy", "selection"]),
     min_age_months: integer(0, 234),
     max_age_months: integer(0, 239),
     requires: v.optional(lifeRequirementSchema),
@@ -75,7 +75,16 @@ export const lifeDecisionSchema = v.pipe(
 );
 export const lifeDecisionsSchema = v.array(lifeDecisionSchema);
 export const lifeGameSchema = v.strictObject({
-  action_tree: v.optional(v.boolean()),
+  selection_tree: v.optional(v.boolean()),
+  crossroads: v.optional(
+    v.array(
+      v.strictObject({
+        age_months: integer(0, 234),
+        label: text,
+        required_decisions: v.pipe(v.array(contentIdSchema), v.minLength(1)),
+      }),
+    ),
+  ),
   route_groups: v.optional(
     v.array(
       v.strictObject({
@@ -100,7 +109,7 @@ export const lifeGameSchema = v.strictObject({
     }),
   ),
   schema_version: v.literal(1),
-  max_actions: integer(1, 5),
+  max_selections: integer(1, 5),
   income: integer(),
   standard_effects: lifeEffectsSchema,
   menus: v.pipe(

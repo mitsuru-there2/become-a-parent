@@ -25,7 +25,7 @@ seedは0〜4294967295。育児はphase=child、index=期、slot=oddity。成人�
 | scenarios          | なし                             | 家庭のID・表示名・説明                                                |
 | new                | run, scenario, seed, request_id  | 初期revision=0で開始。既存保存を上書きしない                          |
 | observe / forecast | run                              | 公開状態と確定可否                                                    |
-| actions            | run                              | payload.actionsに全編集パス・値域・操作・入力例                       |
+| selections            | run                              | payload.selectionsに全編集パス・値域・操作・入力例                       |
 | plan               | run, revision, request_id, input | 部分編集を現在案にマージ                                              |
 | choose             | 同上                             | 現在の出来事に対する回答案を保存                                      |
 | reset-plan         | run, revision, request_id        | 前期の確定案へ戻す。回答は維持                                        |
@@ -72,9 +72,9 @@ forecastはincome / cost / projected_cash / time_used（A/B）/ time_limit=12 / 
 
 ## S-007：履歴
 
-履歴はindex / kind（turnまたはadult）/ turn / adult_step / ages / actions / events / money / observations / text / related / adult_result。
+履歴はindex / kind（turnまたはadult）/ turn / adult_step / ages / selections / events / money / observations / text / related / adult_result。
 
-- 育児actionsはplanとanswers（event_instance順）。成人はnull。
+- 育児selectionsはplanとanswers（event_instance順）。成人はnull。
 - agesはchild_months/A_months/B_months。親は最期で固定。
 - moneyはscope / before / income / expense / cap_overflow / after。before + income − expense − cap_overflow = after。成人は生存親別の口座。
 - eventsはinstance_id/event_id/option_id/text。relatedは遅延効果の元のinstance ID。

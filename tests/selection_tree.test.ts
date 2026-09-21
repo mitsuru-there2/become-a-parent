@@ -14,10 +14,19 @@ import type { State } from "../src/engine/types";
 const start = (age = 0) => {
   const content = clone(defaultContent);
   content.automatic_events = [];
+  delete content.life_game!.crossroads;
   const s = startDecisions("home-01", 2, new Catalog(content, []).resolve());
   s.n = age / 6;
   openLife(s);
   return s;
+};
+const satisfyCrossroad = (s: State) => {
+  for (const required of publicView(s).public.life!.crossroad?.missing ?? []) {
+    const node = s.settings!.content.life_game!.decisions.find(
+      (item) => item.id === required.decision_id,
+    )!;
+    choose(s, node.id, node.default_option!);
+  }
 };
 const choices = (s: State) => publicView(s).choices;
 const option = (s: State, id: string, value: string) =>
@@ -27,7 +36,39 @@ const option = (s: State, id: string, value: string) =>
 const choose = (s: State, id: string, value: string) =>
   chooseDecision(s, choices(s).find((c) => c.event_id === id)!.instance_id, `${id}:${value}`);
 
-describe("S-018 アクションツリー", () => {
+describe("S-018 選択ツリー", () => {
+  it("岐路では全カテゴリの必須選択を終えるまで進めず、警告から対象を特定できる", () => {
+    const s = startDecisions("home-01", 2, new Catalog().resolve());
+    const initial = publicView(s).public;
+    expect(s.versions).toEqual({ rules: "rules-12", data: "data-12", save: "save-13" });
+    expect(initial.time.child_months).toBe(0);
+    expect(initial.time.season).toBe("春〜夏");
+    expect(initial.life!.crossroad?.label).toBe("0歳・春夏の岐路");
+    expect(initial.life!.crossroad?.missing.map((item) => item.menu)).toEqual([
+      "education",
+      "home",
+      "grandparents",
+      "afterschool",
+      "work",
+    ]);
+    expect(initial.forecast!.can_advance).toBe(false);
+    expect(
+      initial.forecast!.reasons.filter((reason) => reason.code === "CROSSROAD_SELECTION_REQUIRED"),
+    ).toHaveLength(5);
+    expect(() => advance(s)).toThrow("今期の予定と資金を確認してください");
+
+    satisfyCrossroad(s);
+    expect(publicView(s).public.life!.crossroad?.missing).toEqual([]);
+    expect(publicView(s).public.forecast!.can_advance).toBe(true);
+    choose(s, "route-home", "cancel");
+    expect(publicView(s).public.life!.crossroad?.missing.map((item) => item.decision_id)).toContain(
+      "route-home",
+    );
+    choose(s, "route-home", "daily");
+    advance(s);
+    expect(s.n).toBe(1);
+  });
+
   it("資金予測の内訳は、予定を追加した後も収入・支出の合計と一致する", () => {
     const s = start();
     const incomeChoice = choices(s)
@@ -48,10 +89,10 @@ describe("S-018 アクションツリー", () => {
   });
   it("各実行案へ画像を設定でき、未設定時は共通の仮画像を公開する", () => {
     const s = start();
-    const action = option(s, "base-extra-work", "accept");
-    expect(action.visual).toEqual(s.settings!.content.visuals.hero);
+    const selection = option(s, "base-extra-work", "accept");
+    expect(selection.visual).toEqual(s.settings!.content.visuals.hero);
     const content = clone(defaultContent);
-    content.visuals.custom = { src: "/assets/test/custom.webp", alt: "個別のアクション画像" };
+    content.visuals.custom = { src: "/assets/test/custom.webp", alt: "個別の選択画像" };
     content.life_game!.decisions.find((d) => d.id === "base-extra-work")!.options[0].visual =
       "custom";
     const custom = startDecisions("home-01", 2, new Catalog(content, []).resolve());
@@ -196,7 +237,7 @@ describe("S-018 アクションツリー", () => {
     openLife(s);
     expect(option(s, "school-future-home", "plan").available).toBe(true);
   });
-  it("教育の全アクションは年代と表示レーンを持ち、共通領域へ落ちない", () => {
+  it("教育の全選択は年代と表示レーンを持ち、共通領域へ落ちない", () => {
     const game = defaultContent.life_game!;
     const group = game.route_groups!.find((item) => item.id === "school")!;
     expect(group.stage_labels).toHaveLength(5);
@@ -288,6 +329,7 @@ describe("S-018 アクションツリー", () => {
     const content = clone(defaultContent);
     content.automatic_events = [];
     const game = content.life_game!;
+    delete game.crossroads;
     game.route_groups = game.route_groups!.filter((group) => group.id === "school");
     game.decisions = game.decisions.filter((node) => !node.id.startsWith("route-"));
     for (const node of game.decisions.filter((item) => item.menu !== "education")) {
@@ -329,6 +371,7 @@ describe("S-018 アクションツリー", () => {
     const content = clone(defaultContent);
     content.automatic_events = [];
     const game = content.life_game!;
+    delete game.crossroads;
     delete game.route_groups;
     game.decisions = game.decisions.filter(
       (node) =>
@@ -463,8 +506,11 @@ describe("S-018 アクションツリー", () => {
     for (const difficulty of ["easy", "normal", "hard"])
       for (let seed = 0; seed < 3; seed++) {
         const s = startDecisions("home-01", seed, new Catalog().resolve(difficulty));
-        expect(s.versions.rules).toBe("rules-11");
-        while (s.phase === "childhood") advance(s);
+        expect(s.versions.rules).toBe("rules-12");
+        while (s.phase === "childhood") {
+          satisfyCrossroad(s);
+          advance(s);
+        }
         expect(s.n).toBe(40);
         expect(s.phase).toBe("finished");
         expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
@@ -493,6 +539,22 @@ describe("S-018 アクションツリー", () => {
     expect((await service.execute(request)).payload!.receipt!.duplicate).toBe(true);
     const planned = (await repo.read("tree"))!;
     expect(importRun(exportRun(planned))).toEqual(planned);
+    for (const required of r.public!.life!.crossroad!.missing) {
+      const requiredChoice = r.choices.find((item) => item.event_id === required.decision_id)!;
+      const selected = requiredChoice.options.find(
+        (item) => item.available && !item.option_id.endsWith(":cancel"),
+      )!;
+      r = await service.execute({
+        command: "choose",
+        run: "tree",
+        revision: r.revision!,
+        request_id: `crossroad-${required.decision_id}`,
+        input: {
+          event_instance: requiredChoice.instance_id,
+          option_id: selected.option_id,
+        },
+      });
+    }
     r = await service.execute({
       command: "advance",
       run: "tree",

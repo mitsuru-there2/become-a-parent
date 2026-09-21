@@ -290,15 +290,15 @@ export function forecast(state: State, answers = state.answers): Forecast {
   let allocatedCare = 0;
   const addReason = (code: string, path: string, message: string) =>
     reasons.push({ code, path, message });
-  const extraId = plan.extra_action ?? "none";
-  const extra = content.actions[extraId];
+  const extraId = plan.extra_selection ?? "none";
+  const extra = content.selections[extraId];
   if (
     extraId !== "none" &&
-    (!Object.hasOwn(content.actions, extraId) ||
+    (!Object.hasOwn(content.selections, extraId) ||
       state.n + 1 < extra.min_turn ||
       state.n + 1 > extra.max_turn)
   )
-    addReason("ACTION_UNAVAILABLE", "extra_action", "この半年では選べない追加行動です");
+    addReason("SELECTION_UNAVAILABLE", "extra_selection", "この半年では選べない追加の選択です");
   if (extra) cost += extra.cost;
   for (const parentId of PEOPLE) {
     const allocation = plan.parents[parentId];
@@ -391,7 +391,7 @@ export function publicView(state: State): { public: PublicState; choices: Choice
       packs: state.settings?.packs ?? [],
       fingerprint: state.settings?.fingerprint ?? null,
     },
-    extra_actions: Object.entries(content.actions).map(([id, a]) => ({
+    extra_selections: Object.entries(content.selections).map(([id, a]) => ({
       id,
       label: a.label,
       description: a.description,
@@ -680,14 +680,13 @@ export function advance(state: State, forcedDraw = -1) {
   const lines: string[] = [];
   const events: History["events"] = [];
   const related: string[] = [];
-  const extra = contentFor(state).actions[state.plan.extra_action ?? "none"];
+  const extra = contentFor(state).selections[state.plan.extra_selection ?? "none"];
   if (extra) {
     applyEffect(state, extra.effects, extra.target);
     lines.push(
-      (contentFor(state).text.simulation_extra_action ?? "『{action}』に取り組んだ。").replace(
-        "{action}",
-        () => extra.label,
-      ),
+      (
+        contentFor(state).text.simulation_extra_selection ?? "『{selection}』に取り組んだ。"
+      ).replace("{selection}", () => extra.label),
     );
   }
   state.last_repair = false;
@@ -767,7 +766,7 @@ export function advance(state: State, forcedDraw = -1) {
       A_months: state.parents.A.age_months,
       B_months: state.parents.B.age_months,
     },
-    actions: { plan: clone(state.plan), answers: answerList(state.answers) },
+    selections: { plan: clone(state.plan), answers: answerList(state.answers) },
     events,
     money: [money],
     observations: clone(state.observations),

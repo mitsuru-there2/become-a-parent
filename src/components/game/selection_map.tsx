@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import actionMap from "../../../assets/scenes/action-map.svg";
+import selectionMap from "../../../assets/scenes/selection-map.svg";
 
 // Both road endpoints and HTML buttons consume the same normalized anchors.
 export const mapAnchors: Record<string, { x: number; y: number }> = {
@@ -13,11 +13,11 @@ export function markerPosition(id: string): CSSProperties {
   const { x, y } = mapAnchors[id] ?? mapAnchors.home;
   return { "--marker-x": `${x}%`, "--marker-y": `${y}%` } as CSSProperties;
 }
-export function ActionMap({ children }: { children: ReactNode }) {
+export function SelectionMap({ children }: { children: ReactNode }) {
   return (
     <div className="map-viewport" tabIndex={0} role="region" aria-label="地図の表示領域">
-      <div className="action-map" role="group" aria-label="アクションの地図">
-        <img src={actionMap} alt="" aria-hidden="true" />
+      <div className="selection-map" role="group" aria-label="選択の地図">
+        <img src={selectionMap} alt="" aria-hidden="true" />
         <svg
           className="map-roads"
           viewBox="0 0 100 100"

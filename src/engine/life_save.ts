@@ -21,7 +21,7 @@ export function validateLifeState(state: State) {
   if (!v.is(lifeStateSchema, state.life)) throw new Error("生活状態の構造が不正です");
   const nodes = contentFor(state).life_game!.decisions;
   if (
-    ["rules-10", "rules-11"].includes(state.versions.rules) &&
+    ["rules-10", "rules-11", "rules-12"].includes(state.versions.rules) &&
     (!state.life.route_stage_resolved ||
       Object.entries(state.life.route_stage_resolved).some(
         ([id, turn]) =>

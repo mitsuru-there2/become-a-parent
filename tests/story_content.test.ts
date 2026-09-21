@@ -28,6 +28,18 @@ const choose = (s: State, id: string, value: string) =>
     publicView(s).choices.find((c) => c.event_id === id)!.instance_id,
     `${id}:${value}`,
   );
+const satisfyCrossroad = (s: State) => {
+  for (const required of publicView(s).public.life!.crossroad?.missing ?? []) {
+    const node = s.settings!.content.life_game!.decisions.find(
+      (item) => item.id === required.decision_id,
+    )!;
+    choose(s, node.id, s.life!.policies[node.id] ?? node.default_option!);
+  }
+};
+const advanceTurn = (s: State) => {
+  satisfyCrossroad(s);
+  advance(s);
+};
 
 describe("S-018-F〜H 年代と選択で育つ物語", () => {
   it("幼児期の選択が18歳の別々の振り返りにつながり、取消・年齢・一度限りを守る", () => {
@@ -35,7 +47,7 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
     choose(s, "route-home", "memory");
     choose(s, "story-keepsake", "capsule");
     choose(s, "story-keepsake", "cancel");
-    advance(s);
+    advanceTurn(s);
     expect(s.life!.history["story-keepsake:capsule"]).toBeUndefined();
     for (const [keepsake, reunion, other] of [
       ["capsule", "open", "screen"],
@@ -43,16 +55,16 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
     ]) {
       const branch = clone(s);
       choose(branch, "story-keepsake", keepsake);
-      advance(branch);
+      advanceTurn(branch);
       expect(option(branch, "story-keepsake", keepsake).available).toBe(false);
       branch.n = 35;
       openLife(branch);
       expect(option(branch, "story-reunion", reunion).available).toBe(false);
-      advance(branch);
+      advanceTurn(branch);
       expect(option(branch, "story-reunion", reunion).available).toBe(true);
       expect(option(branch, "story-reunion", other).available).toBe(false);
       choose(branch, "story-reunion", reunion);
-      advance(branch);
+      advanceTurn(branch);
       expect(option(branch, "story-reunion", reunion).available).toBe(false);
     }
   });
@@ -62,9 +74,9 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
     choose(s, "route-afterschool", "music");
     choose(s, "story-music-trial", "try");
     expect(option(s, "story-music", "stage").available).toBe(false);
-    advance(s);
+    advanceTurn(s);
     choose(s, "story-music", "stage");
-    advance(s);
+    advanceTurn(s);
     const event = clone(
       defaultContent.automatic_events!.find((e) => e.id === "story-amp-trouble")!,
     );
@@ -72,7 +84,7 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
     s.settings!.content.automatic_events = [event];
     expect(applyAutomaticEvents(s)?.events[0].event_id).toBe(event.id);
     choose(s, "story-music", "standard");
-    advance(s);
+    advanceTurn(s);
     s.n = 16;
     openLife(s);
     delete s.seen[`automatic:${event.id}`];
@@ -80,11 +92,11 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
     expect(option(s, "story-festival", "national").available).toBe(false);
     expect(s.life!.history["story-music:stage"]).toBeDefined();
     choose(s, "story-music", "casual");
-    advance(s);
+    advanceTurn(s);
     expect(option(s, "story-festival", "local").available).toBe(true);
     expect(option(s, "story-festival", "national").available).toBe(false);
     s.n = 35;
-    advance(s);
+    advanceTurn(s);
     expect(s.life!.policies["story-music"]).toBe("standard");
     expect(publicView(s).public.life!.policies.some((p) => p.id === "story-music")).toBe(false);
     expect(publicView(s).public.forecast!.cost).toBe(
@@ -142,16 +154,16 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
     choose(s, "route-work", "venture");
     choose(s, "story-market", "sell");
     choose(s, "base-work-consult", "talk");
-    advance(s);
-    advance(s);
+    advanceTurn(s);
+    advanceTurn(s);
     choose(s, "story-venture", "launch");
     const forecast = publicView(s).public.forecast!;
     expect(forecast.income).toBe(355);
     const predicted = forecast.projected_cash;
-    advance(s);
+    advanceTurn(s);
     expect(s.cash).toBe(predicted);
     choose(s, "story-venture", "standard");
-    advance(s);
+    advanceTurn(s);
     const event = clone(defaultContent.automatic_events!.find((e) => e.id === "story-big-order")!);
     event.probability = 100;
     s.settings!.content.automatic_events = [event];
@@ -166,7 +178,7 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
       const stories = new Set<string>();
       for (let seed = 0; seed < 10; seed++) {
         const s = startDecisions("home-01", seed, new Catalog().resolve(difficulty));
-        while (s.phase === "childhood") advance(s);
+        while (s.phase === "childhood") advanceTurn(s);
         expect(s.n).toBe(40);
         expect(s.phase).toBe("finished");
         expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
@@ -221,6 +233,22 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
       expect((await service.execute(request)).payload!.receipt!.duplicate).toBe(true);
       const planned = (await repo.read("story"))!;
       expect(importRun(exportRun(planned))).toEqual(planned);
+      for (const required of r.public!.life!.crossroad!.missing) {
+        const requiredChoice = r.choices.find((item) => item.event_id === required.decision_id)!;
+        const selected = requiredChoice.options.find(
+          (item) => item.available && !item.option_id.endsWith(":cancel"),
+        )!;
+        r = await service.execute({
+          command: "choose",
+          run: "story",
+          revision: r.revision!,
+          request_id: `crossroad-${required.decision_id}`,
+          input: {
+            event_instance: requiredChoice.instance_id,
+            option_id: selected.option_id,
+          },
+        });
+      }
       r = await service.execute({
         command: "advance",
         run: "story",

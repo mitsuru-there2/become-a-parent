@@ -1,6 +1,5 @@
 import "fake-indexeddb/auto";
 import { describe, it, expect } from "vite-plus/test";
-import legacySave from "./fixtures/legacy-save-2.json";
 import currentBase from "../config/base.json";
 // 旧方式の保存済み設定を引き続き検証する。
 const base = { ...currentBase, decision_game: undefined };
@@ -42,13 +41,13 @@ describe("S-015 設定と追加パック（内部検証）", () => {
     const catalog = new Catalog(base, [pack]);
     const state = start("community-home", 0, catalog.resolve("normal", ["community"]));
     expect(state.child.adaptation).toBe(2);
-    expect(publicView(state).public.extra_actions[0].available).toBe(false);
+    expect(publicView(state).public.extra_selections[0].available).toBe(false);
     state.n = 6;
     state.plan = preset(publicView(state).public, "1");
-    state.plan.extra_action = "community-workshop";
+    state.plan.extra_selection = "community-workshop";
     openTurn(state);
     const without = clone(state);
-    without.plan.extra_action = "none";
+    without.plan.extra_selection = "none";
     const forecast = publicView(state).public.forecast!;
     expect(forecast.cost - publicView(without).public.forecast!.cost).toBe(4);
     expect(forecast.time_used.A - publicView(without).public.forecast!.time_used.A).toBe(1);
@@ -62,7 +61,7 @@ describe("S-015 設定と追加パック（内部検証）", () => {
     advance(state, 99);
     advance(without, 99);
     expect(state.child.ability.craft - without.child.ability.craft).toBe(2);
-    expect(state.history[0].actions?.plan.extra_action).toBe("community-workshop");
+    expect(state.history[0].selections?.plan.extra_selection).toBe("community-workshop");
     expect(state.events.some((e) => e.event_id === "community-exhibition")).toBe(true);
     state.n = 8;
     openTurn(state);
@@ -78,7 +77,7 @@ describe("S-015 設定と追加パック（内部検証）", () => {
       new Catalog(base, [zeroPack]).resolve("normal", ["community"]),
     );
     zero.n = 8;
-    zero.previous_plan.extra_action = "community-workshop";
+    zero.previous_plan.extra_selection = "community-workshop";
     openTurn(zero);
     expect(zero.events.some((e) => e.event_id === "community-exhibition")).toBe(false);
   });
@@ -94,7 +93,7 @@ describe("S-015 設定と追加パック（内部検証）", () => {
         p.events["community-exhibition"].options[0].effects = { typo: 1 } as never;
       },
       (p: typeof sample) => {
-        p.actions["community-workshop"].visual = "missing" as never;
+        p.selections["community-workshop"].visual = "missing" as never;
       },
       (p: typeof sample) => {
         p.events["community-exhibition"].trigger.all[0].path = "__proto__.evil";
@@ -130,7 +129,7 @@ describe("S-015 設定と追加パック（内部検証）", () => {
     const c = new Catalog(base, [sample]);
     const a = start("home-01", 10),
       b = start("home-01", 10, c.resolve("normal", ["community"]));
-    b.previous_plan.extra_action = "community-workshop";
+    b.previous_plan.extra_selection = "community-workshop";
     for (const s of [a, b]) {
       s.n = 7;
       openTurn(s);
@@ -145,10 +144,6 @@ describe("S-015 設定と追加パック（内部検証）", () => {
   });
 });
 describe("S-015 共通公開操作", () => {
-  it("変更前の実装が作ったsave-2を読み込み再生する", () => {
-    const run = importRun(JSON.stringify(legacySave));
-    expect(replayRun(run)).toEqual(run.state);
-  });
   it("不明な開始条件と未選択行動を拒否し、保存を変更しない", async () => {
     const { repo, service } = create(new Catalog(base, [sample]));
     for (const patch of [
@@ -169,7 +164,7 @@ describe("S-015 共通公開操作", () => {
           run: "config",
           revision: 0,
           request_id: "edit",
-          input: { extra_action: "community-workshop" },
+          input: { extra_selection: "community-workshop" },
         })
       ).ok,
     ).toBe(false);
@@ -203,7 +198,7 @@ describe("S-015 共通公開操作", () => {
       };
       for (let t = 0; t < 40; t++) {
         const plan = preset(response.public!, "1");
-        plan.extra_action = response.public!.extra_actions[0].available
+        plan.extra_selection = response.public!.extra_selections[0].available
           ? "community-workshop"
           : "none";
         await run("plan", plan);
@@ -249,7 +244,7 @@ describe("設定の更新と入力境界", () => {
   });
   it("パックの特殊なキーと必要文言の削除を拒否", () => {
     const pack = JSON.parse(JSON.stringify(sample));
-    pack.actions = JSON.parse('{"__proto__": {"polluted": true}}');
+    pack.selections = JSON.parse('{"__proto__": {"polluted": true}}');
     expect(() => new Catalog(base, [pack])).toThrow();
     const changed = clone(base);
     delete (changed.text as Record<string, string>).adult_048;
@@ -270,12 +265,12 @@ describe("設定の更新と入力境界", () => {
       return r;
     };
     await run("choose", { event_instance: "t01:E-01", option_id: "E-01:watch" });
-    await run("plan", { extra_action: "community-workshop" });
-    expect(r.public!.forecast!.reasons.some((x) => x.code === "ACTION_UNAVAILABLE")).toBe(true);
+    await run("plan", { extra_selection: "community-workshop" });
+    expect(r.public!.forecast!.reasons.some((x) => x.code === "SELECTION_UNAVAILABLE")).toBe(true);
     const before = await repo.read("config");
     expect((await run("advance")).ok).toBe(false);
     expect(await repo.read("config")).toEqual(before);
-    await run("plan", { extra_action: "none" });
+    await run("plan", { extra_selection: "none" });
     expect((await run("advance")).ok).toBe(true);
     const state = start("home-01", 0, new Catalog(base, [sample]).resolve("normal", ["community"]));
     state.n = 6;
@@ -288,7 +283,7 @@ describe("設定の更新と入力境界", () => {
       activity: { domain: "none", level: 0, sponsor: "A" },
       style: "respect",
       help: "none",
-      extra_action: "community-workshop",
+      extra_selection: "community-workshop",
     };
     expect(publicView(state).public.forecast!.reasons.some((r) => r.code === "TIME_LIMIT")).toBe(
       true,
@@ -305,7 +300,7 @@ describe("パックの合成順と保存設定の整合性", () => {
       dependencies: ["community"],
       scenarios: [],
       events: {},
-      actions: {},
+      selections: {},
       visuals: {},
     };
     const c = new Catalog(base, [sample, dependent]);

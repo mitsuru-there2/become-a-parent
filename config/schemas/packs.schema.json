@@ -415,7 +415,7 @@
               "minLength": 1
             },
             "kind": {
-              "enum": ["policy", "action"],
+              "enum": ["policy", "selection"],
               "type": "string"
             },
             "min_age_months": {
@@ -1029,13 +1029,13 @@
           "$ref": "#/$defs/Event"
         }
       },
-      "actions": {
+      "selections": {
         "type": "object",
         "propertyNames": {
           "type": "string"
         },
         "additionalProperties": {
-          "$ref": "#/$defs/Action"
+          "$ref": "#/$defs/Selection"
         }
       },
       "visuals": {
@@ -1057,7 +1057,7 @@
       "dependencies",
       "scenarios",
       "events",
-      "actions",
+      "selections",
       "visuals"
     ],
     "additionalProperties": false
@@ -1254,7 +1254,7 @@
       "required": ["text", "options", "trigger", "target", "target_suffix", "visual"],
       "additionalProperties": false
     },
-    "Action": {
+    "Selection": {
       "type": "object",
       "properties": {
         "label": {

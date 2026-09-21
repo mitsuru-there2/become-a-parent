@@ -153,7 +153,7 @@ export function DecisionPlay({ response }: { response: Response }) {
     !!special || !projection?.can_advance || (!state.life && turn.answered < 3);
   const eventTurn = `${response.run_id}:${state.time.next_turn}`;
   const automaticResult =
-    ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11"].includes(
+    ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(
       state.versions.rules,
     ) &&
     turn.event_result.length > 0 &&
@@ -183,7 +183,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   }, [response.phase, tab, extra.result]);
   return (
     <div
-      className={`rpg-shell status-shell${life ? " life-shell" : ""}${state.life?.action_tree ? " tree-shell" : ""}`}
+      className={`rpg-shell status-shell${life ? " life-shell" : ""}${state.life?.selection_tree ? " tree-shell" : ""}`}
     >
       <header className="rpg-header" inert={showingResult}>
         <Link to="/" className="brand">
@@ -230,7 +230,7 @@ export function DecisionPlay({ response }: { response: Response }) {
         </div>
         <ChildStatus state={state} />
         <div className="rpg-stage">
-          {!state.life?.action_tree && (
+          {!state.life?.selection_tree && (
             <div className="rpg-scenery" aria-hidden="true">
               <img src={familyRoom} alt="" fetchPriority="high" />
             </div>
@@ -297,33 +297,34 @@ export function DecisionPlay({ response }: { response: Response }) {
                         "rules-9",
                         "rules-10",
                         "rules-11",
+                        "rules-12",
                       ].includes(state.versions.rules)
                         ? "出来事は自動で発生し、資金や家族の状態に反映されます。"
                         : "特殊イベントへの対応を選びます。その場で確定します。"}
                     </li>
                     <li>
                       {life
-                        ? state.life?.action_tree
-                          ? "地図のカテゴリーを開き、ツリーのアクションを選んで詳細から確定します。何も選ばなくても進められます。"
+                        ? state.life?.selection_tree
+                          ? "地図のカテゴリーを開き、ツリーの選択を詳細から確定します。岐路では、表示された方針をすべて選ぶと進めます。"
                           : "生活メニューから継続する方針や今期だけの行動を選べます。何も選ばなくても進められます。"
                         : "3つの判断に、ひとつずつ回答します。「何もしない」も回答です。"}
                     </li>
                     <li>
                       {life
-                        ? `選択を確定すると、次期から新しい機会が現れます。今期だけの行動は全分類合計${state.life!.max_actions}件までです。`
+                        ? `選択を確定すると、次期から新しい機会が現れます。今期だけの選択は全分類合計${state.life!.max_selections}件までです。`
                         : "最後に選択と家計を確認し、「半年を進める」を押します。"}
                     </li>
                   </ol>
                   <p>
                     {life
-                      ? "方針は変更するまで継続し、単発行動は繰り返しません。半年を進める前は予定を取り消せます。費用と家族の負担を確認して進めましょう。"
+                      ? "方針は変更するまで継続し、単発の選択は繰り返しません。半年を進める前は予定を取り消せます。費用と家族の負担を確認して進めましょう。"
                       : "下の「判断1〜3」から、半年を進める前なら選び直せます。家族の様子では父母の能力・疲労と子どもの観察、前の半年の結果を確認できます。"}
                   </p>
                   <p>
                     20歳までの40期と、その後の人生をたどります。家族の危機は修復できますが、離婚・一家離散が起きるとゲームオーバーです。
                   </p>
                   <button
-                    className="rpg-action"
+                    className="rpg-button"
                     disabled={busy}
                     onClick={() => void downloadSave(response.run_id!)}
                   >
@@ -337,7 +338,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                   </h1>
                   <p>{state.game_over.text}</p>
                   <button
-                    className="rpg-action"
+                    className="rpg-button"
                     onClick={() => {
                       changeTab("history");
                     }}
@@ -494,7 +495,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                   {item === "play"
                     ? ended
                       ? "結末"
-                      : state.life?.action_tree
+                      : state.life?.selection_tree
                         ? "マップ"
                         : "暮らし"
                     : item === "family"

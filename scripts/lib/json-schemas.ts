@@ -7,7 +7,7 @@ import {
   contentSchema,
   contentPackSchema,
   eventSchema,
-  extraActionSchema,
+  extraSelectionSchema,
   visualSchema,
   scenarioSchema,
 } from "../../src/content/schemas";
@@ -23,7 +23,7 @@ export function generateJsonSchemas() {
         valibotAction.type === "check" ? jsonSchema : undefined,
       definitions: {
         Event: eventSchema,
-        Action: extraActionSchema,
+        Selection: extraSelectionSchema,
         Visual: visualSchema,
         Scenario: scenarioSchema,
       },

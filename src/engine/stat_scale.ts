@@ -12,6 +12,7 @@ export const tenPoint = (state: Pick<State, "versions">) =>
     "rules-9",
     "rules-10",
     "rules-11",
+    "rules-12",
   ].includes(state.versions.rules);
 export const parentFields = ["stress", "health", "fulfillment", "social", "regret"] as const;
 export const pointEffect = (value: number) => Math.sign(value) * Math.ceil(Math.abs(value) / 5);

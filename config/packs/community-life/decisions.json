@@ -4,7 +4,7 @@
     "menu": "afterschool",
     "title": "地域の工作会",
     "reason": "工作教室を体験したことをきっかけに、地域でも作れます。",
-    "kind": "action",
+    "kind": "selection",
     "min_age_months": 48,
     "max_age_months": 215,
     "default_option": null,

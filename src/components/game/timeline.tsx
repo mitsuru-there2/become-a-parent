@@ -44,11 +44,11 @@ export function Timeline({ items }: { items: History[] }) {
                 {entry.observations.map((observation) => (
                   <p key={observation.code}>{observation.text}</p>
                 ))}
-                {entry.actions &&
+                {entry.selections &&
                   PEOPLE.map((parentId) => (
                     <p key={parentId}>
                       {labels[parentId]}：
-                      {Object.entries(entry.actions!.plan.parents[parentId])
+                      {Object.entries(entry.selections!.plan.parents[parentId])
                         .map(([axis, score]) => `${labels[axis]} ${labels[String(score)] ?? score}`)
                         .join(" ／ ")}
                     </p>

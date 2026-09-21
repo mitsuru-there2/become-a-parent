@@ -65,7 +65,7 @@ export const COMMANDS = [
   "new",
   "scenarios",
   "observe",
-  "actions",
+  "selections",
   "forecast",
   "plan",
   "choose",
@@ -94,9 +94,9 @@ function requiredArguments(command: Command): string[] {
   }
 }
 
-export function actions(
+export function selections(
   choices: Choice[],
-  extraActions: PublicState["extra_actions"] = [],
+  extraSelections: PublicState["extra_selections"] = [],
   decisions = false,
   life = false,
 ) {
@@ -124,7 +124,7 @@ export function actions(
         max: ranges[key]?.[1] ?? null,
       };
     }),
-    extra_actions: extraActions,
+    extra_selections: extraSelections,
     input_examples: {
       plan: decisions ? null : { parents: { A: { rest: 2 } } },
       choose: choices[0]

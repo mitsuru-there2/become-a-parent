@@ -562,7 +562,7 @@
       "required": ["text", "options", "trigger", "target", "target_suffix", "visual"],
       "additionalProperties": false
     },
-    "Action": {
+    "Selection": {
       "type": "object",
       "properties": {
         "label": {

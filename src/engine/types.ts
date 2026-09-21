@@ -11,7 +11,7 @@ export interface Allocation {
   self: number;
 }
 export interface Plan {
-  extra_action?: string;
+  extra_selection?: string;
   parents: Record<Person, Allocation>;
   activity: { domain: Domain | "none"; level: number; sponsor: Person };
   style: "respect" | "coach" | "push";
@@ -123,7 +123,7 @@ export interface History {
   turn: number | null;
   adult_step: number | null;
   ages: { child_months: number; A_months: number; B_months: number };
-  actions: { plan: Plan; answers: { event_instance: string; option_id: string }[] } | null;
+  selections: { plan: Plan; answers: { event_instance: string; option_id: string }[] } | null;
   events: { instance_id: string; event_id: string; option_id: string | null; text: string }[];
   event_results?: AutomaticEventResult[];
   money: Money[];
@@ -207,7 +207,7 @@ export interface State extends NumericState {
 }
 export interface PublicState {
   life?: {
-    action_tree?: boolean;
+    selection_tree?: boolean;
     annual_income?: number;
     study_score?: number;
     active_effects?: { source: string; label: string; kind: "good" | "bad"; percent: number }[];
@@ -228,8 +228,13 @@ export interface PublicState {
       planned_label: string;
       planned_cost: number;
     }[];
-    max_actions: number;
-    action_count: number;
+    max_selections: number;
+    selection_count: number;
+    crossroad: {
+      label: string;
+      age_months: number;
+      missing: { decision_id: string; menu: string; title: string }[];
+    } | null;
     notices: string[];
   };
   decision_turn?: {
@@ -250,7 +255,7 @@ export interface PublicState {
     packs: { id: string; version: string; label: string }[];
     fingerprint: string | null;
   };
-  extra_actions: {
+  extra_selections: {
     id: string;
     label: string;
     description: string;
@@ -290,7 +295,8 @@ export interface Choice {
     tree_route?: string;
   };
   menu?: string;
-  decision_kind?: "policy" | "action";
+  selection_kind?: "policy" | "selection";
+  crossroad_required?: boolean;
   reason?: string;
   fresh?: boolean;
   current_option?: string;

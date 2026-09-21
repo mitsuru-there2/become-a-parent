@@ -1,4 +1,4 @@
-import { ActionTree } from "./action_tree";
+import { SelectionTree } from "./selection_tree";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
@@ -8,7 +8,7 @@ export function LifeMenus({ state, choices }: { state: PublicState; choices: Cho
   const [menu, setMenu] = useState<string | null>(null);
   const busy = useStore($busy);
   const life = state.life!;
-  if (life.action_tree) return <ActionTree state={state} choices={choices} />;
+  if (life.selection_tree) return <SelectionTree state={state} choices={choices} />;
   const selectedMenu = life.menus.find((m) => m.id === menu);
   const scheduled = choices.filter((c) => c.selected_option);
   const opportunities = choices.filter((c) => c.fresh);
@@ -37,7 +37,7 @@ export function LifeMenus({ state, choices }: { state: PublicState; choices: Cho
                 <header>
                   <h3>{choice.text}</h3>
                   <span>
-                    {choice.decision_kind === "policy" ? "継続する設定" : "今期だけの行動"}
+                    {choice.selection_kind === "policy" ? "継続する設定" : "今期だけの選択"}
                     {choice.fresh ? " · 新しい機会" : ""}
                   </span>
                 </header>

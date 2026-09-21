@@ -170,8 +170,8 @@ describe("S-016 保存・公開CLI契約", () => {
         expect(r.ok, JSON.stringify(r.error)).toBe(true);
         return req;
       };
-      const actions = await service.execute({ command: "actions", run: "test" });
-      expect(actions.payload!.actions!.plan_fields).toEqual([]);
+      const selections = await service.execute({ command: "selections", run: "test" });
+      expect(selections.payload!.selections!.plan_fields).toEqual([]);
       for (let t = 0; t < 40; t++) {
         expect(r.choices).toHaveLength(1);
         const special = r.choices[0];

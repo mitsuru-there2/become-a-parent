@@ -44,8 +44,8 @@ try {
         return response;
       }
       let r = await call("new", "家庭とシードを指定して開始。");
-      const actions = await call("actions", "公開契約から選択操作を確認。");
-      if (actions.payload!.actions!.plan_fields.length)
+      const selections = await call("selections", "公開契約から選択操作を確認。");
+      if (selections.payload!.selections!.plan_fields.length)
         throw new Error("新方式で配分操作が公開されています");
       while (r.phase === "childhood") {
         if (r.public!.life) {
@@ -58,7 +58,7 @@ try {
                 option_id: "base-home:talk",
               });
             const activity = r.choices.find(
-              (c) => c.decision_kind === "action" && c.menu === "afterschool",
+              (c) => c.selection_kind === "selection" && c.menu === "afterschool",
             );
             const option = activity?.options.find(
               (o) => o.available && !o.option_id.endsWith(":cancel") && o.cost <= 12,

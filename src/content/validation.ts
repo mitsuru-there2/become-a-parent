@@ -40,11 +40,11 @@ function condition(c: Condition, content: Content) {
   if (numericConditionPaths.includes(c.path)) ensure(v.is(integer(-99999), c.value), c.path);
   else if (c.path === "grandparents.network")
     ensure(c.op === "eq" && typeof c.value === "boolean", c.path);
-  else if (["plan.extra_action", "previous_plan.extra_action"].includes(c.path))
+  else if (["plan.extra_selection", "previous_plan.extra_selection"].includes(c.path))
     ensure(
       c.op === "eq" &&
         typeof c.value === "string" &&
-        (c.value === "none" || Object.hasOwn(content.actions, c.value)),
+        (c.value === "none" || Object.hasOwn(content.selections, c.value)),
       c.path,
     );
   else ensure(false, c.path);
@@ -95,8 +95,8 @@ function references(c: Content) {
     );
   }
   const visual = (id: string | null) => id === null || Object.hasOwn(c.visuals, id);
-  for (const [id, action] of Object.entries(c.actions))
-    ensure(visual(action.visual), `actions.${id}.visual`);
+  for (const [id, selection] of Object.entries(c.selections))
+    ensure(visual(selection.visual), `selections.${id}.visual`);
   for (const [id, event] of Object.entries(c.events)) {
     ensure(visual(event.visual), `events.${id}.visual`);
     [...event.trigger.all, ...event.trigger.any].forEach((value) => condition(value, c));

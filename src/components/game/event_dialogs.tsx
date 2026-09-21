@@ -158,7 +158,7 @@ export function EventDialogs({
                 <p className="turn-event-empty">今期は特別な出来事はありません。</p>
               )}
             </div>
-            <button className="rpg-action" onClick={closeCurrent}>
+            <button className="rpg-button" onClick={closeCurrent}>
               閉じる
             </button>
           </section>

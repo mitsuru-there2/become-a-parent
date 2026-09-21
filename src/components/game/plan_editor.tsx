@@ -6,7 +6,7 @@ import { FormInput } from "./form_input";
 import { useStore } from "@nanostores/react";
 import { Button } from "../ui/8bit/button";
 import { $savedPlan, $busy, $dirty, update } from "../../stores/game";
-import { actions } from "../../service/contract";
+import { selections } from "../../service/contract";
 import { planPatchSchema } from "../../service/schemas";
 import { preset, PRESETS } from "../../service/presets";
 import type { PublicState, Plan, Person, Allocation } from "../../engine/types";
@@ -18,7 +18,7 @@ type PlanPath =
   | `activity.${keyof Plan["activity"]}`
   | "style"
   | "help";
-const fields = actions([]).plan_fields;
+const fields = selections([]).plan_fields;
 
 export const PlanEditor = memo(function PlanEditor({ publicState }: { publicState: PublicState }) {
   const savedPlan = useStore($savedPlan);
@@ -27,7 +27,7 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
     defaultValues: savedPlan ?? publicState.plan!,
     validators: {
       onSubmit: ({ value }) =>
-        v.is(planPatchSchema(publicState.extra_actions.map((action) => action.id)), value)
+        v.is(planPatchSchema(publicState.extra_selections.map((selection) => selection.id)), value)
           ? undefined
           : "方針の入力内容を確認してください",
     },
@@ -158,10 +158,10 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
               <div className="activity-fields">
                 {fields.filter((field) => !field.path.startsWith("parents")).map(renderField)}
               </div>
-              {publicState.extra_actions.length > 0 && (
-                <form.Field name="extra_action">
+              {publicState.extra_selections.length > 0 && (
+                <form.Field name="extra_selection">
                   {(field) => (
-                    <div className="extra-actions">
+                    <div className="extra-selections">
                       <FormInput
                         name={field.name}
                         label="追加行動"
@@ -170,19 +170,19 @@ export const PlanEditor = memo(function PlanEditor({ publicState }: { publicStat
                         onChange={(event) => field.handleChange(event.target.value)}
                         options={[
                           { value: "none", label: "なし" },
-                          ...publicState.extra_actions.map((action) => ({
-                            value: action.id,
-                            disabled: !action.available,
-                            label: `${action.label}（${action.cost}万円・${labels[action.parent]} ${action.time}単位）${!action.available ? "：今の年齢では選べません" : ""}`,
+                          ...publicState.extra_selections.map((selection) => ({
+                            value: selection.id,
+                            disabled: !selection.available,
+                            label: `${selection.label}（${selection.cost}万円・${labels[selection.parent]} ${selection.time}単位）${!selection.available ? "：今の年齢では選べません" : ""}`,
                           })),
                         ]}
                       />
-                      {publicState.extra_actions
-                        .filter((action) => action.id === field.state.value)
-                        .map((action) => (
-                          <div key={action.id}>
-                            <p className="muted">{action.description}</p>
-                            {action.visual && <ContentImage visual={action.visual} />}
+                      {publicState.extra_selections
+                        .filter((selection) => selection.id === field.state.value)
+                        .map((selection) => (
+                          <div key={selection.id}>
+                            <p className="muted">{selection.description}</p>
+                            {selection.visual && <ContentImage visual={selection.visual} />}
                           </div>
                         ))}
                     </div>

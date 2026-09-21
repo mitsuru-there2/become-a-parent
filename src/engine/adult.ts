@@ -280,7 +280,7 @@ export function finish(
         A_months: state.parents.A.age_months,
         B_months: state.parents.B.age_months,
       },
-      actions: null,
+      selections: null,
       events,
       money,
       observations: [],

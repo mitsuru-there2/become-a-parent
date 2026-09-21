@@ -6,7 +6,7 @@ Bunで実行する。保存ディレクトリの既定は `.saves`。`--dir PATH
 
 ```sh
 bun run cli new --run trial --scenario home-01 --seed 0 --request-id start
-bun run cli actions --run trial
+bun run cli selections --run trial
 bun run cli observe --run trial
 ```
 
@@ -17,7 +17,7 @@ bun run cli observe --run trial
 3. `choices`が返す末尾`cancel`の選択肢でその予定を取り消せます。`reset-plan`は今期の予定を全取消します。継続中の方針は解除しません。
 4. `public.forecast.can_advance`で合計資金・行動枠を検査します。確定後の次期から、履歴や継続状態に応じた新しい判断が出ます。
 
-`public.life.policies`は現在と予定後の方針・継続費、`action_count`は今期だけの行動数、`max_actions`は上限です。`public.answers`は未確定の予定です。`actions`は`plan_fields`を返さず、`plan`を拒否します。標準生活のために`choose`を呼ぶ必要はありません。
+`public.life.policies`は現在と予定後の方針・継続費、`selection_count`は今期だけの行動数、`max_selections`は上限です。`public.answers`は未確定の予定です。`selections`は`plan_fields`を返さず、`plan`を拒否します。標準生活のために`choose`を呼ぶ必要はありません。
 
 `phase`は`childhood`・`finished`・`game_over`。`result`は通常完走なら`payload.result`、途中終了なら`payload.game_over`を返します。`history`は特殊イベント・半年・成人後の記録、`replay`はイベント確定と半年確定の操作列を再生します。途中の未確定回答は保存しますが、確定列の再生には含めません。
 
@@ -37,7 +37,7 @@ bun run cli import --dir /tmp/another-saves --file /tmp/trial-export.json
 {"command":"observe","run":"agent-01"}
 ```
 
-通常プレイではobserve/actions/forecast/history/resultの公開情報だけを使い、ソース・保存ファイル・debug-state・参照数値を判断に使わない。内部検証は別記録とする。
+通常プレイではobserve/selections/forecast/history/resultの公開情報だけを使い、ソース・保存ファイル・debug-state・参照数値を判断に使わない。内部検証は別記録とする。
 
 ## 難易度と追加シナリオ（S-015）
 
@@ -48,6 +48,6 @@ bun run cli new --run my-family --scenario home-01 --seed 0 --difficulty hard --
 
 `difficulty` は `easy` / `normal` / `hard`、省略時は `normal`。`packs` はパックIDのJSON配列です（例：`--packs '["community-life"]'`）。登録済みパックのみ選べます。`scenarios` の公開一覧には難易度とパック・追加家庭も含みます。開始後は難易度・パックを変更できません。
 
-旧方式の追加行動は `plan` の `input` に `{"extra_action":"community-workshop"}` を指定します。`none` で解除し、ID・費用・時間・時期の可否は `actions` の `extra_actions` で確認します。選択は毎期引き継がれます。設定方法は[設定ガイド](../config/README.md)。
+旧方式の追加行動は `plan` の `input` に `{"extra_selection":"community-workshop"}` を指定します。`none` で解除し、ID・費用・時間・時期の可否は `selections` の `extra_selections` で確認します。選択は毎期引き継がれます。設定方法は[設定ガイド](../config/README.md)。
 
 新方式のDLCは公開された生活メニューへ判断を追加し、自動イベントも拡張します。新規保存・書き出しはsave-9 / parent-save-9です。使用した設定を保存し、旧save-2〜8も当時の方式のまま読み込めます。上記以外の公開コマンド・revision・request-id契約はcli-2を維持します。不正な新規設定は `INVALID_CONTENT`（CLI終了コード2）、保存内設定の破損は `CORRUPT_SAVE` です。

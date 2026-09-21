@@ -4,8 +4,35 @@
     "life_game": {
       "type": "object",
       "properties": {
-        "action_tree": {
+        "selection_tree": {
           "type": "boolean"
+        },
+        "crossroads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "age_months": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 234
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "required_decisions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "minItems": 1
+              }
+            },
+            "required": ["age_months", "label", "required_decisions"],
+            "additionalProperties": false
+          }
         },
         "route_groups": {
           "type": "array",
@@ -148,7 +175,7 @@
         "schema_version": {
           "const": 1
         },
-        "max_actions": {
+        "max_selections": {
           "type": "integer",
           "minimum": 1,
           "maximum": 5
@@ -276,7 +303,7 @@
                 "minLength": 1
               },
               "kind": {
-                "enum": ["policy", "action"],
+                "enum": ["policy", "selection"],
                 "type": "string"
               },
               "min_age_months": {
@@ -854,7 +881,7 @@
       },
       "required": [
         "schema_version",
-        "max_actions",
+        "max_selections",
         "income",
         "standard_effects",
         "menus",
@@ -2046,13 +2073,13 @@
         "$ref": "#/$defs/Event"
       }
     },
-    "actions": {
+    "selections": {
       "type": "object",
       "propertyNames": {
         "type": "string"
       },
       "additionalProperties": {
-        "$ref": "#/$defs/Action"
+        "$ref": "#/$defs/Selection"
       }
     },
     "scenes": {
@@ -2115,7 +2142,7 @@
     "oddities",
     "adult",
     "events",
-    "actions",
+    "selections",
     "scenes",
     "visuals",
     "text"
@@ -2313,7 +2340,7 @@
       "required": ["text", "options", "trigger", "target", "target_suffix", "visual"],
       "additionalProperties": false
     },
-    "Action": {
+    "Selection": {
       "type": "object",
       "properties": {
         "label": {

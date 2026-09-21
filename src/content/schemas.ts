@@ -110,7 +110,7 @@ export const eventSchema = v.pipe(
     "遅延効果のあるイベントは38期までです",
   ),
 );
-export const extraActionSchema = v.pipe(
+export const extraSelectionSchema = v.pipe(
   v.strictObject({
     label: v.string(),
     description: v.string(),
@@ -224,7 +224,7 @@ export const contentSchema = v.strictObject({
     ),
   ),
   events: dictionary(eventSchema),
-  actions: dictionary(extraActionSchema),
+  selections: dictionary(extraSelectionSchema),
   scenes: dictionary(v.strictObject({ title: v.string(), text: v.string(), visual: visualId })),
   visuals: dictionary(visualSchema),
   text: dictionary(v.string(), false),
@@ -240,7 +240,7 @@ export const contentPackSchema = v.strictObject({
   dependencies: v.pipe(v.array(contentIdSchema), unique<string>()),
   scenarios: scenariosSchema,
   events: dictionary(eventSchema),
-  actions: dictionary(extraActionSchema),
+  selections: dictionary(extraSelectionSchema),
   visuals: dictionary(visualSchema),
 });
 export const settingsSchema = v.strictObject({

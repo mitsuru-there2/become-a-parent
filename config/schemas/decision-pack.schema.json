@@ -37,7 +37,7 @@
         "minLength": 1
       },
       "kind": {
-        "enum": ["policy", "action"],
+        "enum": ["policy", "selection"],
         "type": "string"
       },
       "min_age_months": {
@@ -795,7 +795,7 @@
       "required": ["text", "options", "trigger", "target", "target_suffix", "visual"],
       "additionalProperties": false
     },
-    "Action": {
+    "Selection": {
       "type": "object",
       "properties": {
         "label": {

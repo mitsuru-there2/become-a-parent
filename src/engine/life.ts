@@ -132,6 +132,17 @@ function plannedOption(s: State, node: LifeDecision) {
   const selection = s.decisions!.selections[instance(s, node.id)];
   return node.options.find((o) => key(node, o) === selection);
 }
+function currentCrossroad(s: State) {
+  return config(s).crossroads?.find((item) => item.age_months === s.n * 6);
+}
+function crossroadMissing(s: State) {
+  const crossroad = currentCrossroad(s);
+  if (!crossroad) return [];
+  return crossroad.required_decisions.filter((id) => {
+    const node = config(s).decisions.find((item) => item.id === id)!;
+    return !plannedOption(s, node);
+  });
+}
 function resolvedPolicies(s: State, planned: boolean) {
   const policies = { ...s.life!.policies };
   const notices: string[] = [];
@@ -303,7 +314,7 @@ function treeConditions(s: State, node: LifeDecision, option: LifeOption) {
     );
   details.push(...routeDetails(s, node, option));
   if (
-    node.kind === "action" &&
+    node.kind === "selection" &&
     inAge(s, node) &&
     referencesMet(s, node.requires) &&
     !offered(s, node)
@@ -355,7 +366,7 @@ export function lifeForecast(s: State): Forecast {
     const selected = plannedOption(s, node);
     if (s.decisions!.selections[instance(s, node.id)] && !selected)
       reasons.push({
-        code: "UNKNOWN_ACTION",
+        code: "UNKNOWN_SELECTION",
         path: node.id,
         message: "現在の選択肢ではありません。予定を取り消してください。",
       });
@@ -374,7 +385,7 @@ export function lifeForecast(s: State): Forecast {
           )))
     )
       continue;
-    if (node.kind === "action") count++;
+    if (node.kind === "selection") count++;
     const setupCost =
       node.kind === "policy" && s.life!.policies[node.id] !== option.id ? option.setup_cost : 0;
     cost += option.cost + setupCost;
@@ -386,15 +397,23 @@ export function lifeForecast(s: State): Forecast {
   }
   if (Object.keys(s.decisions!.selections).some((id) => !known.has(id)))
     reasons.push({
-      code: "UNKNOWN_ACTION",
+      code: "UNKNOWN_SELECTION",
       path: "selections",
       message: "期限の切れた予定があります。予定を取り消してください。",
     });
-  if (count > game.max_actions)
+  for (const id of crossroadMissing(s)) {
+    const node = game.decisions.find((item) => item.id === id)!;
     reasons.push({
-      code: "ACTION_LIMIT",
-      path: "actions",
-      message: `今期だけの行動は${game.max_actions}件までです。`,
+      code: "CROSSROAD_SELECTION_REQUIRED",
+      path: node.id,
+      message: `岐路の必須選択「${node.title}」を選んでください。`,
+    });
+  }
+  if (count > game.max_selections)
+    reasons.push({
+      code: "SELECTION_LIMIT",
+      path: "selections",
+      message: `今期だけの選択は${game.max_selections}件までです。`,
     });
   if (s.cash + income < cost)
     reasons.push({
@@ -435,120 +454,127 @@ export function lifeChoices(s: State): Choice[] {
   if (s.phase !== "childhood") return [];
   return config(s)
     .decisions.filter((d) => treeEnabled(s) || offered(s, d))
-    .map((node) => ({
-      kind: "decision",
-      ...(treeEnabled(s)
-        ? {
-            tree: {
-              min_age_months: node.min_age_months,
-              default_label: node.options.find((o) => o.id === node.default_option)?.label ?? null,
-              ...(node.route_group ? { route_group: node.route_group } : {}),
-              ...(node.route_stage !== undefined ? { route_stage: node.route_stage } : {}),
-              ...(node.route ? { route: node.route } : {}),
-              ...(node.tree_route ? { tree_route: node.tree_route } : {}),
-              parents: [
+    .map((node) => {
+      const required = crossroadMissing(s).includes(node.id);
+      return {
+        kind: "decision",
+        ...(treeEnabled(s)
+          ? {
+              tree: {
+                min_age_months: node.min_age_months,
+                default_label:
+                  node.options.find((o) => o.id === node.default_option)?.label ?? null,
+                ...(node.route_group ? { route_group: node.route_group } : {}),
+                ...(node.route_stage !== undefined ? { route_stage: node.route_stage } : {}),
+                ...(node.route ? { route: node.route } : {}),
+                ...(node.tree_route ? { tree_route: node.tree_route } : {}),
+                parents: [
+                  ...new Map(
+                    [node.requires, ...node.options.flatMap((o) => [o.requires, o.maintains])]
+                      .flatMap((r) => [...(r?.history ?? []), ...(r?.policies ?? [])])
+                      .filter((r) => r.decision !== node.id)
+                      .map((r) => [
+                        r.decision,
+                        {
+                          id: r.decision,
+                          label: config(s).decisions.find((d) => d.id === r.decision)!.title,
+                        },
+                      ]),
+                  ).values(),
+                ],
+              },
+            }
+          : {}),
+        visual: null,
+        instance_id: instance(s, node.id),
+        event_id: node.id,
+        text: node.title,
+        menu: node.menu,
+        selection_kind: node.kind,
+        ...(required ? { crossroad_required: true } : {}),
+        reason: node.reason,
+        fresh: s.life!.fresh.includes(node.id),
+        expires_age_months: node.max_age_months,
+        ...(node.kind === "policy" && inAge(s, node) && !required
+          ? { current_option: `${node.id}:${s.life!.policies[node.id]}` }
+          : {}),
+        ...(s.decisions!.selections[instance(s, node.id)]
+          ? { selected_option: s.decisions!.selections[instance(s, node.id)] }
+          : {}),
+        options: [
+          ...node.options
+            .filter(
+              (o) => treeEnabled(s) || o.id === node.default_option || referencesMet(s, o.requires),
+            )
+            .map((o) => {
+              const reasons = selectionReasons(s, node, o);
+              const parents = [
                 ...new Map(
-                  [node.requires, ...node.options.flatMap((o) => [o.requires, o.maintains])]
+                  [node.requires, o.requires, o.maintains]
                     .flatMap((r) => [...(r?.history ?? []), ...(r?.policies ?? [])])
                     .filter((r) => r.decision !== node.id)
-                    .map((r) => [
-                      r.decision,
-                      {
-                        id: r.decision,
-                        label: config(s).decisions.find((d) => d.id === r.decision)!.title,
-                      },
-                    ]),
+                    .map((r) => {
+                      const parent = config(s).decisions.find((d) => d.id === r.decision)!;
+                      const optionId = `${r.decision}:${r.option}`;
+                      return [
+                        optionId,
+                        {
+                          option_id: optionId,
+                          label: `${parent.title}「${parent.options.find((item) => item.id === r.option)!.label}」`,
+                        },
+                      ] as const;
+                    }),
                 ).values(),
-              ],
-            },
-          }
-        : {}),
-      visual: null,
-      instance_id: instance(s, node.id),
-      event_id: node.id,
-      text: node.title,
-      menu: node.menu,
-      decision_kind: node.kind,
-      reason: node.reason,
-      fresh: s.life!.fresh.includes(node.id),
-      expires_age_months: node.max_age_months,
-      ...(node.kind === "policy" && inAge(s, node)
-        ? { current_option: `${node.id}:${s.life!.policies[node.id]}` }
-        : {}),
-      ...(s.decisions!.selections[instance(s, node.id)]
-        ? { selected_option: s.decisions!.selections[instance(s, node.id)] }
-        : {}),
-      options: [
-        ...node.options
-          .filter(
-            (o) => treeEnabled(s) || o.id === node.default_option || referencesMet(s, o.requires),
-          )
-          .map((o) => {
-            const reasons = selectionReasons(s, node, o);
-            const parents = [
-              ...new Map(
-                [node.requires, o.requires, o.maintains]
-                  .flatMap((r) => [...(r?.history ?? []), ...(r?.policies ?? [])])
-                  .filter((r) => r.decision !== node.id)
-                  .map((r) => {
-                    const parent = config(s).decisions.find((d) => d.id === r.decision)!;
-                    const optionId = `${r.decision}:${r.option}`;
-                    return [
-                      optionId,
-                      {
-                        option_id: optionId,
-                        label: `${parent.title}「${parent.options.find((item) => item.id === r.option)!.label}」`,
-                      },
-                    ] as const;
-                  }),
-              ).values(),
-            ];
-            // 組合せの家計超過は編集中に許容し、確定時に一括検査する。取消と安い方針への変更を妨げない。
-            return {
-              option_id: key(node, o),
-              label: o.label,
-              ...(treeEnabled(s)
-                ? { visual: contentFor(s).visuals[o.visual ?? "hero"], parents }
-                : {}),
-              cost:
-                o.cost +
-                (node.kind === "policy" && o.id !== s.life!.policies[node.id] ? o.setup_cost : 0),
-              income: o.income,
-              description: describe(o, node.kind === "policy", treeEnabled(s)),
-              ...(o.route ? { route: o.route } : {}),
-              ...(o.tree_route ? { tree_route: o.tree_route } : {}),
-              ...(o.switch_to ? { switch_to: o.switch_to } : {}),
-              ...(treeEnabled(s)
-                ? {
-                    acquired: !!s.life!.history[key(node, o)],
-                    requirements: treeConditions(s, node, o).map(
-                      (d) => `${d.met ? "✓" : "未達"} ${d.label}`,
-                    ),
-                    event_modifiers: o.event_modifiers ?? [],
-                  }
-                : {}),
-              available: reasons.length === 0,
-              reasons,
-            };
-          }),
-        {
-          option_id: `${node.id}:cancel`,
-          label: node.kind === "policy" ? "今期の変更を取り消す" : "今期は予定しない",
-          cost: 0,
-          income: 0,
-          description: "現在の暮らしをそのまま続けます。",
-          available: true,
-          reasons: [],
-        },
-      ],
-    }));
+              ];
+              // 組合せの家計超過は編集中に許容し、確定時に一括検査する。取消と安い方針への変更を妨げない。
+              return {
+                option_id: key(node, o),
+                label: o.label,
+                ...(treeEnabled(s)
+                  ? { visual: contentFor(s).visuals[o.visual ?? "hero"], parents }
+                  : {}),
+                cost:
+                  o.cost +
+                  (node.kind === "policy" && o.id !== s.life!.policies[node.id] ? o.setup_cost : 0),
+                income: o.income,
+                description: describe(o, node.kind === "policy", treeEnabled(s)),
+                ...(o.route ? { route: o.route } : {}),
+                ...(o.tree_route ? { tree_route: o.tree_route } : {}),
+                ...(o.switch_to ? { switch_to: o.switch_to } : {}),
+                ...(treeEnabled(s)
+                  ? {
+                      acquired: !!s.life!.history[key(node, o)],
+                      requirements: treeConditions(s, node, o).map(
+                        (d) => `${d.met ? "✓" : "未達"} ${d.label}`,
+                      ),
+                      event_modifiers: o.event_modifiers ?? [],
+                    }
+                  : {}),
+                available: reasons.length === 0,
+                reasons,
+              };
+            }),
+          {
+            option_id: `${node.id}:cancel`,
+            label: node.kind === "policy" ? "今期の変更を取り消す" : "今期は予定しない",
+            cost: 0,
+            income: 0,
+            description: "現在の暮らしをそのまま続けます。",
+            available: true,
+            reasons: [],
+          },
+        ],
+      };
+    });
 }
 export function lifeView(s: State): NonNullable<PublicState["life"]> {
   const resolved = resolvedPolicies(s, true);
+  const crossroad = currentCrossroad(s);
+  const missing = crossroadMissing(s);
   return {
     ...(treeEnabled(s)
       ? {
-          action_tree: true,
+          selection_tree: true,
           annual_income: annualIncome(s),
           study_score: s.child.ability.study,
           active_effects: activeTreeEffects(s),
@@ -563,9 +589,20 @@ export function lifeView(s: State): NonNullable<PublicState["life"]> {
         }
       : {}),
     menus: clone(config(s).menus),
-    max_actions: config(s).max_actions,
-    action_count: config(s).decisions.filter((d) => d.kind === "action" && plannedOption(s, d))
-      .length,
+    max_selections: config(s).max_selections,
+    selection_count: config(s).decisions.filter(
+      (d) => d.kind === "selection" && plannedOption(s, d),
+    ).length,
+    crossroad: crossroad
+      ? {
+          label: crossroad.label,
+          age_months: crossroad.age_months,
+          missing: missing.map((id) => {
+            const node = config(s).decisions.find((item) => item.id === id)!;
+            return { decision_id: node.id, menu: node.menu, title: node.title };
+          }),
+        }
+      : null,
     notices: [...new Set([...s.life!.notices, ...resolved.notices])],
     policies: config(s)
       .decisions.filter((d) => d.kind === "policy" && offered(s, d))
@@ -587,7 +624,10 @@ export function chooseLife(s: State, eventInstance: string, optionId: string) {
   const choice = lifeChoices(s).find((c) => c.instance_id === eventInstance);
   if (!choice?.options.some((o) => o.option_id === optionId && o.available))
     throw new Error("現在の選択肢ではありません");
-  if (optionId.endsWith(":cancel") || optionId === choice.current_option)
+  if (
+    optionId.endsWith(":cancel") ||
+    (optionId === choice.current_option && !choice.crossroad_required)
+  )
     delete s.decisions!.selections[eventInstance];
   else s.decisions!.selections[eventInstance] = optionId;
 }
@@ -623,7 +663,7 @@ export function applyLife(s: State, lines: string[]) {
     )
       continue;
     lines.push(
-      `${node.kind === "policy" ? "続けた暮らし" : "今期の行動"}：${node.title} → ${option.label}`,
+      `${node.kind === "policy" ? "続けた暮らし" : "今期の選択"}：${node.title} → ${option.label}`,
     );
     applyEffects(s, option.effects, lines);
     if (option.skill) {

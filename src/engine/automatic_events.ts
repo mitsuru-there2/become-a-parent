@@ -9,7 +9,7 @@ import { draw, observeChild } from "./simulation";
 import { activeTreeEffects, modifiedDelta, treeEnabled } from "./tree_effects";
 
 export const automaticEventsEnabled = (state: State) =>
-  ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11"].includes(
+  ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(
     state.versions.rules,
   );
 export function applyAutomaticEvents(state: State): History | null {
@@ -137,7 +137,7 @@ export function applyAutomaticEvents(state: State): History | null {
       A_months: state.parents.A.age_months,
       B_months: state.parents.B.age_months,
     },
-    actions: null,
+    selections: null,
     events: selected.map((e) => ({
       instance_id: `t${String(turn).padStart(2, "0")}:automatic:${e.id}`,
       event_id: e.id,

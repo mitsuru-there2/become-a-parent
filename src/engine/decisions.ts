@@ -33,9 +33,16 @@ import {
 const names = { A: "父", B: "母", both: "父母" };
 const skillNames = { dialogue: "対話", planning: "段取り", learning: "学びの支援" };
 const dynamicMoney = (state: State) =>
-  ["rules-5", "rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11"].includes(
-    state.versions.rules,
-  );
+  [
+    "rules-5",
+    "rules-6",
+    "rules-7",
+    "rules-8",
+    "rules-9",
+    "rules-10",
+    "rules-11",
+    "rules-12",
+  ].includes(state.versions.rules);
 const choiceIncome = (state: State, option: DecisionOption) =>
   dynamicMoney(state) ? (option.income ?? 0) : 0;
 const moneyChange = (before: number, after: number) =>
@@ -49,13 +56,15 @@ export function startDecisions(
   seed: number,
   settings: Settings,
   rules = settings.content.life_game
-    ? settings.content.life_game.action_tree
-      ? settings.content.life_game.route_groups?.length
-        ? settings.content.life_game.route_groups.length > 1
-          ? "rules-11"
-          : "rules-10"
-        : "rules-9"
-      : "rules-8"
+    ? settings.content.life_game.crossroads?.length
+      ? "rules-12"
+      : settings.content.life_game.selection_tree
+        ? settings.content.life_game.route_groups?.length
+          ? settings.content.life_game.route_groups.length > 1
+            ? "rules-11"
+            : "rules-10"
+          : "rules-9"
+        : "rules-8"
     : settings.content.automatic_events
       ? settings.content.decision_game?.initial_grandparents
         ? "rules-7"
@@ -64,27 +73,29 @@ export function startDecisions(
 ): State {
   const state = start(scenario, seed, settings);
   state.versions =
-    rules === "rules-11"
-      ? { rules, data: "data-11", save: "save-12" }
-      : rules === "rules-10"
-        ? { rules, data: "data-10", save: "save-11" }
-        : rules === "rules-9"
-          ? { rules, data: "data-9", save: "save-10" }
-          : rules === "rules-8"
-            ? { rules, data: "data-8", save: "save-9" }
-            : rules === "rules-3"
-              ? { rules, data: "data-3", save: "save-4" }
-              : rules === "rules-4"
-                ? { rules, data: "data-4", save: "save-5" }
-                : rules === "rules-5"
-                  ? { rules, data: "data-5", save: "save-6" }
-                  : rules === "rules-6"
-                    ? { rules, data: "data-6", save: "save-7" }
-                    : { rules, data: "data-7", save: "save-8" };
+    rules === "rules-12"
+      ? { rules, data: "data-12", save: "save-13" }
+      : rules === "rules-11"
+        ? { rules, data: "data-11", save: "save-12" }
+        : rules === "rules-10"
+          ? { rules, data: "data-10", save: "save-11" }
+          : rules === "rules-9"
+            ? { rules, data: "data-9", save: "save-10" }
+            : rules === "rules-8"
+              ? { rules, data: "data-8", save: "save-9" }
+              : rules === "rules-3"
+                ? { rules, data: "data-3", save: "save-4" }
+                : rules === "rules-4"
+                  ? { rules, data: "data-4", save: "save-5" }
+                  : rules === "rules-5"
+                    ? { rules, data: "data-5", save: "save-6" }
+                    : rules === "rules-6"
+                      ? { rules, data: "data-6", save: "save-7" }
+                      : { rules, data: "data-7", save: "save-8" };
   if (tenPoint(state)) scaleParents(state, 0.1);
   if (automaticEventsEnabled(state))
     state.grandparents.funds = game(state).initial_grandparent_funds ?? 40;
-  if (["rules-9", "rules-10", "rules-11"].includes(rules)) {
+  if (["rules-9", "rules-10", "rules-11", "rules-12"].includes(rules)) {
     state.grandparents = clone(settings.content.life_game!.initial_family_home!);
   } else if (["rules-7", "rules-8"].includes(rules)) {
     state.grandparents.members = clone(
@@ -120,7 +131,8 @@ export function startDecisions(
       state.decisions.fatigue[p] = 3;
     }
   }
-  if (["rules-8", "rules-9", "rules-10", "rules-11"].includes(rules)) initializeLife(state);
+  if (["rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(rules))
+    initializeLife(state);
   openDecisionTurn(state);
   return state;
 }
@@ -221,10 +233,10 @@ function openThemes(state: State) {
     ),
   );
   const theme = state.decisions!.themes[0];
-  for (const [id, a] of Object.entries(contentFor(state).actions)) {
+  for (const [id, a] of Object.entries(contentFor(state).selections)) {
     if (state.n + 1 < a.min_turn || state.n + 1 > a.max_turn) continue;
     theme.options.push({
-      id: `pack-action-${id}`,
+      id: `pack-selection-${id}`,
       label: a.label,
       cost: a.cost,
       effects: {},
@@ -289,8 +301,8 @@ function choiceDescription(state: State, option: DecisionOption) {
       );
   }
   if (option.end) info.push("選択するとゲームオーバーになります");
-  if (option.id.startsWith("pack-action-"))
-    info.push(contentFor(state).actions[option.id.slice(12)].description);
+  if (option.id.startsWith("pack-selection-"))
+    info.push(contentFor(state).selections[option.id.slice(15)].description);
   return (
     info.join(" ／ ") || "新たな働きかけはしません。生活費と継続費用、半年の経過は発生します。"
   );
@@ -386,7 +398,7 @@ export function decisionView(state: State) {
   const base = publicView({ ...state, decisions: undefined, events: [], answers: {} });
   const d = state.decisions!;
   base.public.plan = null;
-  base.public.extra_actions = [];
+  base.public.extra_selections = [];
   base.public.forecast = state.phase === "childhood" ? decisionForecast(state) : null;
   base.public.answers = Object.entries(d.selections).map(([event_instance, option_id]) => ({
     event_instance,
@@ -513,13 +525,14 @@ function applyOption(
         target,
       });
   }
-  if (option.id.startsWith("pack-action-")) {
-    state.plan.extra_action = option.id.slice(12);
-    const action = contentFor(state).actions[option.id.slice(12)];
-    applyDecisionEffect(state, action.effects, action.target);
-    d.fatigue[action.parent] = clampParent(
+  if (option.id.startsWith("pack-selection-")) {
+    state.plan.extra_selection = option.id.slice(15);
+    const selection = contentFor(state).selections[option.id.slice(15)];
+    applyDecisionEffect(state, selection.effects, selection.target);
+    d.fatigue[selection.parent] = clampParent(
       state,
-      d.fatigue[action.parent] + (tenPoint(state) ? pointEffect(action.time) : action.time),
+      d.fatigue[selection.parent] +
+        (tenPoint(state) ? pointEffect(selection.time) : selection.time),
     );
   }
   const lines = [`${theme.title} → ${option.label}`];
@@ -584,7 +597,7 @@ function historyEntry(
       A_months: state.parents.A.age_months,
       B_months: state.parents.B.age_months,
     },
-    actions: null,
+    selections: null,
     events: [],
     money: [
       {
@@ -690,7 +703,7 @@ export function advanceDecisions(state: State) {
   if (state.n >= 12 && state.n < 36)
     for (const domain of ["study", "craft"] as const)
       state.child.ability[domain] = clampStat(state.child.ability[domain] + 1);
-  state.plan.extra_action = "none";
+  state.plan.extra_selection = "none";
   state.last_repair = false;
   const lines: string[] = [];
   const selections = state.life

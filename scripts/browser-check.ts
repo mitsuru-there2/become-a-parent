@@ -43,9 +43,29 @@ try {
     while (await events.isVisible())
       await events.getByRole("button", { name: "閉じる" }).last().click();
   };
+  const fulfillVisibleCrossroad = async () => {
+    const alert = page.getByRole("alert", { name: "岐路の必須選択" });
+    if (!(await alert.isVisible())) return;
+    const missing = alert.getByRole("navigation", { name: "未実施の必須選択" });
+    while ((await missing.getByRole("button").count()) > 0) {
+      const count = await missing.getByRole("button").count();
+      await missing.getByRole("button").first().click();
+      const target = page.locator(".tree-node:focus");
+      await expect(target).toHaveCount(1);
+      await target.click();
+      await page
+        .locator(".tree-detail")
+        .getByRole("button", { name: "この選択を確定", exact: true })
+        .click();
+      await expect(missing.getByRole("button")).toHaveCount(count - 1);
+    }
+    const back = page.getByRole("button", { name: "← マップに戻る" });
+    if (await back.count()) await back.click();
+  };
   const next = page.getByRole("button", { name: "この暮らしで半年進める →", exact: true });
   const progress = async (turn: number) => {
     await dismiss();
+    await fulfillVisibleCrossroad();
     await expect(next).toBeEnabled();
     await next.click();
     if (turn < 40) await expect(page.locator(".rpg-caption")).toContainText(`第 ${turn + 1} 期`);
@@ -54,7 +74,7 @@ try {
   const menu = async (name: string) => {
     if (await page.getByRole("button", { name: "← マップに戻る" }).count()) await backToMap();
     await page
-      .getByRole("group", { name: "アクションの地図" })
+      .getByRole("group", { name: "選択の地図" })
       .getByRole("button", { name: new RegExp(name) })
       .click();
   };
@@ -71,7 +91,7 @@ try {
       if (
         body &&
         body.scrollHeight > body.clientHeight + 1 &&
-        !(innerHeight <= 600 && body.querySelector(".action-tree-content"))
+        !(innerHeight <= 600 && body.querySelector(".selection-tree-content"))
       )
         found.push("main vertical scroll");
       if (body && body.scrollWidth > body.clientWidth + 1) found.push("main horizontal scroll");
@@ -119,7 +139,7 @@ try {
         if (finance && finance.scrollWidth > finance.clientWidth + 1)
           found.push("finance text overflow");
       }
-      const map = document.querySelector<HTMLElement>(".action-map");
+      const map = document.querySelector<HTMLElement>(".selection-map");
       if (map) {
         const bounds = map.getBoundingClientRect();
         const mapViewport = map.closest(".map-viewport")!;
@@ -184,7 +204,7 @@ try {
         });
       }
       const tree = document.querySelector<HTMLElement>(
-        ".action-tree-content.is-category .tree-scroll",
+        ".selection-tree-content.is-category .tree-scroll",
       );
       if (tree && tree.clientHeight < 60) found.push("category tree too short");
       return found;
@@ -200,8 +220,39 @@ try {
   await expect(events).toHaveText(eventText, { useInnerText: true });
   await expect(page.locator(".rpg-cash")).toHaveText(cashText, { useInnerText: true });
   await dismiss();
+  const crossroad = page.getByRole("alert", { name: "岐路の必須選択" });
+  await expect(crossroad).toContainText("0歳・春夏の岐路");
+  await expect(crossroad).toContainText("方針を選ぶまで半年を進められません。");
+  await expect(next).toHaveAttribute("data-blocked", "true");
+  await next.click();
+  const blocked = page.getByRole("dialog", { name: "半年を進める前に" });
+  await expect(blocked).toContainText("岐路の必須選択「学びへの関わり」を選んでください。");
+  await blocked.getByRole("button", { name: "閉じる" }).last().click();
+  await page.screenshot({ path: `${out}/crossroad-alert-desktop.png` });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await viewport();
+  await page.screenshot({ path: `${out}/crossroad-alert-mobile.png` });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  for (const [title, option] of [
+    ["学びへの関わり", "日々の遊びや学校で学ぶ"],
+    ["家庭の大方針", "日常を整える"],
+    ["実家との大方針", "交流を続ける"],
+    ["遊びの大方針", "工作・科学を楽しむ"],
+    ["仕事の大方針", "家族時間を守る"],
+  ] as const) {
+    await crossroad.getByRole("button", { name: `${title}へ →` }).click();
+    const target = page.getByRole("button", { name: `${title}：${option}`, exact: true });
+    await expect(target).toBeFocused();
+    await target.click();
+    const selection = page.getByRole("dialog", { name: option, exact: true });
+    await expect(selection).toContainText("岐路では、この方針を明示的に選ぶ必要があります。");
+    await selection.getByRole("button", { name: "この選択を確定", exact: true }).click();
+  }
+  await expect(crossroad).toHaveCount(0);
+  await expect(next).toBeEnabled();
+  await backToMap();
   await expect(page.locator(".tree-map-heading")).toHaveCount(0);
-  await expect(page.getByRole("group", { name: "アクションの地図" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "選択の地図" })).toBeVisible();
   await expect(page.locator(".rpg-window-bar, .rpg-family-status > span")).toHaveCount(0);
   await expect(page.locator(".rpg-money-summary")).toContainText("▲");
   await expect(page.locator(".rpg-money-summary")).toContainText("▼");
@@ -216,7 +267,7 @@ try {
     0,
   );
   await expect(page.getByText("何も選ばずに半年を進められます。")).toHaveCount(0);
-  await expect(page.locator(".map-footer")).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "今期の予定" })).toContainText("今期の予定 5件");
   await expect(next).toBeEnabled();
   const dockMenu = page.getByRole("navigation", { name: "ゲーム内" });
   await expect(dockMenu.getByRole("button")).toHaveCount(6);
@@ -237,10 +288,8 @@ try {
   await events.getByRole("button", { name: "閉じる" }).first().click();
   await dismiss();
   await expect(events).toHaveCount(0);
-  await expect(
-    page.getByRole("group", { name: "アクションの地図" }).getByRole("button"),
-  ).toHaveCount(5);
-  await expect(page.getByRole("region", { name: "アクションのつながり" })).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "選択の地図" }).getByRole("button")).toHaveCount(5);
+  await expect(page.getByRole("region", { name: "選択のつながり" })).toHaveCount(0);
   await expect(page.getByText("現在の暮らしと取得効果")).toHaveCount(0);
   await page.getByRole("button", { name: "家族の様子", exact: true }).click();
   await expect(page.getByRole("region", { name: "現在の暮らしと取得効果" })).toBeVisible();
@@ -311,15 +360,13 @@ try {
     await page.setViewportSize({ width, height });
     for (let index = 0; index < 5; index++) {
       await page.locator(".map-marker").nth(index).click();
-      await expect(page.getByRole("region", { name: "アクションのつながり" })).toBeVisible();
+      await expect(page.getByRole("region", { name: "選択のつながり" })).toBeVisible();
       await backToMap();
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
   const node = (name: string) =>
-    page
-      .getByRole("region", { name: "アクションのつながり" })
-      .getByRole("button", { name, exact: true });
+    page.getByRole("region", { name: "選択のつながり" }).getByRole("button", { name, exact: true });
   const detail = page.getByRole("dialog", { name: /./ });
   const confirm = () => detail.locator(".tree-select");
   const cancel = async () => detail.getByRole("button", { name: "キャンセル" }).click();
@@ -394,8 +441,8 @@ try {
     "ことばや数の遊び",
   );
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("region", { name: "アクションのつながり" })).toBeVisible();
-  await expect(page.getByRole("group", { name: "アクションの地図" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "選択のつながり" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "選択の地図" })).toHaveCount(0);
   for (const [width, height] of [
     [390, 844],
     [320, 568],
@@ -419,15 +466,31 @@ try {
   await cancel();
   await expect(node("大学への挑戦：専門的な受験に挑む")).toHaveCount(1);
   await backToMap();
-  await expect(page.getByRole("group", { name: "アクションの地図" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "アクションのつながり" })).toHaveCount(0);
+  await expect(page.getByRole("group", { name: "選択の地図" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "選択のつながり" })).toHaveCount(0);
   await expect(
-    page.getByRole("group", { name: "アクションの地図" }).getByRole("button", {
+    page.getByRole("group", { name: "選択の地図" }).getByRole("button", {
       name: /教育・進路/,
     }),
   ).toBeFocused();
   for (let t = 1; t <= 8; t++) await progress(t);
   await dismiss();
+  await expect(crossroad).toContainText("4歳・春夏の岐路");
+  for (const [title, option] of [
+    ["園での学び方", "保育所に通う"],
+    ["家庭の大方針", "日常を整える"],
+    ["実家との大方針", "交流を続ける"],
+    ["遊びの大方針", "工作・科学を楽しむ"],
+    ["仕事の大方針", "家族時間を守る"],
+  ] as const) {
+    await crossroad.getByRole("button", { name: `${title}へ →` }).click();
+    await page.getByRole("button", { name: `${title}：${option}`, exact: true }).click();
+    await page
+      .getByRole("dialog", { name: option, exact: true })
+      .getByRole("button", { name: "この選択を確定", exact: true })
+      .click();
+  }
+  await expect(crossroad).toHaveCount(0);
   await menu("教育・進路");
   await node("園での学び方：保育所に通う").click();
   await expect(detail).toContainText("保育所に通う");
@@ -457,7 +520,10 @@ try {
   await node("工作教室の体験：体験教室に参加する").click();
   await detail.getByRole("button", { name: "予定を取り消す" }).click();
   await backToMap();
-  await expect(page.getByRole("region", { name: "今期の予定" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "今期の予定" })).toContainText("今期の予定 5件");
+  await expect(page.getByRole("region", { name: "今期の予定" })).not.toContainText(
+    "体験教室に参加する",
+  );
   await menu("遊び・放課後");
   await node("工作教室の体験：体験教室に参加する").click();
   await confirm().click();
@@ -531,6 +597,7 @@ try {
   for (let t = 1; t <= 40; t++) {
     await dismiss();
     if (await page.locator(".game-over").count()) break;
+    await fulfillVisibleCrossroad();
     await menu("仕事・家計");
     for (const name of ["今期だけの仕事", "母の今期だけの仕事"]) {
       await node(name + "：臨時の仕事を引き受ける").click();

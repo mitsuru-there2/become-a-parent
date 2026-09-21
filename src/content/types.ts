@@ -6,7 +6,7 @@ import type {
   eventEffectsSchema,
   visualSchema,
   eventSchema,
-  extraActionSchema,
+  extraSelectionSchema,
   scenarioSchema,
   contentSchema,
   contentPackSchema,
@@ -18,7 +18,7 @@ export type Trigger = InferOutput<typeof triggerSchema>;
 export type Effects = InferOutput<typeof eventEffectsSchema>;
 export type Visual = InferOutput<typeof visualSchema>;
 export type EventDefinition = InferOutput<typeof eventSchema>;
-export type ExtraAction = InferOutput<typeof extraActionSchema>;
+export type ExtraSelection = InferOutput<typeof extraSelectionSchema>;
 export type Scenario = InferOutput<typeof scenarioSchema>;
 export type Content = InferOutput<typeof contentSchema>;
 export type ContentPack = InferOutput<typeof contentPackSchema>;

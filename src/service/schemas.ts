@@ -1,6 +1,6 @@
 import * as v from "valibot";
 import { integer } from "../validation/primitives";
-// 公開actionsの選択肢・値域にも同じ定義を使う。
+// 公開selectionsの選択肢・値域にも同じ定義を使う。
 export const ENUMS = {
   work: ["reduced", "normal", "heavy"],
   domain: ["none", "study", "craft"],
@@ -41,6 +41,6 @@ export const planPatchSchema = (extraIds: string[]) =>
     }),
     style: v.picklist(ENUMS.style),
     help: v.picklist(ENUMS.help),
-    extra_action: v.picklist(["none", ...extraIds]),
+    extra_selection: v.picklist(["none", ...extraIds]),
   });
 export const choiceSchema = v.strictObject({ event_instance: v.string(), option_id: v.string() });

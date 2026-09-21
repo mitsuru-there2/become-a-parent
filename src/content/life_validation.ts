@@ -9,7 +9,7 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
     ensure(eventRequirements.length === 0, "automatic_events.requires: life_gameが必要です");
     return;
   }
-  if (game.action_tree) {
+  if (game.selection_tree) {
     ensure(game.initial_family_home, "life_game.initial_family_home: 実家の初期状態が必要です");
     ensure(
       !JSON.stringify([game.decisions, content.automatic_events]).includes("grandparents.members."),
@@ -34,6 +34,28 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
   ensure(menus.size === game.menus.length, "life_game.menus: ID重複");
   const nodes = new Map(game.decisions.map((d) => [d.id, d]));
   ensure(nodes.size === game.decisions.length, "life_game.decisions: ID重複");
+  const crossroadAges = new Set<number>();
+  for (const crossroad of game.crossroads ?? []) {
+    ensure(crossroad.age_months % 6 === 0, `${crossroad.age_months}: 岐路は半年期に合わせます`);
+    ensure(
+      !crossroadAges.has(crossroad.age_months),
+      `${crossroad.age_months}: 岐路の時期が重複しています`,
+    );
+    crossroadAges.add(crossroad.age_months);
+    ensure(
+      new Set(crossroad.required_decisions).size === crossroad.required_decisions.length,
+      `${crossroad.age_months}: 岐路の必須選択が重複しています`,
+    );
+    for (const id of crossroad.required_decisions) {
+      const node = nodes.get(id);
+      ensure(
+        node?.kind === "policy" &&
+          crossroad.age_months >= node.min_age_months &&
+          crossroad.age_months <= node.max_age_months,
+        `${crossroad.age_months}: 岐路の必須選択 ${id} が対象時期の方針ではありません`,
+      );
+    }
+  }
   const groups = new Map((game.route_groups ?? []).map((group) => [group.id, group]));
   ensure(groups.size === (game.route_groups?.length ?? 0), "life_game.route_groups: ID重複");
   for (const group of groups.values()) {
@@ -42,7 +64,7 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
     ensure(routeIds.size === group.routes.length, `${group.id}.routes: ID重複`);
     const switchNode = nodes.get(group.switch_decision);
     ensure(
-      switchNode?.kind === "action" &&
+      switchNode?.kind === "selection" &&
         switchNode.route_group === group.id &&
         switchNode.menu === group.menu,
       `${group.id}.switch_decision`,
@@ -104,7 +126,7 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
             group?.routes.some((route) => route.id === node.tree_route),
           `${node.id}.tree_route`,
         );
-      if (node.route && node.kind === "action" && group?.layout !== "branches") {
+      if (node.route && node.kind === "selection" && group?.layout !== "branches") {
         const prior = game.decisions
           .filter(
             (item) =>
@@ -144,7 +166,7 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
               other.kind === "policy" &&
               other.options.some((option) => option.route),
           ) ||
-            (node.kind === "action" &&
+            (node.kind === "selection" &&
               node.route_stage ===
                 Math.max(
                   ...game.decisions

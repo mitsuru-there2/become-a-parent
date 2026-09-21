@@ -40,6 +40,7 @@ export function PartyStatus({ state }: { state: PublicState }) {
     "rules-9",
     "rules-10",
     "rules-11",
+    "rules-12",
   ].includes(state.versions.rules)
     ? 10
     : 100;
@@ -72,7 +73,7 @@ export function PartyStatus({ state }: { state: PublicState }) {
       ],
     };
   });
-  for (const id of ["rules-9", "rules-10", "rules-11"].includes(state.versions.rules)
+  for (const id of ["rules-9", "rules-10", "rules-11", "rules-12"].includes(state.versions.rules)
     ? (["home"] as const)
     : GRANDPARENTS) {
     const member =

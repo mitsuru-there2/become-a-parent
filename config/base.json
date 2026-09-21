@@ -429,7 +429,7 @@
       "visual": null
     }
   },
-  "actions": {},
+  "selections": {},
   "scenarios": [
     {
       "id": "home-01",
@@ -706,6 +706,6 @@
     "adult_expense_adjustment": "親{parent}：手元のお金で暮らせるよう、生活費を{amount}万円抑えた。",
     "adult_money_overflow": "親{parent}：保有上限を超えた{amount}万円は、残金に含まれていない。",
     "simulation_money_overflow": "保有上限を超えた{amount}万円は、残金に含まれていない。",
-    "simulation_extra_action": "この半年は「{action}」を実行した。"
+    "simulation_extra_selection": "この半年は「{selection}」を選んだ。"
   }
 }

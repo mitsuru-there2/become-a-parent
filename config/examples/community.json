@@ -13,7 +13,7 @@
       "adaptation": 2
     }
   ],
-  "actions": {
+  "selections": {
     "community-workshop": {
       "label": "地域の工房へ行く",
       "description": "親Aの時間を1単位、費用を4万円使って、ものづくりを楽しむ。",
@@ -63,7 +63,7 @@
         "group": "",
         "all": [
           {
-            "path": "previous_plan.extra_action",
+            "path": "previous_plan.extra_selection",
             "op": "eq",
             "value": "community-workshop"
           }

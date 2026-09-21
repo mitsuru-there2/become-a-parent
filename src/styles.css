@@ -1185,17 +1185,17 @@ meter::-moz-meter-bar {
 
 .events img,
 .scene img,
-.extra-actions img {
+.extra-selections img {
   display: block;
   max-width: 100%;
   max-height: 320px;
   object-fit: contain;
   margin: 16px 0;
 }
-.extra-actions {
+.extra-selections {
   margin: 20px 0;
 }
-.extra-actions select {
+.extra-selections select {
   max-width: 100%;
 }
 
@@ -1471,7 +1471,7 @@ meter::-moz-meter-bar {
   border: 1px solid #55554e;
   color: #c6c5ba;
 }
-.turn-event-dialog > .rpg-action {
+.turn-event-dialog > .rpg-button {
   flex: 0 0 auto;
   margin: 16px 22px 20px auto;
 }
@@ -1526,7 +1526,7 @@ meter::-moz-meter-bar {
   .turn-event-list {
     padding: 0 16px;
   }
-  .turn-event-dialog > .rpg-action {
+  .turn-event-dialog > .rpg-button {
     margin: 14px 16px 16px auto;
   }
   .turn-event-card {
@@ -1927,7 +1927,7 @@ meter::-moz-meter-bar {
   margin-top: 14px;
   font-size: 12px;
 }
-.rpg-action {
+.rpg-button {
   background: #eae9df;
   color: #191918;
   padding: 12px 24px;
@@ -2067,7 +2067,7 @@ meter::-moz-meter-bar {
   .rpg-review button {
     gap: 10px;
   }
-  .rpg-action {
+  .rpg-button {
     width: 100%;
   }
 }
@@ -2276,7 +2276,7 @@ meter::-moz-meter-bar {
   }
 }
 
-/* 条件未達でも閲覧できる計画用のアクションツリー。 */
+/* 条件未達でも閲覧できる計画用の選択ツリー。 */
 .tree-shell .rpg-party {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -2297,7 +2297,7 @@ meter::-moz-meter-bar {
   font-size: 9px;
   letter-spacing: 0.18em;
 }
-.action-map {
+.selection-map {
   position: relative;
   width: min(100%, 1000px);
   align-self: center;
@@ -2308,7 +2308,7 @@ meter::-moz-meter-bar {
   box-shadow: inset 0 0 0 6px #141b17;
   animation: map-arrive 240ms ease-out;
 }
-.action-map > img {
+.selection-map > img {
   width: 100%;
   height: 100%;
   object-fit: fill;
@@ -2564,7 +2564,7 @@ meter::-moz-meter-bar {
 .tree-canvas {
   position: relative;
 }
-.action-tree-content.is-category .tree-canvas {
+.selection-tree-content.is-category .tree-canvas {
   margin-bottom: 76px;
 }
 .tree-edges {
@@ -2692,18 +2692,18 @@ meter::-moz-meter-bar {
   margin: 4px 0 8px;
   font-size: 18px;
 }
-.tree-dialog-actions {
+.tree-dialog-controls {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   padding: 12px 18px 18px;
 }
-.tree-dialog-actions button {
+.tree-dialog-controls button {
   min-height: 40px;
   padding: 8px 14px;
   border: 1px solid #777665;
 }
-.tree-dialog-actions .tree-select {
+.tree-dialog-controls .tree-select {
   width: auto;
   margin: 0;
 }
@@ -2770,7 +2770,7 @@ meter::-moz-meter-bar {
   outline-offset: 3px;
 }
 @media (max-width: 640px) {
-  .action-map {
+  .selection-map {
     height: 320px;
   }
 
@@ -2830,28 +2830,64 @@ meter::-moz-meter-bar {
 .tree-shell .rpg-window-body {
   min-width: 0;
 }
-.tree-shell .rpg-window-body:has(.action-tree-content) {
+.tree-shell .rpg-window-body:has(.selection-tree-content) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
-.action-tree-content {
+.selection-tree-content {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-height: 0;
+}
+.crossroad-alert {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px 16px;
+  margin-bottom: 8px;
+  padding: 9px 12px;
+  border: 1px solid #c48d65;
+  background: #38251d;
+  color: #f1d6bd;
+  font-size: 11px;
+}
+.crossroad-alert > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+}
+.crossroad-alert strong {
+  color: #ffd7a7;
+  font-size: 13px;
+}
+.crossroad-alert nav {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.crossroad-alert button {
+  min-height: 36px;
+  padding: 5px 8px;
+  border: 1px solid #bb9b79;
+  background: #241c17;
+  color: #f0ddc4;
+  text-align: left;
 }
 .tree-category-heading,
 .tree-legend,
 .map-footer {
   flex-shrink: 0;
 }
-.action-tree-content.is-map .action-map {
+.selection-tree-content.is-map .selection-map {
   flex: 1;
   min-height: 0;
   height: auto;
 }
-.action-tree-content.is-category .tree-scroll {
+.selection-tree-content.is-category .tree-scroll {
   flex: 1;
   min-height: 0;
   max-height: none;
@@ -2929,7 +2965,7 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-width: 640px) and (max-height: 700px) {
-  .tree-shell .rpg-window-body:has(.action-tree-content) {
+  .tree-shell .rpg-window-body:has(.selection-tree-content) {
     padding-top: 8px;
     padding-bottom: 8px;
   }
@@ -2990,7 +3026,7 @@ meter::-moz-meter-bar {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .action-map,
+  .selection-map,
   .map-marker,
   .tree-category-heading {
     animation: none;
@@ -3318,7 +3354,7 @@ meter::-moz-meter-bar {
   place-items: safe center;
   overscroll-behavior: contain;
 }
-.status-shell .action-tree-content.is-map .action-map {
+.status-shell .selection-tree-content.is-map .selection-map {
   position: relative;
   flex: none;
   align-self: auto;
@@ -3328,7 +3364,7 @@ meter::-moz-meter-bar {
   min-height: 0;
   aspect-ratio: 1000 / 560;
 }
-.status-shell .action-map > img {
+.status-shell .selection-map > img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -3378,7 +3414,7 @@ meter::-moz-meter-bar {
 }
 .status-shell .tree-back,
 .status-shell .map-footer button,
-.status-shell .tree-dialog-actions button {
+.status-shell .tree-dialog-controls button {
   min-height: 44px;
 }
 .status-shell .map-footer {
@@ -3502,6 +3538,19 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-width: 640px) {
+  .crossroad-alert {
+    align-items: stretch;
+    flex-direction: column;
+    max-height: 196px;
+    overflow: auto;
+  }
+  .crossroad-alert nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .crossroad-alert button {
+    min-height: 44px;
+  }
   .status-shell .rpg-hud {
     min-height: 60px;
   }
@@ -3547,7 +3596,7 @@ meter::-moz-meter-bar {
   .child-status-grid > button > span {
     font-size: 10px;
   }
-  .status-shell .action-tree-content.is-map .action-map {
+  .status-shell .selection-tree-content.is-map .selection-map {
     width: min(100cqw, 78.947cqh);
     min-width: 280px;
     aspect-ratio: 600 / 760;
@@ -3561,6 +3610,11 @@ meter::-moz-meter-bar {
   }
   .status-shell .rpg-party[data-members="4"] .party-compact-stats > div {
     flex-wrap: wrap;
+  }
+}
+@media (max-width: 640px) and (max-height: 600px) {
+  .crossroad-alert {
+    max-height: 142px;
   }
 }
 @media (max-height: 700px) {
@@ -3678,7 +3732,7 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-height: 600px) {
-  .action-tree-content.is-category .tree-legend {
+  .selection-tree-content.is-category .tree-legend {
     display: none;
   }
   .tree-route-summary {
@@ -3688,13 +3742,13 @@ meter::-moz-meter-bar {
   .tree-route-summary > span {
     display: none;
   }
-  .status-shell .rpg-window-body:has(.action-tree-content) {
+  .status-shell .rpg-window-body:has(.selection-tree-content) {
     overflow: auto;
   }
-  .status-shell .action-tree-content.is-category {
+  .status-shell .selection-tree-content.is-category {
     min-height: 220px;
   }
-  .status-shell .action-tree-content.is-map {
+  .status-shell .selection-tree-content.is-map {
     min-height: 180px;
   }
 }

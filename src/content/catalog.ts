@@ -76,14 +76,14 @@ export class Catalog {
       if (!pack) throw new ContentError(`不明なパック: ${id}`);
       if (
         content.life_game &&
-        (Object.keys(pack.events).length || Object.keys(pack.actions).length)
+        (Object.keys(pack.events).length || Object.keys(pack.selections).length)
       )
         throw new ContentError(`旧形式の行動・イベントは新方式へ移してください: ${id}`);
       if (pack.requires_data !== content.data_version)
         throw new ContentError(`パックのデータ版が一致しません: ${id}`);
       if (pack.dependencies.some((d) => !packIds.includes(d)))
         throw new ContentError(`依存パックを選んでください: ${id}`);
-      for (const field of ["events", "actions", "visuals"] as const) {
+      for (const field of ["events", "selections", "visuals"] as const) {
         for (const key of Object.keys(pack[field]))
           if (Object.hasOwn(content[field], key))
             throw new ContentError(`IDが衝突しています: ${field}.${key}`);

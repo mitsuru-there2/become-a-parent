@@ -15,7 +15,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
           <p>{publicState.family_status.description}</p>
         </div>
       )}
-      {publicState.life?.action_tree && (
+      {publicState.life?.selection_tree && (
         <section className="family-tree-effects" aria-label="現在の暮らしと取得効果">
           <h3>現在の暮らしと取得効果</h3>
           {publicState.life.notices.map((notice) => (
@@ -73,6 +73,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
                       "rules-9",
                       "rules-10",
                       "rules-11",
+                      "rules-12",
                     ].includes(publicState.versions.rules)
                       ? 10
                       : 100
@@ -105,6 +106,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
                     "rules-9",
                     "rules-10",
                     "rules-11",
+                    "rules-12",
                   ].includes(publicState.versions.rules)
                     ? 10
                     : 100
@@ -126,7 +128,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
           id === "shared" ? publicState.grandparents : publicState.grandparents.members![id];
         const name =
           id === "shared"
-            ? ["rules-9", "rules-10", "rules-11"].includes(publicState.versions.rules)
+            ? ["rules-9", "rules-10", "rules-11", "rules-12"].includes(publicState.versions.rules)
               ? "実家"
               : "祖父母（共通）"
             : grandparentNames[id];

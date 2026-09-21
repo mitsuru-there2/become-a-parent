@@ -15,7 +15,7 @@ import {
   requestId,
   mergePlan,
   validateChoice,
-  actions,
+  selections,
   COMMANDS,
   UPDATES,
   type Command,
@@ -44,7 +44,7 @@ export interface Payload {
   scenarios?: ReturnType<Catalog["list"]>["scenarios"];
   difficulties?: ReturnType<Catalog["list"]>["difficulties"];
   packs?: ReturnType<Catalog["list"]>["packs"];
-  actions?: ReturnType<typeof actions>;
+  selections?: ReturnType<typeof selections>;
   matched?: boolean;
   compared_turns?: number;
   debug_only?: boolean;
@@ -109,7 +109,8 @@ export function validateRun(run: Run) {
     (version?.save === "save-9" && version.rules === "rules-8" && version.data === "data-8") ||
     (version?.save === "save-10" && version.rules === "rules-9" && version.data === "data-9") ||
     (version?.save === "save-11" && version.rules === "rules-10" && version.data === "data-10") ||
-    (version?.save === "save-12" && version.rules === "rules-11" && version.data === "data-11");
+    (version?.save === "save-12" && version.rules === "rules-11" && version.data === "data-11") ||
+    (version?.save === "save-13" && version.rules === "rules-12" && version.data === "data-12");
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
@@ -129,33 +130,38 @@ export function validateRun(run: Run) {
         if (canonical(expected) !== canonical(group)) throw new Error("祖父母の集計が一致しません");
       }
       if (
-        ["rules-8", "rules-9", "rules-10", "rules-11"].includes(version.rules) &&
+        ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(version.rules) &&
         (!run.state.life || !run.state.settings!.content.life_game)
       )
         throw new Error("生活メニューの状態がありません");
-      if (["rules-8", "rules-9", "rules-10", "rules-11"].includes(version.rules))
+      if (["rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(version.rules))
         validateLifeState(run.state);
       if (
-        ["rules-9", "rules-10", "rules-11"].includes(version.rules) &&
+        ["rules-9", "rules-10", "rules-11", "rules-12"].includes(version.rules) &&
         (!v.is(grandparentSchema, run.state.grandparents) ||
-          !run.state.settings!.content.life_game?.action_tree ||
+          !run.state.settings!.content.life_game?.selection_tree ||
           !run.state.settings!.content.life_game?.initial_family_home)
       )
         throw new Error("実家の状態が不正です");
       if (
-        ["rules-10", "rules-11"].includes(version.rules) &&
+        ["rules-10", "rules-11", "rules-12"].includes(version.rules) &&
         !run.state.settings!.content.life_game?.route_groups?.length
       )
         throw new Error("長期ルートの設定がありません");
       if (
-        version.rules === "rules-11" &&
+        ["rules-11", "rules-12"].includes(version.rules) &&
         run.state.settings!.content.life_game?.route_groups?.length !== 5
       )
         throw new Error("5分類のルート設定がありません");
+      if (
+        version.rules === "rules-12" &&
+        !run.state.settings!.content.life_game?.crossroads?.length
+      )
+        throw new Error("岐路の設定がありません");
       if (decisions && (!run.state.settings!.content.decision_game || !run.state.decisions))
         throw new Error("選択ゲームの状態がありません");
       if (
-        ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11"].includes(
+        ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(
           version.rules,
         ) &&
         !run.state.settings!.content.automatic_events
@@ -326,11 +332,11 @@ export class Service {
           switch (request.command) {
             case "plan":
               if (state.decisions)
-                throw new Failure("UNKNOWN_ACTION", "今期の3件の判断に回答してください。");
+                throw new Failure("UNKNOWN_SELECTION", "今期の3件の判断に回答してください。");
               state.plan = mergePlan(
                 state.plan,
                 request.input,
-                publicView(state).public.extra_actions.map((a) => a.id),
+                publicView(state).public.extra_selections.map((a) => a.id),
               );
               break;
             case "choose": {
@@ -343,7 +349,7 @@ export class Service {
                     event.options.some((option) => option.option_id === choice.option_id),
                 )
               )
-                throw new Failure("UNKNOWN_ACTION", "現在の出来事と選択肢を指定してください。");
+                throw new Failure("UNKNOWN_SELECTION", "現在の出来事と選択肢を指定してください。");
               if (state.decisions) {
                 const option = publicView(state)
                   .choices.find((e) => e.instance_id === choice.event_instance)!
@@ -370,7 +376,7 @@ export class Service {
                 break;
               }
               if (state.decisions)
-                throw new Failure("UNKNOWN_ACTION", "今期の3件の判断を選び直してください。");
+                throw new Failure("UNKNOWN_SELECTION", "今期の3件の判断を選び直してください。");
               state.plan = clone(state.previous_plan);
               break;
             case "advance": {
@@ -423,11 +429,11 @@ export class Service {
       let payload: Payload = {};
       const state = context.state;
       switch (request.command) {
-        case "actions":
+        case "selections":
           payload = {
-            actions: actions(
+            selections: selections(
               publicView(state).choices,
-              publicView(state).public.extra_actions,
+              publicView(state).public.extra_selections,
               !!state.decisions,
               !!state.life,
             ),
@@ -514,6 +520,7 @@ export function importRun(text: string): Run {
         "parent-save-10",
         "parent-save-11",
         "parent-save-12",
+        "parent-save-13",
       ].includes(parsed.format)
     )
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");
