@@ -12,6 +12,7 @@ const lifeStateSchema = v.strictObject({
     }),
     false,
   ),
+  route_stage_resolved: v.optional(dictionary(integer(0, 40), false)),
   visible: v.array(v.string()),
   fresh: v.array(contentIdSchema),
   notices: v.array(v.string()),
@@ -19,6 +20,17 @@ const lifeStateSchema = v.strictObject({
 export function validateLifeState(state: State) {
   if (!v.is(lifeStateSchema, state.life)) throw new Error("生活状態の構造が不正です");
   const nodes = contentFor(state).life_game!.decisions;
+  if (
+    ["rules-10", "rules-11"].includes(state.versions.rules) &&
+    (!state.life.route_stage_resolved ||
+      Object.entries(state.life.route_stage_resolved).some(
+        ([id, turn]) =>
+          !nodes.some(
+            (node) => node.id === id && node.route_stage !== undefined && node.kind === "policy",
+          ) || turn > state.n,
+      ))
+  )
+    throw new Error("学校ルートの進級状態が不正です");
   const policies = nodes.filter((d) => d.kind === "policy");
   if (
     Object.keys(state.life.policies).length !== policies.length ||

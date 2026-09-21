@@ -12,6 +12,109 @@ const instance = (s: State, id: string) => `t${String(s.n + 1).padStart(2, "0")}
 const key = (node: LifeDecision, option: LifeOption) => `${node.id}:${option.id}`;
 const inAge = (s: State, node: LifeDecision) =>
   s.n * 6 >= node.min_age_months && s.n * 6 <= node.max_age_months;
+const routeGroup = (s: State, id?: string) =>
+  config(s).route_groups?.find((group) => group.id === id);
+function lastRouteFromHistory(s: State, groupId: string) {
+  return config(s)
+    .decisions.filter((node) => node.route_group === groupId && node.kind === "policy")
+    .flatMap((node) =>
+      node.options.flatMap((option) => {
+        const history = s.life!.history[key(node, option)];
+        return option.route && history
+          ? [{ route: option.route, turn: history.last_turn, stage: node.route_stage ?? -1 }]
+          : [];
+      }),
+    )
+    .sort((a, b) => b.turn - a.turn || b.stage - a.stage)[0]?.route;
+}
+function currentRoute(s: State, groupId: string) {
+  const prior = lastRouteFromHistory(s, groupId);
+  if (!prior) return undefined;
+  const active = config(s).decisions.find(
+    (node) =>
+      node.route_group === groupId &&
+      node.kind === "policy" &&
+      node.options.some((option) => option.route) &&
+      inAge(s, node),
+  );
+  return (
+    active?.options.find((option) => option.id === s.life!.policies[active.id])?.route ?? prior
+  );
+}
+function selectedRoute(s: State, groupId: string, policies?: Record<string, string>) {
+  const active = config(s).decisions.find(
+    (node) =>
+      node.route_group === groupId &&
+      node.kind === "policy" &&
+      node.options.some((option) => option.route) &&
+      inAge(s, node),
+  );
+  if (active) {
+    const selected = policies
+      ? active.options.find((option) => option.id === policies[active.id])
+      : plannedOption(s, active);
+    if (selected?.route) return selected.route;
+    const current = active.options.find((option) => option.id === s.life!.policies[active.id]);
+    if (!currentRoute(s, groupId) && current?.route) return current.route;
+  }
+  return currentRoute(s, groupId);
+}
+function displayRoute(s: State, groupId: string) {
+  const committed = currentRoute(s, groupId);
+  if (committed || routeGroup(s, groupId)?.layout !== "branches") return committed ?? null;
+  const policy = config(s).decisions.find(
+    (node) =>
+      node.route_group === groupId &&
+      node.kind === "policy" &&
+      node.options.some((option) => option.route),
+  );
+  return policy?.options.find((option) => option.id === s.life!.policies[policy.id])?.route ?? null;
+}
+function routeDetails(s: State, node: LifeDecision, option: LifeOption) {
+  const group = routeGroup(s, node.route_group);
+  if (!group) return [];
+  if (option.route) {
+    const previous = currentRoute(s, group.id);
+    if (!previous || previous === option.route || s.life!.policies[node.id] === option.id)
+      return [];
+    const preparation = config(s).decisions.find((item) => item.id === group.switch_decision)!;
+    const target = preparation.options.find((item) => item.switch_to === option.route)!;
+    return [
+      {
+        label: `${group.label}「${group.routes.find((item) => item.id === option.route)!.label}」への切替準備を前期に実行`,
+        met: s.life!.history[key(preparation, target)]?.last_turn === s.n,
+      },
+    ];
+  }
+  if (option.switch_to) {
+    const previous = currentRoute(s, group.id);
+    const nextAge = (s.n + 1) * 6;
+    const nextStage = config(s).decisions.find(
+      (item) =>
+        item.route_group === group.id &&
+        item.kind === "policy" &&
+        item.options.some((option) => option.route) &&
+        nextAge >= item.min_age_months &&
+        nextAge <= item.max_age_months,
+    );
+    return [
+      { label: `現在の${group.label}ルートがある`, met: !!previous },
+      { label: "現在とは別のルートを選ぶ", met: !!previous && previous !== option.switch_to },
+      {
+        label: `次期に進める${group.label}段階がある`,
+        met: !!nextStage?.options.some((item) => item.route === option.switch_to),
+      },
+    ];
+  }
+  if (node.route && !(node.kind === "policy" && option.id === node.default_option))
+    return [
+      {
+        label: `${group.label}「${group.routes.find((item) => item.id === node.route)!.label}」を選択中`,
+        met: selectedRoute(s, group.id) === node.route,
+      },
+    ];
+  return [];
+}
 const referencesMet = (s: State, r?: LifeRequirement) =>
   meetsLifeRequirement(s, r ? { history: r.history, policies: r.policies } : undefined);
 function offered(s: State, node: LifeDecision) {
@@ -31,12 +134,50 @@ function plannedOption(s: State, node: LifeDecision) {
 }
 function resolvedPolicies(s: State, planned: boolean) {
   const policies = { ...s.life!.policies };
+  const notices: string[] = [];
+  const resolvedStages: string[] = [];
+  if (treeEnabled(s))
+    for (const node of config(s).decisions.filter(
+      (item) =>
+        item.kind === "policy" &&
+        item.route_group &&
+        item.route_stage !== undefined &&
+        item.options.some((option) => option.route) &&
+        item.min_age_months === s.n * 6 &&
+        s.life!.route_stage_resolved?.[item.id] !== s.n &&
+        !item.options.some((option) => s.life!.history[key(item, option)]),
+    )) {
+      resolvedStages.push(node.id);
+      const previous = lastRouteFromHistory(s, node.route_group!);
+      const continuing = node.options.find((option) => option.route === previous);
+      if (!continuing || continuing.id === node.default_option) continue;
+      const projected = { ...s, life: { ...s.life!, policies } };
+      const otherPolicies = config(s)
+        .decisions.filter((item) => item.kind === "policy" && item.id !== node.id && inAge(s, item))
+        .flatMap((item) => item.options.filter((option) => option.id === policies[item.id]));
+      const available =
+        meetsLifeRequirement(projected, node.requires) &&
+        meetsLifeRequirement(projected, continuing.requires) &&
+        meetsLifeRequirement(projected, continuing.maintains) &&
+        s.cash +
+          config(s).income +
+          continuing.income +
+          otherPolicies.reduce((sum, option) => sum + option.income, 0) >=
+          difficultyFor(s).living_cost +
+            stage(s.n, s).cost +
+            continuing.cost +
+            otherPolicies.reduce((sum, option) => sum + option.cost, 0);
+      if (available) policies[node.id] = continuing.id;
+      else
+        notices.push(
+          `${node.title}：前の${routeGroup(s, node.route_group)?.label ?? "方針"}ルートの継続条件または家計を満たせないため、${node.options.find((option) => option.id === node.default_option)!.label}に進みます。`,
+        );
+    }
   if (planned)
     for (const node of config(s).decisions.filter((d) => d.kind === "policy")) {
       const option = plannedOption(s, node);
       if (option) policies[node.id] = option.id;
     }
-  const notices: string[] = [];
   // 一つの支援の終了が別の方針へ波及する場合も、既定設定へ収束するまで処理する。
   for (let pass = 0; pass <= config(s).decisions.length; pass++) {
     let changed = false;
@@ -47,6 +188,7 @@ function resolvedPolicies(s: State, planned: boolean) {
         !option ||
         (option.id !== node.default_option &&
           (!inAge(s, node) ||
+            (node.route && selectedRoute(s, node.route_group!, policies) !== node.route) ||
             !meetsLifeRequirement(projected, node.requires) ||
             !meetsLifeRequirement(projected, option.maintains)))
       ) {
@@ -59,7 +201,7 @@ function resolvedPolicies(s: State, planned: boolean) {
     }
     if (!changed) break;
   }
-  return { policies, notices };
+  return { policies, notices, resolvedStages };
 }
 export function initializeLife(s: State) {
   s.life = {
@@ -69,6 +211,7 @@ export function initializeLife(s: State) {
         .map((d) => [d.id, d.default_option!]),
     ),
     history: {},
+    ...(config(s).route_groups?.length ? { route_stage_resolved: {} } : {}),
     visible: [],
     fresh: [],
     notices: [],
@@ -77,7 +220,10 @@ export function initializeLife(s: State) {
 export function normalizeLife(s: State) {
   const resolved = resolvedPolicies(s, false);
   s.life!.policies = resolved.policies;
-  s.life!.notices.push(...resolved.notices);
+  if (s.life!.route_stage_resolved)
+    for (const id of resolved.resolvedStages) s.life!.route_stage_resolved[id] = s.n;
+  for (const notice of resolved.notices)
+    if (!s.life!.notices.includes(notice)) s.life!.notices.push(notice);
 }
 export function openLife(s: State) {
   normalizeLife(s);
@@ -85,7 +231,7 @@ export function openLife(s: State) {
     for (const node of config(s).decisions.filter(
       (d) => d.kind === "policy" && d.min_age_months === s.n * 6 && d.min_age_months > 0,
     )) {
-      const label = node.options.find((o) => o.id === node.default_option)!.label;
+      const label = node.options.find((o) => o.id === s.life!.policies[node.id])!.label;
       const notice = `${node.title}：変更しなければ「${label}」で進みます。`;
       if (!s.life!.notices.includes(notice)) s.life!.notices.push(notice);
     }
@@ -155,6 +301,7 @@ function treeConditions(s: State, node: LifeDecision, option: LifeOption) {
       ...requirementDetails(s, option.requires),
       ...requirementDetails(s, option.maintains),
     );
+  details.push(...routeDetails(s, node, option));
   if (
     node.kind === "action" &&
     inAge(s, node) &&
@@ -295,6 +442,9 @@ export function lifeChoices(s: State): Choice[] {
             tree: {
               min_age_months: node.min_age_months,
               default_label: node.options.find((o) => o.id === node.default_option)?.label ?? null,
+              ...(node.route_group ? { route_group: node.route_group } : {}),
+              ...(node.route_stage !== undefined ? { route_stage: node.route_stage } : {}),
+              ...(node.route ? { route: node.route } : {}),
               parents: [
                 ...new Map(
                   [node.requires, ...node.options.flatMap((o) => [o.requires, o.maintains])]
@@ -321,7 +471,7 @@ export function lifeChoices(s: State): Choice[] {
       reason: node.reason,
       fresh: s.life!.fresh.includes(node.id),
       expires_age_months: node.max_age_months,
-      ...(node.kind === "policy"
+      ...(node.kind === "policy" && inAge(s, node)
         ? { current_option: `${node.id}:${s.life!.policies[node.id]}` }
         : {}),
       ...(s.decisions!.selections[instance(s, node.id)]
@@ -364,6 +514,8 @@ export function lifeChoices(s: State): Choice[] {
                 (node.kind === "policy" && o.id !== s.life!.policies[node.id] ? o.setup_cost : 0),
               income: o.income,
               description: describe(o, node.kind === "policy", treeEnabled(s)),
+              ...(o.route ? { route: o.route } : {}),
+              ...(o.switch_to ? { switch_to: o.switch_to } : {}),
               ...(treeEnabled(s)
                 ? {
                     acquired: !!s.life!.history[key(node, o)],
@@ -398,13 +550,21 @@ export function lifeView(s: State): NonNullable<PublicState["life"]> {
           annual_income: annualIncome(s),
           study_score: s.child.ability.study,
           active_effects: activeTreeEffects(s),
+          route_groups: config(s).route_groups?.map((group) => ({
+            id: group.id,
+            label: group.label,
+            ...(group.layout ? { layout: group.layout } : {}),
+            ...(group.stage_labels ? { stage_labels: clone(group.stage_labels) } : {}),
+            routes: clone(group.routes),
+            current: displayRoute(s, group.id),
+          })),
         }
       : {}),
     menus: clone(config(s).menus),
     max_actions: config(s).max_actions,
     action_count: config(s).decisions.filter((d) => d.kind === "action" && plannedOption(s, d))
       .length,
-    notices: [...s.life!.notices, ...resolved.notices],
+    notices: [...new Set([...s.life!.notices, ...resolved.notices])],
     policies: config(s)
       .decisions.filter((d) => d.kind === "policy" && offered(s, d))
       .map((d) => {

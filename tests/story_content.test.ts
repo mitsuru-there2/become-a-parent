@@ -32,6 +32,7 @@ const choose = (s: State, id: string, value: string) =>
 describe("S-018-F〜H 年代と選択で育つ物語", () => {
   it("幼児期の選択が18歳の別々の振り返りにつながり、取消・年齢・一度限りを守る", () => {
     const s = start();
+    choose(s, "route-home", "memory");
     choose(s, "story-keepsake", "capsule");
     choose(s, "story-keepsake", "cancel");
     advance(s);
@@ -58,6 +59,7 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
 
   it("確定前は音楽の後続を解放せず、休止では専用イベントと舞台を止め、18歳で継続費を終了する", () => {
     const s = start(48);
+    choose(s, "route-afterschool", "music");
     choose(s, "story-music-trial", "try");
     expect(option(s, "story-music", "stage").available).toBe(false);
     advance(s);
@@ -137,6 +139,7 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
 
   it("新しい店の費用・収入は予測と一致し、休業後は開業専用イベントが起きない", () => {
     const s = start(72);
+    choose(s, "route-work", "venture");
     choose(s, "story-market", "sell");
     choose(s, "base-work-consult", "talk");
     advance(s);
@@ -196,6 +199,15 @@ describe("S-018-F〜H 年代と選択で育つ物語", () => {
         seed: 7,
         request_id: "new",
       });
+      const route = r.choices.find((c) => c.event_id === "route-home")!;
+      r = await service.execute({
+        command: "choose",
+        run: "story",
+        revision: r.revision!,
+        request_id: "memory",
+        input: { event_instance: route.instance_id, option_id: "route-home:memory" },
+      });
+      expect(r.ok).toBe(true);
       const choice = r.choices.find((c) => c.event_id === "story-keepsake")!;
       const request = {
         command: "choose" as const,

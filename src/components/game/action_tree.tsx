@@ -9,6 +9,8 @@ type ActionNode = {
   choice: Choice;
   option: Choice["options"][number];
 };
+type PositionedNode = ActionNode & { x: number; y: number };
+type RouteGroup = NonNullable<NonNullable<PublicState["life"]>["route_groups"]>[number];
 
 function MenuIcon({ id }: { id: string }) {
   const paths: Record<string, string> = {
@@ -47,19 +49,118 @@ function graphPositions(actions: ActionNode[]) {
     levels.set(id, depth);
     return depth;
   }
-  const rows = new Map<number, number>();
-  return actions.map((action) => {
-    const column = level(action.option.option_id);
-    const row = rows.get(column) ?? 0;
-    rows.set(column, row + 1);
-    return { ...action, x: column * 240 + 16, y: row * 116 + 16 };
-  });
+  const groups = new Map<number, ActionNode[]>();
+  for (const action of actions) {
+    const depth = level(action.option.option_id);
+    groups.set(depth, [...(groups.get(depth) ?? []), action]);
+  }
+  let top = 16;
+  const positions: PositionedNode[] = [];
+  for (const [, group] of [...groups].sort(([a], [b]) => a - b)) {
+    group.forEach((action, index) => {
+      positions.push({
+        ...action,
+        x: (index % 4) * 240 + 16,
+        y: top + Math.floor(index / 4) * 116,
+      });
+    });
+    top += Math.ceil(group.length / 4) * 116 + 32;
+  }
+  return positions;
+}
+
+const routeColumn = 246;
+const routeRow = 270;
+const routeLeft = 72;
+const routeTop = 100;
+const routeOf = ({ choice, option }: ActionNode) => option.route ?? choice.tree?.route;
+
+function routePositions(actions: ActionNode[], group: RouteGroup) {
+  const school = actions.filter(
+    ({ choice, option }) =>
+      choice.tree?.route_group === group.id &&
+      choice.tree.route_stage !== undefined &&
+      (option.route || choice.tree.route),
+  );
+  const schoolIds = new Set(school.map(({ option }) => option.option_id));
+  const nodes: PositionedNode[] = school.map((action) => ({
+    ...action,
+    x: routeLeft + group.routes.findIndex((route) => route.id === routeOf(action)) * routeColumn,
+    y:
+      routeTop +
+      action.choice.tree!.route_stage! * routeRow +
+      (action.option.route || action.choice.tree!.route_stage! >= 4 ? 0 : 124),
+  }));
+  const lowerTop = routeTop + 5 * routeRow - 12;
+  nodes.push(
+    ...graphPositions(actions.filter(({ option }) => !schoolIds.has(option.option_id))).map(
+      (action) => ({ ...action, y: action.y + lowerTop }),
+    ),
+  );
+  return {
+    nodes,
+    lowerTop,
+    laneLeft: routeLeft,
+    laneColumn: routeColumn,
+    stageTops: [0, 1, 2, 3, 4].map((stage) => routeTop + stage * routeRow),
+    canvasMinWidth: 1040,
+    commonLane: false,
+  };
+}
+
+function branchPositions(actions: ActionNode[], group: RouteGroup) {
+  const branch = actions.filter(
+    ({ choice, option }) =>
+      choice.tree?.route_group === group.id &&
+      choice.tree.route_stage !== undefined &&
+      !option.switch_to,
+  );
+  const branchIds = new Set(branch.map(({ option }) => option.option_id));
+  const laneLeft = 44;
+  const laneColumn = 230;
+  const stageTops: number[] = [];
+  const nodes: PositionedNode[] = [];
+  let top = 100;
+  for (let stage = 0; stage < (group.stage_labels?.length ?? 0); stage++) {
+    stageTops.push(top);
+    const lanes = Array.from({ length: group.routes.length + 1 }, (_, index) =>
+      branch.filter(
+        (action) =>
+          action.choice.tree?.route_stage === stage &&
+          (routeOf(action)
+            ? group.routes.findIndex((route) => route.id === routeOf(action)) === index
+            : index === group.routes.length),
+      ),
+    );
+    lanes.forEach((lane, index) =>
+      lane.forEach((action, row) =>
+        nodes.push({ ...action, x: laneLeft + index * laneColumn, y: top + row * 116 }),
+      ),
+    );
+    top += Math.max(1, ...lanes.map((lane) => lane.length)) * 116 + 52;
+  }
+  const lowerTop = top + 12;
+  nodes.push(
+    ...graphPositions(actions.filter(({ option }) => !branchIds.has(option.option_id))).map(
+      (action) => ({ ...action, y: action.y + lowerTop }),
+    ),
+  );
+  return {
+    nodes,
+    lowerTop,
+    laneLeft,
+    laneColumn,
+    stageTops,
+    canvasMinWidth: laneLeft + group.routes.length * laneColumn + 220,
+    commonLane: true,
+  };
 }
 
 export function ActionTree({ state, choices }: { state: PublicState; choices: Choice[] }) {
   const [menu, setMenu] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const treeScroll = useRef<HTMLDivElement>(null);
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const categoryHeading = useRef<HTMLHeadingElement>(null);
   const mapButtons = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -79,17 +180,67 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
   const life = state.life!;
   const selectedMenu = life.menus.find((item) => item.id === menu);
   const visible = menu ? choices.filter((c) => c.menu === menu) : choices;
-  const nodes = graphPositions(
-    visible.flatMap((choice) =>
-      choice.options
-        .filter((option) => !option.option_id.endsWith(":cancel"))
-        .map((option) => ({ choice, option })),
-    ),
+  const actions = visible.flatMap((choice) =>
+    choice.options
+      .filter((option) => !option.option_id.endsWith(":cancel"))
+      .map((option) => ({ choice, option })),
   );
+  const routeGroup = life.route_groups?.find(
+    (group) => menu && actions.some(({ choice }) => choice.tree?.route_group === group.id),
+  );
+  const routeLayout = routeGroup
+    ? routeGroup.layout === "branches"
+      ? branchPositions(actions, routeGroup)
+      : routePositions(actions, routeGroup)
+    : null;
+  const nodes = routeLayout?.nodes ?? graphPositions(actions);
+  const switchNode = nodes.find((node) => node.option.switch_to);
   const selected = nodes.find((node) => node.option.option_id === selectedId);
   const scheduled = choices.filter((c) => c.selected_option);
-  const width = Math.max(240, ...nodes.map((n) => n.x + 220));
+  const width = Math.max(routeLayout?.canvasMinWidth ?? 240, ...nodes.map((n) => n.x + 220));
   const height = Math.max(140, ...nodes.map((n) => n.y + 112));
+  const routeStages =
+    routeGroup?.layout !== "branches" && routeGroup
+      ? [
+          ...new Map(
+            nodes
+              .filter(
+                (node) =>
+                  (node.option.route || node.choice.tree?.route) &&
+                  node.choice.tree?.route_stage !== undefined,
+              )
+              .reverse()
+              .map((node) => [node.choice.tree!.route_stage!, node.choice]),
+          ).entries(),
+        ].sort(([a], [b]) => a - b)
+      : [];
+  const displayStages =
+    routeGroup?.layout === "branches"
+      ? (routeGroup.stage_labels ?? []).map((label, stage) => ({
+          stage,
+          label,
+          top: routeLayout!.stageTops[stage],
+        }))
+      : routeStages.map(([stage, choice]) => ({
+          stage,
+          label: `${choice.tree!.min_age_months / 12}歳〜 · ${choice.text}`,
+          top: routeLayout!.stageTops[stage],
+        }));
+  useEffect(() => {
+    if (!routeGroup || !treeScroll.current) return;
+    const current = routeStages.find(
+      ([, choice]) =>
+        state.time.child_months >= choice.tree!.min_age_months &&
+        state.time.child_months <= choice.expires_age_months!,
+    );
+    const stage =
+      routeGroup.layout === "branches"
+        ? Math.min(4, Math.floor(state.time.child_months / 48))
+        : (current?.[0] ?? 0);
+    treeScroll.current.scrollTop = stage ? Math.max(0, routeLayout!.stageTops[stage] - 112) : 0;
+    const currentColumn = routeGroup.routes.findIndex((route) => route.id === routeGroup.current);
+    treeScroll.current.scrollLeft = Math.max(0, currentColumn * routeLayout!.laneColumn - 24);
+  }, [menu, routeGroup?.id, routeGroup?.current, state.time.child_months]);
   return (
     <section
       className={`life-content action-tree-content ${selectedMenu ? "is-category" : "is-map"}`}
@@ -117,18 +268,129 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
           </div>
           <p className="tree-legend">
             ○ 選択可能　✓ 取得済み　◇ 条件待ち{" "}
-            <span>未解放の枝もタップして詳細を確認できます。横・縦にスクロール →</span>
+            <span>未解放の枝もタップして詳細を確認できます。下へ進み、横へ分岐します ↓</span>
           </p>
-          <div className="tree-scroll" tabIndex={0} role="region" aria-label="アクションのつながり">
+          {routeGroup && (
+            <div className="tree-route-summary">
+              <strong>
+                {routeGroup.label}：
+                {routeGroup.routes.find((route) => route.id === routeGroup.current)?.label ??
+                  "ルート未選択"}
+              </strong>
+              <span>
+                別ルートへの転換は前期の準備が必要
+                {actions.find((action) => action.option.switch_to)?.option.cost
+                  ? `・${actions.find((action) => action.option.switch_to)!.option.cost}万円`
+                  : ""}
+              </span>
+              {switchNode && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    treeScroll.current?.scrollTo({
+                      left: Math.max(0, switchNode.x - 20),
+                      top: Math.max(0, switchNode.y - 30),
+                    });
+                  }}
+                >
+                  切替準備を見る ↓
+                </button>
+              )}
+            </div>
+          )}
+          <div
+            ref={treeScroll}
+            className={`tree-scroll ${routeGroup ? "has-route-lanes" : ""}`}
+            tabIndex={0}
+            role="region"
+            aria-label="アクションのつながり"
+          >
             <div className="tree-canvas" style={{ width, height }}>
+              {routeGroup && routeLayout && (
+                <>
+                  {[
+                    ...routeGroup.routes,
+                    ...(routeLayout.commonLane ? [{ id: "common", label: "共通の行動" }] : []),
+                  ].map((route, index) => (
+                    <div
+                      key={route.id}
+                      className={`tree-route-lane ${routeGroup.current === route.id ? "is-current" : ""} ${route.id === "common" ? "is-common" : ""}`}
+                      style={{
+                        left: routeLayout.laneLeft - 12 + index * routeLayout.laneColumn,
+                        height: routeLayout.lowerTop - 50,
+                      }}
+                      aria-hidden="true"
+                    >
+                      <span>{route.label}</span>
+                    </div>
+                  ))}
+                  {displayStages.map(({ stage, label, top }) => (
+                    <div
+                      key={stage}
+                      className="tree-stage-label"
+                      style={{ top: top - 38, width }}
+                      aria-hidden="true"
+                    >
+                      <span>{label}</span>
+                    </div>
+                  ))}
+                  <div
+                    className="tree-other-label"
+                    style={{ top: routeLayout.lowerTop - 16 }}
+                    aria-hidden="true"
+                  >
+                    {routeGroup.layout === "branches"
+                      ? "方針の切替準備"
+                      : "学びと進路のアクション · 切替準備"}
+                  </div>
+                </>
+              )}
               <svg className="tree-edges" width={width} height={height} aria-hidden="true">
+                {routeGroup &&
+                  displayStages
+                    .slice(1, routeGroup.layout === "branches" ? undefined : 4)
+                    .map(({ stage, top }) => (
+                      <path
+                        key={`switch:${stage}`}
+                        className="tree-switch-edge"
+                        d={`M ${routeLayout!.laneLeft + 102} ${top - 26} H ${routeLayout!.laneLeft + (routeGroup.routes.length - 1) * routeLayout!.laneColumn + 102}`}
+                      />
+                    ))}
+                {routeGroup &&
+                  routeGroup.routes.flatMap((route) => {
+                    const chain = nodes
+                      .filter((node) => routeOf(node) === route.id)
+                      .sort((a, b) => a.y - b.y);
+                    if (routeGroup.layout === "branches")
+                      return chain.length > 1
+                        ? [
+                            <path
+                              key={`route:${route.id}`}
+                              className="tree-route-edge"
+                              d={`M ${chain[0].x + 102} ${chain[0].y + 94} V ${chain.at(-1)!.y}`}
+                            />,
+                          ]
+                        : [];
+                    return chain.slice(1).map((node, index) => {
+                      const from = chain[index];
+                      return (
+                        <path
+                          key={`route:${route.id}:${index}`}
+                          className="tree-route-edge"
+                          d={`M ${from.x + 102} ${from.y + 94} V ${node.y}`}
+                        />
+                      );
+                    });
+                  })}
                 {nodes.flatMap((node) =>
                   (node.option.parents ?? []).map((parent) => {
                     const from = nodes.find((n) => n.option.option_id === parent.option_id);
+                    if (from && routeGroup && routeOf(from) && routeOf(from) === routeOf(node))
+                      return null;
                     return from ? (
                       <path
                         key={`${parent.option_id}:${node.option.option_id}`}
-                        d={`M ${from.x + 204} ${from.y + 46} C ${from.x + 230} ${from.y + 46}, ${node.x - 25} ${node.y + 46}, ${node.x} ${node.y + 46}`}
+                        d={`M ${from.x + 102} ${from.y + 94} C ${from.x + 102} ${from.y + 124}, ${node.x + 102} ${node.y - 30}, ${node.x + 102} ${node.y}`}
                       />
                     ) : null;
                   }),
@@ -141,9 +403,11 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                 const available = option.available && !current && !planned;
                 return (
                   <button
-                    className={`tree-node ${acquired || current ? "is-acquired" : available ? "is-available" : "is-locked"}`}
+                    className={`tree-node ${option.route || choice.tree?.route ? "is-route-node" : ""} ${acquired || current ? "is-acquired" : available ? "is-available" : "is-locked"}`}
                     key={option.option_id}
                     aria-label={`${choice.text}：${option.label}`}
+                    data-route={option.route ?? choice.tree?.route}
+                    data-stage={choice.tree?.route_stage}
                     style={{ left: x, top: y }}
                     onClick={() => setSelectedId(option.option_id)}
                   >

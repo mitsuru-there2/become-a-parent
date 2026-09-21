@@ -2466,6 +2466,101 @@ meter::-moz-meter-bar {
   background-size: 16px 16px;
   scrollbar-color: #77735d #171a14;
 }
+.tree-route-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  border: 1px solid #5d604c;
+  background: #1c231b;
+  color: #d1d3bc;
+  font-size: 10px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+.tree-route-summary strong {
+  color: #e4d09a;
+  font-size: 11px;
+}
+.tree-route-summary button {
+  margin-left: auto;
+  padding: 3px 7px;
+  border: 1px solid #7d775d;
+  background: #25291f;
+  color: #e4d09a;
+  font-size: 10px;
+  cursor: pointer;
+}
+.tree-scroll.has-route-lanes {
+  --route-line: #8b9672;
+  --route-active: #bda975;
+}
+.tree-route-lane {
+  position: absolute;
+  top: 10px;
+  width: 228px;
+  display: flex;
+  align-items: flex-start;
+  border-left: 1px solid #3b4535;
+  border-right: 1px solid #3b4535;
+  background: #1b241b99;
+  pointer-events: none;
+}
+.tree-route-lane:nth-of-type(even) {
+  background: #22291e99;
+}
+.tree-route-lane.is-current {
+  border-color: #9f9469;
+  background: #39372288;
+}
+.tree-route-lane.is-common {
+  border-style: dashed;
+  background: #1a201b77;
+}
+.tree-route-lane span {
+  position: sticky;
+  top: 8px;
+  z-index: 2;
+  margin: 9px 0 0 10px;
+  padding: 5px 7px;
+  border: 1px solid #6d765d;
+  background: #151b14;
+  color: #dad8be;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.tree-route-lane.is-current span {
+  border-color: #c5ad71;
+  color: #eed99b;
+}
+.tree-stage-label,
+.tree-other-label {
+  position: absolute;
+  color: #cbbb8e;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.tree-stage-label {
+  left: 0;
+  border-top: 1px solid #555643;
+  padding-top: 6px;
+}
+.tree-stage-label span {
+  position: sticky;
+  left: 10px;
+  padding: 2px 7px;
+  border-left: 2px solid #a78d59;
+  background: #151b14;
+}
+.tree-other-label {
+  left: 16px;
+  padding: 5px 8px;
+  border-left: 2px solid #a78d59;
+  background: #1b2119;
+}
 .tree-canvas {
   position: relative;
 }
@@ -2481,6 +2576,22 @@ meter::-moz-meter-bar {
   stroke: #7a8363;
   stroke-width: 1.5;
   fill: none;
+}
+.tree-edges .tree-route-edge {
+  stroke: var(--route-line);
+  stroke-width: 2;
+}
+.tree-edges .tree-switch-edge {
+  stroke: #b99c69;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 6;
+}
+.tree-node.is-route-node {
+  border-width: 2px;
+}
+.tree-node.is-route-node.is-acquired {
+  border-color: var(--route-active);
+  background: #383827;
 }
 .tree-node {
   position: absolute;
@@ -3567,6 +3678,16 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-height: 600px) {
+  .action-tree-content.is-category .tree-legend {
+    display: none;
+  }
+  .tree-route-summary {
+    padding: 3px 7px;
+    margin-bottom: 2px;
+  }
+  .tree-route-summary > span {
+    display: none;
+  }
   .status-shell .rpg-window-body:has(.action-tree-content) {
     overflow: auto;
   }

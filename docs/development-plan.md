@@ -312,3 +312,23 @@ D-040、S-018 / AC-018-F〜H。本編を29判断・50選択肢・14イベント�
 [S-018](specs/action-tree.md)に従い、上部の子ども観察・中央マップ・下部の家族と操作を分離。道と分類の座標を共有し、モバイルでは主要パラメータと詳細パネルを用いる。短文は共通エンジンの公開応答だけに追加し、保存・履歴を変更しない。
 
 `bun run check`、111件のテスト、SPAビルドに成功。Chrome / Playwrightで14サイズ、必須5サイズの全分類操作、詳細のフォーカス復帰、40期・成人後・結末・保存移行を検証。画面チャンクのサイズ警告と未検証ブラウザは[検証記録](playtests/2026-09-21-status-ui.md)を参照。人の読みやすさ評価はQ-014に残す。
+
+## 学校4ルートと転換準備（2026-09-21、D-063）
+
+[S-018 / AC-018-J〜L](specs/action-tree.md#大ルートと学校の4系統2026-09-21d-063)をrules-10 / data-10 / save-11として実装。5分類の入口は維持し、教育・進路には公立・地域、私立、インターナショナル、自宅学習の4レーンを園・小・中・高・18歳以降まで配置した。各段階に所属先とルート専用の行動を置き、同系統の進級を開始費なしで引き継ぐ。転換は前期の準備80万円・単発行動枠1件・子どものストレス+3を経た次期だけ可能。継続条件を失った場合は無料の地域・公立経路へ戻る。学校以外の排他的な長期ルートはQ-022で検討する。
+
+実装は[学校データ](../config/decisions.json)、[設定・参照検査](../src/content/life_validation.ts)、[共通エンジン](../src/engine/life.ts)、[分類ツリー](../src/components/game/action_tree.tsx)を参照。既存保存の設定と履歴は改変せず、旧ルールの再生経路を維持する。
+
+検証：`bun run check`で整形・型・lint・生成スキーマ・設定JSONを確認。`bun run test`は17ファイル120件成功。[ツリーのテスト](../tests/action_tree.test.ts)で4段階の全ルート、無操作、転換の取消・資金不足・前期条件・失効、同系統の無料進級、条件喪失時の復帰、18歳以降の到達、旧rules-9設定の選択と書き出し・取込を確認。`bun run test:public /tmp/parent-school-public 1`では公開CLIの5方針すべてが40期と成人後へ到達し、再生一致。`bun run test:stories /tmp/parent-school-stories-final 1`は19経路すべて完走・再生一致。`bun run test:browser`ではChromeで学校の5段階・4ルート、5分類、320〜1600pxの画面、詳細・予定・取消・保存再開・40期と成人後を確認し、[スクリーンショット](/tmp/parent-browser-tree/school-tree-desktop.png)と[モバイル画像](/tmp/parent-browser-tree/school-tree-mobile.png)を保存した。`bun run build`は成功し、画面チャンク約633KBの警告が残る。
+
+### 縦方向のツリー表示（D-064）
+
+学校の4ルートを横の列、園から18歳以降を縦の段に変更し、ほかの分類も前提から後続へ下向きに配置した。`bun run check`と17ファイル120件のテスト、Chromeの公開UIテストが成功。ブラウザではノードの縦順・同ルートの整列・4ルートの横順・キャンバスの縦長比率を確認し、6歳で小学校の段へ自動スクロールすることを確認した。[PC画像](/tmp/parent-browser-tree/school-tree-desktop.png)、[モバイル画像](/tmp/parent-browser-tree/school-tree-mobile.png)、[6歳のモバイル画像](/tmp/parent-browser-tree/school-tree-primary-mobile.png)を保存した。
+
+## 全分類の大方針（2026-09-21、D-065）
+
+家庭生活4本、実家3本、遊び・放課後3本、仕事・家計3本の大方針を追加した。既存の物語を各ルートに割り当て、実家の交流と仕事の家族時間・研修へ専用行動を追加。共通行動は横断利用できる。新規はrules-11 / data-11 / save-12、rules-9・10の設定と保存は当時の動作で読み込む。
+
+検証：`bun run check`で設定・生成スキーマ・型・lintを確認。`bun run test`は17ファイル123件成功し、5分類の所属、転換準備、専用行動、旧ルートの継続方針終了、rules-9・10保存を確認した。`bun run test:public /tmp/parent-public-all-routes-1 1`は5経路すべて完走。`bun run test:stories /tmp/parent-stories-all-routes-1 1`は19経路すべて完走・再生一致。Chromeの公開UIテストは5分類の列・段・切替準備への移動、390×844の各分類と従来の320〜1600px、詳細・保存再開・40期を確認した。[家庭](/tmp/parent-browser-tree/home-tree-desktop.png)、[実家](/tmp/parent-browser-tree/grandparents-tree-desktop.png)、[遊び](/tmp/parent-browser-tree/afterschool-tree-desktop.png)、[仕事](/tmp/parent-browser-tree/work-tree-desktop.png)のPC画像と各モバイル画像を保存した。`bun run build`は成功し、画面チャンク約652KBの警告が残る。費用・効果の面白さはQ-022で人のプレイによる評価を待つ。
+
+学校間の費用と能力差の面白さ、実機Safari・Firefox、人による画面の読みやすさは未検証。80万円とストレス+3は実装した調整仮値であり、現実の入学制度や育児結果の主張ではない。

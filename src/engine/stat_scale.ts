@@ -3,7 +3,16 @@ import type { State } from "./types";
 import { PEOPLE, clone } from "./shared";
 
 export const tenPoint = (state: Pick<State, "versions">) =>
-  ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8", "rules-9"].includes(state.versions.rules);
+  [
+    "rules-4",
+    "rules-5",
+    "rules-6",
+    "rules-7",
+    "rules-8",
+    "rules-9",
+    "rules-10",
+    "rules-11",
+  ].includes(state.versions.rules);
 export const parentFields = ["stress", "health", "fulfillment", "social", "regret"] as const;
 export const pointEffect = (value: number) => Math.sign(value) * Math.ceil(Math.abs(value) / 5);
 export const pointDrift = (value: number) => Math.sign(value) * Math.ceil(Math.abs(value) / 10);

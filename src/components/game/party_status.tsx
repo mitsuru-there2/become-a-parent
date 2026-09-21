@@ -31,9 +31,16 @@ function MemberStats({ member, compact = false }: { member: Member; compact?: bo
 
 export function PartyStatus({ state }: { state: PublicState }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const max = ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8", "rules-9"].includes(
-    state.versions.rules,
-  )
+  const max = [
+    "rules-4",
+    "rules-5",
+    "rules-6",
+    "rules-7",
+    "rules-8",
+    "rules-9",
+    "rules-10",
+    "rules-11",
+  ].includes(state.versions.rules)
     ? 10
     : 100;
   const turn = state.decision_turn;
@@ -65,7 +72,9 @@ export function PartyStatus({ state }: { state: PublicState }) {
       ],
     };
   });
-  for (const id of state.versions.rules === "rules-9" ? (["home"] as const) : GRANDPARENTS) {
+  for (const id of ["rules-9", "rules-10", "rules-11"].includes(state.versions.rules)
+    ? (["home"] as const)
+    : GRANDPARENTS) {
     const member =
       id === "home" ? state.grandparents : (state.grandparents.members?.[id] ?? state.grandparents);
     const compact: Stat[] = [

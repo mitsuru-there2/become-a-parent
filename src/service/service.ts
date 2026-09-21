@@ -107,7 +107,9 @@ export function validateRun(run: Run) {
     (version?.save === "save-7" && version.rules === "rules-6" && version.data === "data-6") ||
     (version?.save === "save-8" && version.rules === "rules-7" && version.data === "data-7") ||
     (version?.save === "save-9" && version.rules === "rules-8" && version.data === "data-8") ||
-    (version?.save === "save-10" && version.rules === "rules-9" && version.data === "data-9");
+    (version?.save === "save-10" && version.rules === "rules-9" && version.data === "data-9") ||
+    (version?.save === "save-11" && version.rules === "rules-10" && version.data === "data-10") ||
+    (version?.save === "save-12" && version.rules === "rules-11" && version.data === "data-11");
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
@@ -127,22 +129,35 @@ export function validateRun(run: Run) {
         if (canonical(expected) !== canonical(group)) throw new Error("祖父母の集計が一致しません");
       }
       if (
-        ["rules-8", "rules-9"].includes(version.rules) &&
+        ["rules-8", "rules-9", "rules-10", "rules-11"].includes(version.rules) &&
         (!run.state.life || !run.state.settings!.content.life_game)
       )
         throw new Error("生活メニューの状態がありません");
-      if (["rules-8", "rules-9"].includes(version.rules)) validateLifeState(run.state);
+      if (["rules-8", "rules-9", "rules-10", "rules-11"].includes(version.rules))
+        validateLifeState(run.state);
       if (
-        version.rules === "rules-9" &&
+        ["rules-9", "rules-10", "rules-11"].includes(version.rules) &&
         (!v.is(grandparentSchema, run.state.grandparents) ||
           !run.state.settings!.content.life_game?.action_tree ||
           !run.state.settings!.content.life_game?.initial_family_home)
       )
         throw new Error("実家の状態が不正です");
+      if (
+        ["rules-10", "rules-11"].includes(version.rules) &&
+        !run.state.settings!.content.life_game?.route_groups?.length
+      )
+        throw new Error("長期ルートの設定がありません");
+      if (
+        version.rules === "rules-11" &&
+        run.state.settings!.content.life_game?.route_groups?.length !== 5
+      )
+        throw new Error("5分類のルート設定がありません");
       if (decisions && (!run.state.settings!.content.decision_game || !run.state.decisions))
         throw new Error("選択ゲームの状態がありません");
       if (
-        ["rules-6", "rules-7", "rules-8", "rules-9"].includes(version.rules) &&
+        ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11"].includes(
+          version.rules,
+        ) &&
         !run.state.settings!.content.automatic_events
       )
         throw new Error("自動イベント設定がありません");
@@ -497,6 +512,8 @@ export function importRun(text: string): Run {
         "parent-save-8",
         "parent-save-9",
         "parent-save-10",
+        "parent-save-11",
+        "parent-save-12",
       ].includes(parsed.format)
     )
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");

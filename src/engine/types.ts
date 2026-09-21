@@ -171,6 +171,7 @@ export interface GameOver {
 export interface LifeState {
   policies: Record<string, string>;
   history: Record<string, { first_turn: number; last_turn: number; count: number }>;
+  route_stage_resolved?: Record<string, number>;
   visible: string[];
   fresh: string[];
   notices: string[];
@@ -210,6 +211,14 @@ export interface PublicState {
     annual_income?: number;
     study_score?: number;
     active_effects?: { source: string; label: string; kind: "good" | "bad"; percent: number }[];
+    route_groups?: {
+      id: string;
+      label: string;
+      layout?: "staged" | "branches";
+      stage_labels?: string[];
+      routes: { id: string; label: string }[];
+      current: string | null;
+    }[];
     menus: { id: string; label: string; description: string }[];
     policies: {
       id: string;
@@ -275,6 +284,9 @@ export interface Choice {
     parents: { id: string; label: string }[];
     min_age_months: number;
     default_label: string | null;
+    route_group?: string;
+    route_stage?: number;
+    route?: string;
   };
   menu?: string;
   decision_kind?: "policy" | "action";
@@ -294,6 +306,8 @@ export interface Choice {
     cost: number;
     income: number;
     description?: string;
+    route?: string;
+    switch_to?: string;
     visual?: Visual;
     parents?: { option_id: string; label: string }[];
     acquired?: boolean;

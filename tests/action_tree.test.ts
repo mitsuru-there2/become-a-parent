@@ -8,7 +8,7 @@ import { openLife } from "../src/engine/life";
 import { activeTreeEffects, modifiedDelta } from "../src/engine/tree_effects";
 import { applyAutomaticEvents } from "../src/engine/automatic_events";
 import { annualIncome } from "../src/engine/life_requirements";
-import { Service, replayRun, exportRun, importRun } from "../src/service/service";
+import { Service, replayRun, exportRun, importRun, digest } from "../src/service/service";
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
 import type { State } from "../src/engine/types";
 const start = (age = 0) => {
@@ -120,7 +120,9 @@ describe("S-018 アクションツリー", () => {
     expect(publicView(s).public.life!.policies.find((p) => p.id === "base-school")!.label).toBe(
       "保育所に通う",
     );
+    advance(s);
     s.n = 11;
+    choose(s, "school-switch", "private");
     advance(s);
     expect(publicView(s).public.life!.policies.find((p) => p.id === "tree-primary")!.label).toBe(
       "公立小学校",
@@ -137,8 +139,214 @@ describe("S-018 アクションツリー", () => {
     s.n = 24;
     openLife(s);
     expect(s.life!.policies["tree-primary"]).toBe("public");
-    expect(activeTreeEffects(s).some((e) => e.source.includes("私立"))).toBe(false);
+    expect(s.life!.policies["tree-secondary"]).toBe("advanced");
+    expect(activeTreeEffects(s).some((e) => e.source.includes("小学校の進路 / 私立"))).toBe(false);
     expect(publicView(s).public.life!.policies.some((p) => p.id === "tree-primary")).toBe(false);
+  });
+  it("学校の4ルートを園から高校まで公開し、転換準備の翌期だけ別ルートを選べる", () => {
+    const s = start(48);
+    const school = s.settings!.content.life_game!.decisions;
+    const stages = school.filter((node) => node.route_group === "school" && node.kind === "policy");
+    expect(stages.map((node) => node.route_stage)).toEqual([0, 1, 2, 3]);
+    expect(
+      choices(start()).find((choice) => choice.event_id === "base-school")?.current_option,
+    ).toBeUndefined();
+    for (const stage of stages)
+      expect(stage.options.map((item) => item.route).sort((a, b) => a!.localeCompare(b!))).toEqual([
+        "home",
+        "international",
+        "private",
+        "public",
+      ]);
+    advance(s);
+    expect(option(s, "base-school", "home").available).toBe(false);
+    expect(option(s, "school-switch", "home").available).toBe(true);
+    choose(s, "school-switch", "home");
+    expect(publicView(s).public.forecast!.cash_flow?.some((line) => line.cost === 80)).toBe(true);
+    choose(s, "school-switch", "cancel");
+    expect(publicView(s).public.forecast!.cash_flow?.some((line) => line.cost === 80)).toBe(false);
+    expect(s.life!.history["school-switch:home"]).toBeUndefined();
+    choose(s, "school-switch", "home");
+    advance(s);
+    expect(s.life!.history["school-switch:home"]?.last_turn).toBe(s.n);
+    expect(option(s, "base-school", "home").available).toBe(true);
+    choose(s, "base-school", "home");
+    advance(s);
+    expect(s.life!.policies["base-school"]).toBe("home");
+    expect(option(s, "base-school", "enrolled").available).toBe(false);
+    s.n = 12;
+    openLife(s);
+    expect(s.life!.policies["tree-primary"]).toBe("home");
+    expect(publicView(s).public.life!.route_groups?.[0].current).toBe("home");
+    advance(s);
+    s.n = 24;
+    openLife(s);
+    expect(s.life!.policies["tree-secondary"]).toBe("home");
+    advance(s);
+    s.n = 30;
+    openLife(s);
+    expect(s.life!.policies["tree-high"]).toBe("home");
+    advance(s);
+    s.n = 36;
+    openLife(s);
+    expect(option(s, "school-future-home", "plan").available).toBe(true);
+  });
+  it("同じ学校ルートへの進級は開始費なしで引き継ぎ、継続条件を失えば無料経路へ戻る", () => {
+    const s = start(48);
+    s.life!.history["base-school-visit:visit"] = { first_turn: 5, last_turn: 5, count: 1 };
+    choose(s, "base-school", "enrolled");
+    advance(s);
+    s.n = 12;
+    const primary = s.settings!.content.life_game!.decisions.find(
+      (node) => node.id === "tree-primary",
+    )!;
+    primary.options.find((item) => item.id === "private")!.requires!.annual_income = 560;
+    s.child.ability.study = 50;
+    s.cash = 500;
+    openLife(s);
+    expect(s.life!.policies["tree-primary"]).toBe("private");
+    expect(
+      publicView(s).public.forecast!.cash_flow?.some(
+        (line) => line.label.includes("開始費") && line.cost === 24,
+      ),
+    ).toBe(false);
+    s.n = 24;
+    s.child.ability.study = 0;
+    openLife(s);
+    expect(s.life!.policies["tree-secondary"]).toBe("public");
+    expect(s.life!.notices.join()).toContain("継続条件");
+    expect(
+      publicView(s).public.forecast!.cash_flow?.some((line) => line.label.includes("切替")),
+    ).toBe(false);
+  });
+  it("切替準備は資金不足なら取れず、実行後に進路を選ばなければ翌々期に失効する", () => {
+    const s = start(48);
+    advance(s);
+    s.cash = 79;
+    expect(option(s, "school-switch", "home").available).toBe(false);
+    s.cash = 80;
+    expect(option(s, "school-switch", "home").available).toBe(true);
+    choose(s, "school-switch", "home");
+    advance(s);
+    expect(option(s, "base-school", "home").available).toBe(true);
+    advance(s);
+    expect(option(s, "base-school", "home").available).toBe(false);
+    expect(s.life!.policies["base-school"]).toBe("standard");
+  });
+  it("全5分類に大方針があり、別枝への移行は前期の準備を要する", () => {
+    const s = start();
+    const groups = publicView(s).public.life!.route_groups!;
+    expect(groups.map((group) => group.id)).toEqual([
+      "school",
+      "home",
+      "grandparents",
+      "afterschool",
+      "work",
+    ]);
+    expect(groups.filter((group) => group.layout === "branches")).toHaveLength(4);
+    expect(option(s, "story-keepsake", "capsule").available).toBe(false);
+    choose(s, "route-home", "memory");
+    expect(option(s, "story-keepsake", "capsule").available).toBe(true);
+    advance(s);
+    expect(
+      publicView(s).public.life!.route_groups?.find((group) => group.id === "home")?.current,
+    ).toBe("memory");
+    s.n = 10;
+    openLife(s);
+    expect(option(s, "story-camp", "forest").available).toBe(false);
+    expect(option(s, "route-home", "adventure").available).toBe(false);
+    expect(option(s, "route-home-switch", "adventure").available).toBe(true);
+    choose(s, "route-home-switch", "adventure");
+    expect(publicView(s).public.forecast!.cash_flow?.some((line) => line.cost === 70)).toBe(true);
+    advance(s);
+    expect(option(s, "route-home", "adventure").available).toBe(true);
+    choose(s, "route-home", "adventure");
+    expect(option(s, "story-camp", "forest").available).toBe(true);
+    advance(s);
+    expect(option(s, "base-help-trial", "trial").available).toBe(false);
+  });
+  it("学校だけのrules-10設定は新しい分類ルートなしで保存・再開できる", () => {
+    const content = clone(defaultContent);
+    content.automatic_events = [];
+    const game = content.life_game!;
+    game.route_groups = game.route_groups!.filter((group) => group.id === "school");
+    game.decisions = game.decisions.filter((node) => !node.id.startsWith("route-"));
+    for (const node of game.decisions.filter((item) => item.menu !== "education")) {
+      delete node.route_group;
+      delete node.route_stage;
+      delete node.route;
+    }
+    const s = startDecisions("home-01", 2, new Catalog(content, []).resolve());
+    expect(s.versions).toEqual({ rules: "rules-10", data: "data-10", save: "save-11" });
+    advance(s);
+    const run = {
+      id: "school-only",
+      revision: 0,
+      state: s,
+      digest: digest(s),
+      commits: [],
+      receipts: {},
+      updated_at: "2026-09-21T00:00:00.000Z",
+    };
+    expect(importRun(exportRun(run)).state.versions.rules).toBe("rules-10");
+  });
+  it("遊びの大方針を転換すると旧ルート専用の継続方針が終了する", () => {
+    const s = start(48);
+    choose(s, "route-afterschool", "music");
+    choose(s, "story-music-trial", "try");
+    advance(s);
+    choose(s, "story-music", "stage");
+    advance(s);
+    expect(s.life!.policies["story-music"]).toBe("stage");
+    s.cash = 500;
+    choose(s, "route-afterschool-switch", "sports");
+    advance(s);
+    choose(s, "route-afterschool", "sports");
+    advance(s);
+    expect(s.life!.policies["story-music"]).toBe("standard");
+    expect(option(s, "story-music", "stage").available).toBe(false);
+  });
+  it("学校ルート導入前のrules-9設定は従来の選択と保存形式を維持する", () => {
+    const content = clone(defaultContent);
+    content.automatic_events = [];
+    const game = content.life_game!;
+    delete game.route_groups;
+    game.decisions = game.decisions.filter(
+      (node) =>
+        !node.id.startsWith("route-") &&
+        (node.route_group !== "school" ||
+          ["base-school", "tree-primary", "tree-secondary"].includes(node.id)),
+    );
+    for (const node of game.decisions) {
+      delete node.route_group;
+      delete node.route_stage;
+      delete node.route;
+      for (const item of node.options) {
+        delete item.route;
+        delete item.switch_to;
+      }
+    }
+    game.decisions
+      .find((node) => node.id === "tree-primary")!
+      .options.find((item) => item.id === "private")!.requires!.annual_income = 560;
+    const s = startDecisions("home-01", 2, new Catalog(content, []).resolve());
+    expect(s.versions).toEqual({ rules: "rules-9", data: "data-9", save: "save-10" });
+    expect(s.life!.route_stage_resolved).toBeUndefined();
+    for (let turn = 0; turn < 12; turn++) advance(s);
+    s.child.ability.study = 20;
+    s.cash = 200;
+    s.life!.history["base-school-visit:visit"] = { first_turn: 5, last_turn: 5, count: 1 };
+    expect(option(s, "tree-primary", "private").available).toBe(true);
+    const run = {
+      id: "legacy-tree",
+      revision: 0,
+      state: s,
+      digest: digest(s),
+      commits: [],
+      receipts: {},
+      updated_at: "2026-09-21T00:00:00.000Z",
+    };
+    expect(importRun(exportRun(run)).state.versions.rules).toBe("rules-9");
   });
   it("取得補正を善悪別に適用し、援助は実家の有限資金から正確に移転する", () => {
     const s = start();
@@ -232,7 +440,7 @@ describe("S-018 アクションツリー", () => {
     for (const difficulty of ["easy", "normal", "hard"])
       for (let seed = 0; seed < 3; seed++) {
         const s = startDecisions("home-01", seed, new Catalog().resolve(difficulty));
-        expect(s.versions.rules).toBe("rules-9");
+        expect(s.versions.rules).toBe("rules-11");
         while (s.phase === "childhood") advance(s);
         expect(s.n).toBe(40);
         expect(s.phase).toBe("finished");

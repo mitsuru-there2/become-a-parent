@@ -153,7 +153,9 @@ export function DecisionPlay({ response }: { response: Response }) {
     !!special || !projection?.can_advance || (!state.life && turn.answered < 3);
   const eventTurn = `${response.run_id}:${state.time.next_turn}`;
   const automaticResult =
-    ["rules-6", "rules-7", "rules-8", "rules-9"].includes(state.versions.rules) &&
+    ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11"].includes(
+      state.versions.rules,
+    ) &&
     turn.event_result.length > 0 &&
     turn.answered === 0 &&
     readEventTurn !== eventTurn;
@@ -288,7 +290,14 @@ export function DecisionPlay({ response }: { response: Response }) {
                   </h2>
                   <ol>
                     <li>
-                      {["rules-6", "rules-7", "rules-8", "rules-9"].includes(state.versions.rules)
+                      {[
+                        "rules-6",
+                        "rules-7",
+                        "rules-8",
+                        "rules-9",
+                        "rules-10",
+                        "rules-11",
+                      ].includes(state.versions.rules)
                         ? "出来事は自動で発生し、資金や家族の状態に反映されます。"
                         : "特殊イベントへの対応を選びます。その場で確定します。"}
                     </li>

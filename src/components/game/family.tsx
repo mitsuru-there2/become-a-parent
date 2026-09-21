@@ -64,9 +64,16 @@ export function Family({ publicState }: { publicState: PublicState }) {
                 <meter
                   min="0"
                   max={
-                    ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8", "rules-9"].includes(
-                      publicState.versions.rules,
-                    )
+                    [
+                      "rules-4",
+                      "rules-5",
+                      "rules-6",
+                      "rules-7",
+                      "rules-8",
+                      "rules-9",
+                      "rules-10",
+                      "rules-11",
+                    ].includes(publicState.versions.rules)
                       ? 10
                       : 100
                   }
@@ -89,9 +96,16 @@ export function Family({ publicState }: { publicState: PublicState }) {
               <meter
                 min="0"
                 max={
-                  ["rules-4", "rules-5", "rules-6", "rules-7", "rules-8", "rules-9"].includes(
-                    publicState.versions.rules,
-                  )
+                  [
+                    "rules-4",
+                    "rules-5",
+                    "rules-6",
+                    "rules-7",
+                    "rules-8",
+                    "rules-9",
+                    "rules-10",
+                    "rules-11",
+                  ].includes(publicState.versions.rules)
                     ? 10
                     : 100
                 }
@@ -112,7 +126,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
           id === "shared" ? publicState.grandparents : publicState.grandparents.members![id];
         const name =
           id === "shared"
-            ? publicState.versions.rules === "rules-9"
+            ? ["rules-9", "rules-10", "rules-11"].includes(publicState.versions.rules)
               ? "実家"
               : "祖父母（共通）"
             : grandparentNames[id];

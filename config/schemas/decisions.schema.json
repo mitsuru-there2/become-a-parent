@@ -4,6 +4,62 @@
     "action_tree": {
       "type": "boolean"
     },
+    "route_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "menu": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "switch_decision": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "layout": {
+            "enum": ["staged", "branches"],
+            "type": "string"
+          },
+          "stage_labels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "routes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["id", "label"],
+              "additionalProperties": false
+            },
+            "minItems": 2
+          }
+        },
+        "required": ["id", "label", "menu", "switch_decision", "routes"],
+        "additionalProperties": false
+      }
+    },
     "initial_family_home": {
       "type": "object",
       "properties": {
@@ -191,6 +247,19 @@
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
           },
+          "route_group": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "route_stage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "route": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
           "title": {
             "type": "string",
             "minLength": 1
@@ -354,6 +423,14 @@
               "type": "object",
               "properties": {
                 "visual": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "route": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                },
+                "switch_to": {
                   "type": "string",
                   "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
                 },

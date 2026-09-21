@@ -1,7 +1,8 @@
 import { contentFor } from "../content/catalog";
 import type { State } from "./types";
 
-export const treeEnabled = (state: State) => state.versions.rules === "rules-9";
+export const treeEnabled = (state: State) =>
+  ["rules-9", "rules-10", "rules-11"].includes(state.versions.rules);
 
 export function activeTreeEffects(state: State) {
   if (!treeEnabled(state) || !state.life) return [];

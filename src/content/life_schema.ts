@@ -15,6 +15,8 @@ export const lifeEffectsSchema = v.array(
 );
 const lifeOptionSchema = v.strictObject({
   visual: v.optional(contentIdSchema),
+  route: v.optional(contentIdSchema),
+  switch_to: v.optional(contentIdSchema),
   income_reduction: v.optional(integer()),
   event_modifiers: v.optional(
     v.array(
@@ -53,6 +55,9 @@ export const lifeDecisionSchema = v.pipe(
   v.strictObject({
     id: contentIdSchema,
     menu: contentIdSchema,
+    route_group: v.optional(contentIdSchema),
+    route_stage: v.optional(integer(0, 10)),
+    route: v.optional(contentIdSchema),
     title: text,
     reason: text,
     kind: v.picklist(["policy", "action"]),
@@ -69,6 +74,22 @@ export const lifeDecisionSchema = v.pipe(
 export const lifeDecisionsSchema = v.array(lifeDecisionSchema);
 export const lifeGameSchema = v.strictObject({
   action_tree: v.optional(v.boolean()),
+  route_groups: v.optional(
+    v.array(
+      v.strictObject({
+        id: contentIdSchema,
+        label: text,
+        menu: contentIdSchema,
+        switch_decision: contentIdSchema,
+        layout: v.optional(v.picklist(["staged", "branches"])),
+        stage_labels: v.optional(v.array(text)),
+        routes: v.pipe(
+          v.array(v.strictObject({ id: contentIdSchema, label: text })),
+          v.minLength(2),
+        ),
+      }),
+    ),
+  ),
   initial_family_home: v.optional(grandparentSchema),
   initial_grandparents: v.optional(
     v.strictObject({
