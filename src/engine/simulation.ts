@@ -101,12 +101,18 @@ export function draw(state: State, phase: string, index: number, slot: string) {
   state.draws.push({ phase, index, slot, value });
   return value;
 }
-export function observeChild(state: State): Observation[] {
+export function observeChild(state: State, includeShort = false): Observation[] {
   const child = state.child;
   const observations: Observation[] = [];
   const isBaby = stage(Math.min(state.n, 39), state).id === "baby";
-  const addObservation = (code: string, subject: string, text: string) =>
-    observations.push({ code, subject, text });
+  const copy = contentFor(state).text;
+  const addObservation = (code: string, subject: string, text: string, short?: string) =>
+    observations.push({
+      code,
+      subject,
+      text,
+      ...(includeShort && short ? { short_text: short } : {}),
+    });
   addObservation(
     "energy",
     "child",
@@ -115,6 +121,7 @@ export function observeChild(state: State): Observation[] {
       : child.stress < 70
         ? contentFor(state).text.simulation_001
         : contentFor(state).text.simulation_002,
+    copy[`observation_energy_${child.stress < 40 ? 0 : child.stress < 70 ? 1 : 2}`],
   );
   for (const parentId of PEOPLE) {
     const texts = isBaby
@@ -133,6 +140,9 @@ export function observeChild(state: State): Observation[] {
       "relationship." + parentId,
       parentId,
       texts[trust < 30 ? 0 : trust < 60 ? 1 : 2],
+      copy[
+        `observation_${isBaby ? "baby_relation" : "relation"}_${trust < 30 ? 0 : trust < 60 ? 1 : 2}`
+      ],
     );
   }
   if (!isBaby)
@@ -153,6 +163,11 @@ export function observeChild(state: State): Observation[] {
       : domain === "study"
         ? contentFor(state).text.simulation_014
         : contentFor(state).text.simulation_015;
+    const shortPrefix = copy[`observation_${isBaby ? "baby_" : ""}${domain}`];
+    const shortInterest =
+      copy[
+        `observation_${isBaby ? "baby_" : ""}interest_${child.interest[domain] < 40 ? 0 : child.interest[domain] < 60 ? 1 : 2}`
+      ];
     addObservation(
       "interest." + domain,
       domain,
@@ -162,6 +177,7 @@ export function observeChild(state: State): Observation[] {
           : child.interest[domain] < 60
             ? contentFor(state).text.simulation_017
             : contentFor(state).text.simulation_018),
+      shortPrefix && shortInterest ? shortPrefix + shortInterest : undefined,
     );
     addObservation(
       "progress." + domain,
@@ -367,6 +383,7 @@ export function publicView(state: State): { public: PublicState; choices: Choice
   const lifeStage = stage(state.n, state);
   const content = contentFor(state);
   const scene = content.scenes[lifeStage.id];
+  const summaries = observeChild(state, true);
   const publicState: PublicState = {
     content: {
       difficulty: state.settings?.difficulty ?? "normal",
@@ -408,7 +425,13 @@ export function publicView(state: State): { public: PublicState; choices: Choice
     parents: state.parents,
     couple: state.couple,
     grandparents: state.grandparents,
-    observations: state.observations,
+    // 短文は公開応答だけに付与し、旧保存・履歴・再生ハッシュを変更しない。
+    observations: state.observations.map((observation) => {
+      const current = summaries.find(
+        (item) => item.code === observation.code && item.text === observation.text,
+      );
+      return current?.short_text ? { ...observation, short_text: current.short_text } : observation;
+    }),
     plan: finished ? null : state.plan,
     answers: finished ? [] : answerList(state.answers),
     forecast: finished ? null : forecast(state),

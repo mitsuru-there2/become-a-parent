@@ -8,6 +8,8 @@ import type { Response } from "../../service/service";
 import { $busy, $error, $notice, $extra, update, readExtra, downloadSave } from "../../stores/game";
 import { Family } from "./family";
 import { PartyStatus } from "./party_status";
+import { ChildStatus } from "./child_status";
+import { StatusDetail } from "./status_detail";
 import { Timeline } from "./timeline";
 import { Ending } from "./ending";
 import familyRoom from "../../../assets/scenes/family-room.png";
@@ -237,6 +239,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   const extra = useStore($extra);
   const [tab, setTab] = useState<"play" | "family" | "history" | "help">("play");
   const [editing, setEditing] = useState<string | null>(null);
+  const [showAdvanceReason, setShowAdvanceReason] = useState(false);
   const [eventResult, setEventResult] = useState(false);
   const [readEventTurn, setReadEventTurn] = useState<string | null>(null);
   const special = response.choices.find((choice) => choice.kind === "special");
@@ -249,6 +252,8 @@ export function DecisionPlay({ response }: { response: Response }) {
     decisions.find((item) => !answered(item));
   const projection = state.forecast;
   const ended = response.phase !== "childhood";
+  const advanceBlocked =
+    !!special || !projection?.can_advance || (!state.life && turn.answered < 3);
   const eventTurn = `${response.run_id}:${state.time.next_turn}`;
   const automaticResult =
     ["rules-6", "rules-7", "rules-8", "rules-9"].includes(state.versions.rules) &&
@@ -279,7 +284,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   }, [response.phase, tab, extra.result]);
   return (
     <div
-      className={`rpg-shell${life ? " life-shell" : ""}${state.life?.action_tree ? " tree-shell" : ""}`}
+      className={`rpg-shell status-shell${life ? " life-shell" : ""}${state.life?.action_tree ? " tree-shell" : ""}`}
     >
       <header className="rpg-header" inert={showingResult}>
         <Link to="/" className="brand">
@@ -324,7 +329,7 @@ export function DecisionPlay({ response }: { response: Response }) {
             )}
           </div>
         </div>
-        <PartyStatus state={state} />
+        <ChildStatus state={state} />
         <div className="rpg-stage">
           {!state.life?.action_tree && (
             <div className="rpg-scenery" aria-hidden="true">
@@ -555,63 +560,91 @@ export function DecisionPlay({ response }: { response: Response }) {
           </section>
         </div>
       </main>
-      <footer className="rpg-dock" inert={showingResult}>
-        {life && !ended && projection && projection.reasons.length > 0 && (
-          <div className="rpg-dock-warnings" role="status">
-            {projection.reasons.map((reason) => (
-              <p className="warning" key={`${reason.path}:${reason.code}`}>
-                {reason.message}
-              </p>
+      <footer className="rpg-bottom" inert={showingResult}>
+        <PartyStatus state={state} />
+        <div className="rpg-dock">
+          <nav className="rpg-dock-controls" aria-label="ゲーム内">
+            {(["play", "family", "history", "help"] as const).map((item) => (
+              <button
+                key={item}
+                className="rpg-dock-tab"
+                data-dock={item}
+                aria-label={
+                  item === "play"
+                    ? ended
+                      ? "人生の結末"
+                      : "いまの暮らし"
+                    : item === "family"
+                      ? "家族の様子"
+                      : item === "history"
+                        ? "家族の記録"
+                        : "遊び方"
+                }
+                aria-current={tab === item ? "page" : undefined}
+                onClick={() => changeTab(item)}
+              >
+                <DockIcon kind={item} />
+                <span className="dock-label">
+                  {item === "play"
+                    ? ended
+                      ? "結末"
+                      : state.life?.action_tree
+                        ? "マップ"
+                        : "暮らし"
+                    : item === "family"
+                      ? "家族"
+                      : item === "history"
+                        ? "記録"
+                        : "ヘルプ"}
+                </span>
+              </button>
             ))}
-          </div>
-        )}
-        <nav className="rpg-dock-controls" aria-label="ゲーム内">
-          {(["play", "family", "history", "help"] as const).map((item) => (
+            {life && !ended && (
+              <button
+                className="rpg-dock-events"
+                aria-label="今期の出来事 ↗"
+                disabled={busy}
+                onClick={() => setEventResult(true)}
+              >
+                <DockIcon kind="events" />
+                <span className="dock-label">出来事</span>
+              </button>
+            )}
             <button
-              key={item}
-              className="rpg-dock-tab"
-              data-dock={item}
-              aria-label={
-                item === "play"
-                  ? ended
-                    ? "人生の結末"
-                    : "いまの暮らし"
-                  : item === "family"
-                    ? "家族の様子"
-                    : item === "history"
-                      ? "家族の記録"
-                      : "遊び方"
-              }
-              aria-current={tab === item ? "page" : undefined}
-              onClick={() => changeTab(item)}
+              className="rpg-dock-advance"
+              aria-label={life ? "この暮らしで半年進める →" : "半年を進める →"}
+              disabled={busy || ended}
+              data-blocked={advanceBlocked || undefined}
+              aria-haspopup={advanceBlocked ? "dialog" : undefined}
+              aria-describedby={advanceBlocked && !ended ? "advance-blocked-hint" : undefined}
+              onClick={() => {
+                if (advanceBlocked) setShowAdvanceReason(true);
+                else void update("advance");
+              }}
             >
-              <DockIcon kind={item} />
+              <span className="rpg-dock-advance-icon">
+                <DockIcon kind="advance" />
+              </span>
+              <span className="dock-label">{busy ? "保存中…" : "半年進める"}</span>
             </button>
-          ))}
-          {life && !ended && (
-            <button
-              className="rpg-dock-events"
-              aria-label="今期の出来事 ↗"
-              disabled={busy}
-              onClick={() => setEventResult(true)}
-            >
-              <DockIcon kind="events" />
-            </button>
-          )}
-          <button
-            className="rpg-dock-advance"
-            aria-label={life ? "この暮らしで半年進める →" : "半年を進める →"}
-            disabled={
-              busy || ended || !!special || !projection?.can_advance || (!life && turn.answered < 3)
-            }
-            onClick={() => void update("advance")}
-          >
-            <span className="rpg-dock-advance-icon">
-              <DockIcon kind="advance" />
+          </nav>
+          {advanceBlocked && !ended && (
+            <span id="advance-blocked-hint" className="sr-only">
+              いまは進行できません。押すと理由を確認できます。
             </span>
-          </button>
-        </nav>
+          )}
+        </div>
       </footer>
+      {showAdvanceReason && (
+        <StatusDetail title="半年を進める前に" onClose={() => setShowAdvanceReason(false)}>
+          {special && <p>今期の出来事への対応を選んでください。</p>}
+          {!life && turn.answered < 3 && <p>今期の判断をすべて選んでください。</p>}
+          {projection?.reasons.map((reason) => (
+            <p key={`${reason.path}:${reason.code}`}>{reason.message}</p>
+          ))}
+          {!projection && <p>半年の見通しを確認してください。</p>}
+        </StatusDetail>
+      )}
       {showingResult && (
         <EventDialog
           events={turn.event_results}

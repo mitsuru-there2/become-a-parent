@@ -52,45 +52,25 @@ try {
       if (document.documentElement.scrollHeight > innerHeight)
         found.push("document vertical scroll");
       const body = document.querySelector<HTMLElement>(".rpg-window-body");
-      if (body && body.scrollHeight > body.clientHeight + 1) found.push("main vertical scroll");
+      if (
+        body &&
+        body.scrollHeight > body.clientHeight + 1 &&
+        !(innerHeight <= 600 && body.querySelector(".action-tree-content"))
+      )
+        found.push("main vertical scroll");
       if (body && body.scrollWidth > body.clientWidth + 1) found.push("main horizontal scroll");
       const dock = document.querySelector<HTMLElement>(".rpg-dock");
       if (dock) {
         const bounds = dock.getBoundingClientRect();
-        const window = document.querySelector<HTMLElement>(".rpg-window")?.getBoundingClientRect();
         if (bounds.left < -1 || bounds.right > innerWidth + 1 || bounds.bottom > innerHeight + 1)
           found.push("dock outside viewport");
-        if (window && window.right - bounds.right < 12) found.push("dock touches main frame");
-        if (bounds.width > 100 || bounds.height > 100) found.push("dock too large");
-        if (innerWidth - bounds.right < 12 || innerHeight - bounds.bottom < 12)
-          found.push("dock edge margin too small");
-        if (innerWidth > 800 && bounds.left < innerWidth / 2)
-          found.push("dock is not right aligned");
+        const stage = document.querySelector<HTMLElement>(".rpg-stage")!.getBoundingClientRect();
+        if (bounds.top < stage.bottom - 1) found.push("dock overlaps workspace");
         const controls = [...dock.querySelectorAll<HTMLElement>(".rpg-dock-controls button")].map(
           (button) => button.getBoundingClientRect(),
         );
-        const advance = dock
-          .querySelector<HTMLElement>(".rpg-dock-advance")
-          ?.getBoundingClientRect();
-        const above = [
-          ...dock.querySelectorAll<HTMLElement>(
-            "[data-dock='play'], [data-dock='family'], [data-dock='history']",
-          ),
-        ];
-        const right = [
-          ...dock.querySelectorAll<HTMLElement>("[data-dock='help'], .rpg-dock-events"),
-        ];
-        if (
-          advance &&
-          above.some((button) => button.getBoundingClientRect().bottom > advance.top + 1)
-        )
-          found.push("dock top icons misplaced");
-        if (
-          advance &&
-          right.some((button) => button.getBoundingClientRect().left < advance.right - 1)
-        )
-          found.push("dock right icons misplaced");
         controls.forEach((button, index) => {
+          if (button.width < 44 || button.height < 44) found.push(`dock button ${index} too small`);
           if (
             button.left < bounds.left - 1 ||
             button.right > bounds.right + 1 ||
@@ -126,24 +106,19 @@ try {
       const map = document.querySelector<HTMLElement>(".action-map");
       if (map) {
         const bounds = map.getBoundingClientRect();
+        const mapViewport = map.closest(".map-viewport")!;
+        if (mapViewport.clientHeight < 44) found.push("map viewport too short");
         if (bounds.width > 1002) found.push("map exceeds fixed width");
         const markerElements = [...map.querySelectorAll<HTMLElement>(".map-marker")];
         const markers = markerElements.map((marker) => marker.getBoundingClientRect());
-        if (innerWidth > 640) {
-          const roadEnds: Record<string, [number, number]> = {
-            education: [218, 154],
-            home: [480, 276],
-            grandparents: [184, 417],
-            afterschool: [742, 155],
-            work: [700, 336],
-          };
+        {
           markerElements.forEach((element, index) => {
-            const end = roadEnds[element.dataset.menu ?? ""];
-            if (!end) return;
+            const path = map.querySelector<SVGPathElement>(`[data-road="${element.dataset.menu}"]`);
+            const end = path ? path.getPointAtLength(path.getTotalLength()) : { x: 50, y: 50 };
             const marker = markers[index];
             const x = ((marker.left + marker.right) / 2 - bounds.left) / bounds.width;
             const y = ((marker.top + marker.bottom) / 2 - bounds.top) / bounds.height;
-            if (Math.abs(x - end[0] / 1000) > 0.04 || Math.abs(y - end[1] / 560) > 0.04)
+            if (Math.abs(x - end.x / 100) > 0.02 || Math.abs(y - end.y / 100) > 0.02)
               found.push(`${element.dataset.menu} misses map road`);
           });
         }
@@ -156,12 +131,28 @@ try {
           )
             found.push(`marker ${index} outside map`);
           if (dock) {
+            const scrollBounds = map.closest(".map-viewport")!.getBoundingClientRect();
+            const outerBounds = map.closest(".rpg-window-body")!.getBoundingClientRect();
+            const visibleMap = {
+              left: Math.max(scrollBounds.left, outerBounds.left),
+              right: Math.min(scrollBounds.right, outerBounds.right),
+              top: Math.max(scrollBounds.top, outerBounds.top),
+              bottom: Math.min(scrollBounds.bottom, outerBounds.bottom),
+            };
+            const visibleMarker = {
+              left: Math.max(marker.left, visibleMap.left),
+              right: Math.min(marker.right, visibleMap.right),
+              top: Math.max(marker.top, visibleMap.top),
+              bottom: Math.min(marker.bottom, visibleMap.bottom),
+            };
             const dockBounds = dock.getBoundingClientRect();
             if (
-              marker.left < dockBounds.right - 1 &&
-              marker.right > dockBounds.left + 1 &&
-              marker.top < dockBounds.bottom - 1 &&
-              marker.bottom > dockBounds.top + 1
+              visibleMarker.left < visibleMarker.right &&
+              visibleMarker.top < visibleMarker.bottom &&
+              visibleMarker.left < dockBounds.right - 1 &&
+              visibleMarker.right > dockBounds.left + 1 &&
+              visibleMarker.top < dockBounds.bottom - 1 &&
+              visibleMarker.bottom > dockBounds.top + 1
             )
               found.push(`marker ${index} covered by dock`);
           }
@@ -213,7 +204,14 @@ try {
   await expect(next).toBeEnabled();
   const dockMenu = page.getByRole("navigation", { name: "ゲーム内" });
   await expect(dockMenu.getByRole("button")).toHaveCount(6);
-  await expect(dockMenu.getByRole("button")).toHaveText(["", "", "", "", "", ""]);
+  await expect(dockMenu.getByRole("button")).toHaveText([
+    "マップ",
+    "家族",
+    "記録",
+    "ヘルプ",
+    "出来事",
+    "半年進める",
+  ]);
   await expect(dockMenu.getByRole("button", { name: "今期の出来事 ↗" })).toBeVisible();
   await expect(page.locator(".rpg-menu, .life-advance")).toHaveCount(0);
   await expect(next.locator(".rpg-dock-advance-icon")).toBeVisible();
@@ -235,6 +233,9 @@ try {
   await expect(page.getByRole("region", { name: "実家のステータス" })).toBeVisible();
   await page.waitForTimeout(450);
   for (const [width, height] of [
+    [1440, 900],
+    [1024, 768],
+    [844, 390],
     [1600, 760],
     [1280, 900],
     [1280, 720],
@@ -249,13 +250,53 @@ try {
   ]) {
     await page.setViewportSize({ width, height });
     await viewport();
+    await expect(page.getByRole("region", { name: "子どもの様子", exact: true })).toBeVisible();
+    for (const name of ["父", "母", "実家"]) {
+      const member = page.getByRole("region", { name: `${name}のステータス`, exact: true });
+      await expect(member).toBeInViewport();
+      await member.getByRole("button", { name: `${name}の詳細を開く` }).click();
+      const sheet = page.getByRole("dialog", { name: `${name}の状態`, exact: true });
+      await expect(sheet).toBeVisible();
+      await expect(sheet).toContainText(name === "実家" ? "地域のつながり" : "段取り");
+      await page.keyboard.press("Tab");
+      expect(await sheet.evaluate((element) => element.contains(document.activeElement))).toBe(
+        true,
+      );
+      if (name === "父" && width === 390 && height === 844) {
+        await sheet.evaluate((element) =>
+          Promise.all(element.getAnimations().map((animation) => animation.finished)),
+        );
+        await page.screenshot({ path: `${out}/father-detail-mobile.png` });
+      }
+      await page.keyboard.press("Escape");
+      await expect(member.getByRole("button", { name: `${name}の詳細を開く` })).toBeFocused();
+    }
     if (
+      width === 1440 ||
+      width === 1024 ||
+      width === 844 ||
+      width === 320 ||
       (width === 1600 && height === 760) ||
       (width === 1280 && height === 900) ||
       (width === 390 && height === 844) ||
       height === 480
     )
       await page.screenshot({ path: `${out}/overview-${width}x${height}.png` });
+  }
+  // Exercise all five categories even when map scrolling is needed.
+  for (const [width, height] of [
+    [1440, 900],
+    [1024, 768],
+    [390, 844],
+    [320, 568],
+    [844, 390],
+  ]) {
+    await page.setViewportSize({ width, height });
+    for (let index = 0; index < 5; index++) {
+      await page.locator(".map-marker").nth(index).click();
+      await expect(page.getByRole("region", { name: "アクションのつながり" })).toBeVisible();
+      await backToMap();
+    }
   }
   await page.setViewportSize({ width: 390, height: 844 });
   const node = (name: string) =>
@@ -267,6 +308,16 @@ try {
   const cancel = async () => detail.getByRole("button", { name: "キャンセル" }).click();
   await expect(page.locator(".rpg-scenery")).toHaveCount(0);
   await menu("教育・進路");
+  await page
+    .getByRole("region", { name: "子どもの様子", exact: true })
+    .getByRole("button")
+    .first()
+    .click();
+  await expect(page.getByRole("dialog", { name: "子どもの様子", exact: true })).toContainText(
+    "ことばや数の遊び",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("region", { name: "アクションのつながり" })).toBeVisible();
   await expect(page.getByRole("group", { name: "アクションの地図" })).toHaveCount(0);
   for (const [width, height] of [
     [390, 844],
@@ -411,6 +462,10 @@ try {
         browser: "Chrome / Playwright",
         reason: "Browser plugin not available",
         viewports: [
+          "1440x900",
+          "1024x768",
+          "844x390",
+          "1600x760",
           "1280x900",
           "1280x720",
           "1026x760",

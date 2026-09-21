@@ -35,6 +35,7 @@ export interface Child {
   adaptation: number;
 }
 export interface Observation {
+  short_text?: string;
   code: string;
   subject: string;
   text: string;

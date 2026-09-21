@@ -3,7 +3,7 @@ import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
 import { $busy, update } from "../../stores/game";
 import { ContentImage } from "./content_image";
-import actionMap from "../../../assets/scenes/action-map.svg";
+import { ActionMap, markerPosition } from "./action_map";
 
 type ActionNode = {
   choice: Choice;
@@ -177,8 +177,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
         </>
       ) : (
         <>
-          <div className="action-map" role="group" aria-label="アクションの地図">
-            <img src={actionMap} alt="" aria-hidden="true" />
+          <ActionMap>
             {life.menus.map((item) => (
               <button
                 ref={(element) => {
@@ -187,6 +186,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                 key={item.id}
                 className="map-marker"
                 data-menu={item.id}
+                style={markerPosition(item.id)}
                 onClick={() => setMenu(item.id)}
               >
                 <span className="map-marker-icon">
@@ -202,7 +202,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                 </small>
               </button>
             ))}
-          </div>
+          </ActionMap>
         </>
       )}
       {selected && (

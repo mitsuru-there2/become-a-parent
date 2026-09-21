@@ -1852,104 +1852,6 @@ meter::-moz-meter-bar {
   color: #fff;
   box-shadow: inset 0 -2px #e8e8de;
 }
-.rpg-dock {
-  position: absolute;
-  right: max(64px, env(safe-area-inset-right));
-  bottom: max(24px, env(safe-area-inset-bottom));
-  z-index: 4;
-  width: 98px;
-  height: 98px;
-  border: 1px solid #9a8b61;
-  border-radius: 3px;
-  background: #182019;
-  box-shadow: 0 6px 18px #000c;
-}
-.rpg-dock-controls {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, 32px);
-  grid-template-rows: repeat(3, 32px);
-  grid-template-areas:
-    "play family history"
-    "advance advance help"
-    "advance advance events";
-}
-.rpg-dock-controls button {
-  display: grid;
-  place-items: center;
-  min-width: 0;
-  min-height: 0;
-  color: #d2d3c4;
-}
-.rpg-dock-controls button svg {
-  width: 19px;
-  height: 19px;
-}
-.rpg-dock-tab,
-.rpg-dock-events {
-  border-right: 1px solid #565c4c;
-  border-bottom: 1px solid #565c4c;
-  background: #222920;
-}
-.rpg-dock-tab[data-dock="play"] {
-  grid-area: play;
-}
-.rpg-dock-tab[data-dock="family"] {
-  grid-area: family;
-}
-.rpg-dock-tab[data-dock="history"] {
-  grid-area: history;
-}
-.rpg-dock-tab[data-dock="help"] {
-  grid-area: help;
-}
-.rpg-dock-events {
-  grid-area: events;
-  background: #303126;
-  color: #e9d7a6 !important;
-}
-.rpg-dock-tab:hover,
-.rpg-dock-tab[aria-current],
-.rpg-dock-events:hover {
-  color: #f1dfae;
-  border-color: #dfc885;
-  background: #3a3d2d;
-}
-.rpg-dock-tab[aria-current] {
-  box-shadow: inset 0 0 0 2px #c5a96c;
-}
-.rpg-dock-advance {
-  grid-area: advance;
-  color: #f0dcaa !important;
-  background: #3a3629;
-}
-.rpg-dock-advance-icon {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  border: 2px solid #e3cc90;
-  border-radius: 2px;
-  box-shadow: inset 0 0 0 3px #171b16;
-}
-.rpg-dock-advance-icon svg {
-  width: 29px !important;
-  height: 29px !important;
-}
-.rpg-dock-advance:hover:not(:disabled) .rpg-dock-advance-icon,
-.rpg-dock-advance:focus-visible .rpg-dock-advance-icon {
-  background: #685b36;
-  border-color: #f5e5b5;
-}
-.rpg-dock-advance:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-.rpg-dock button:focus-visible {
-  outline: 2px solid #f5e5b5;
-  outline-offset: 2px;
-}
 .rpg-review {
   display: grid;
   gap: 4px;
@@ -2026,10 +1928,7 @@ meter::-moz-meter-bar {
     padding-inline: 12px;
     grid-template-rows: 48px minmax(0, 1fr);
   }
-  .rpg-dock {
-    right: max(32px, env(safe-area-inset-right));
-    bottom: max(16px, env(safe-area-inset-bottom));
-  }
+
   .rpg-header {
     gap: 14px;
   }
@@ -2151,118 +2050,6 @@ meter::-moz-meter-bar {
   }
 }
 
-.rpg-party {
-  display: none;
-}
-@media (min-width: 1024px) {
-  .rpg-main {
-    grid-template-rows: 66px 150px minmax(0, 1fr);
-  }
-  .rpg-party {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-    padding: 0 4px 16px;
-  }
-  .party-member {
-    min-width: 0;
-    border: 1px solid #77776b;
-    background: #171716;
-    padding: 9px 13px;
-    box-shadow: 3px 3px 0 #070707;
-  }
-  .party-member h2 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 15px;
-    margin-bottom: 7px;
-  }
-  .party-member h2 > span {
-    font-size: 10px;
-    font-weight: 400;
-    color: #aaa99f;
-  }
-  .party-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3px 14px;
-  }
-  .party-stat {
-    display: grid;
-    grid-template-columns: auto minmax(12px, 1fr) 21px;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-  }
-  .party-stat > span {
-    color: #bbbbae;
-  }
-  .party-stat > b {
-    text-align: right;
-    font:
-      11px ui-monospace,
-      monospace;
-  }
-  .party-stat meter {
-    appearance: none;
-    width: 100%;
-    height: 5px;
-    border: 0;
-    background: #383832;
-  }
-  .party-stat meter::-webkit-meter-bar {
-    border: 0;
-    border-radius: 0;
-    background: #383832;
-    height: 5px;
-  }
-  .party-stat meter::-webkit-meter-optimum-value {
-    background: #ddddd0;
-  }
-  .party-stat meter::-moz-meter-bar {
-    background: #ddddd0;
-  }
-  .party-skills {
-    border-top: 1px solid #383832;
-    margin-top: 7px;
-    padding-top: 5px;
-    font-size: 10px;
-    color: #aaa99d;
-  }
-  .party-skills b {
-    color: #e1e1d5;
-    font-weight: 400;
-  }
-  .party-grand-stats {
-    display: grid;
-    gap: 3px;
-  }
-  .party-support {
-    margin: 7px 0 0;
-    padding-top: 5px;
-    border-top: 1px solid #383832;
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    font-size: 10px;
-  }
-  .party-support > div {
-    display: flex;
-    gap: 7px;
-    align-items: baseline;
-  }
-  .party-support dt {
-    color: #aaa99d;
-  }
-  .party-support dd {
-    margin: 0;
-    white-space: nowrap;
-  }
-  .party-support small {
-    font-size: 9px;
-  }
-}
 @media (min-width: 1024px) and (max-height: 800px) {
   .rpg-main {
     grid-template-rows: 52px 145px minmax(0, 1fr);
@@ -2389,24 +2176,6 @@ meter::-moz-meter-bar {
   text-decoration: underline;
   font-size: 12px;
 }
-.rpg-dock-warnings {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 5px);
-  z-index: 2;
-  width: min(300px, calc(100vw - 24px));
-  max-height: 70px;
-  overflow: auto;
-  padding: 7px 9px;
-  border: 1px solid #807259;
-  border-radius: 5px;
-  background: #1b231d;
-  box-shadow: 0 5px 14px #0009;
-}
-.rpg-dock-warnings .warning {
-  margin: 0;
-  font-size: 10px;
-}
 @media (max-width: 640px) {
   .life-shell .rpg-scenery {
     flex-basis: 46px;
@@ -2520,26 +2289,7 @@ meter::-moz-meter-bar {
     box-shadow 160ms ease;
   animation: marker-arrive 300ms ease-out both;
 }
-.map-marker[data-menu="education"] {
-  left: 21.8%;
-  top: 27.5%;
-}
-.map-marker[data-menu="home"] {
-  left: 48%;
-  top: 49.3%;
-}
-.map-marker[data-menu="grandparents"] {
-  left: 18.4%;
-  top: 74.5%;
-}
-.map-marker[data-menu="afterschool"] {
-  left: 74.2%;
-  top: 27.7%;
-}
-.map-marker[data-menu="work"] {
-  left: 70%;
-  top: 60%;
-}
+
 .map-marker:nth-of-type(2) {
   animation-delay: 35ms;
 }
@@ -2871,9 +2621,7 @@ meter::-moz-meter-bar {
   .action-map {
     height: 320px;
   }
-  .map-marker[data-menu="work"] {
-    left: 82%;
-  }
+
   .map-marker {
     min-width: 83px;
     padding: 6px 5px;
@@ -3070,48 +2818,12 @@ meter::-moz-meter-bar {
   .tree-legend {
     font-size: 9px;
   }
-  .map-marker[data-menu="education"],
-  .map-marker[data-menu="afterschool"] {
-    top: 20%;
-  }
-  .map-marker[data-menu="home"] {
-    top: 50%;
-  }
-  .map-marker[data-menu="grandparents"] {
-    top: 80%;
-  }
 }
 @media (max-width: 640px) and (max-height: 520px) {
-  .map-marker[data-menu="education"] {
-    left: 17%;
-    top: 26%;
-  }
-  .map-marker[data-menu="home"] {
-    left: 50%;
-    top: 26%;
-  }
-  .map-marker[data-menu="afterschool"] {
-    left: 82%;
-    top: 26%;
-  }
-  .map-marker[data-menu="grandparents"] {
-    left: 33%;
-    top: 74%;
-  }
-  .map-marker[data-menu="work"] {
-    left: 70%;
-    top: 58%;
-  }
 }
 @media (max-width: 640px) and (max-height: 600px) {
-  .map-marker[data-menu="grandparents"] {
-    top: 65%;
-  }
 }
 @media (max-width: 640px) and (max-height: 520px) {
-  .map-marker[data-menu="grandparents"] {
-    top: 58%;
-  }
 }
 @media (min-width: 641px) and (max-width: 1023px) and (max-height: 700px) {
   .tree-shell .map-marker {
@@ -3135,5 +2847,696 @@ meter::-moz-meter-bar {
   .tree-category-heading {
     animation: none;
     transition: none;
+  }
+}
+
+/* D-058: persistent observation and family bands reserve their own layout space. */
+.status-shell {
+  grid-template-rows: 48px minmax(0, 1fr) auto;
+  padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  gap: 0;
+}
+.status-shell .rpg-main {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+.status-shell .rpg-hud {
+  min-height: 56px;
+  gap: 12px;
+}
+.status-shell .rpg-window {
+  flex: 1;
+  max-height: none;
+  width: calc(100% - 8px);
+  box-shadow: none;
+}
+.status-shell .rpg-window-body {
+  flex: 1;
+  padding: 12px;
+}
+.status-shell .rpg-caption {
+  flex-shrink: 0;
+  font-size: 10px;
+  padding: 4px 8px 6px;
+}
+.status-shell .rpg-header a,
+.status-shell .rpg-money-summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.status-shell .rpg-stage {
+  overflow: hidden;
+  flex-direction: column;
+  gap: 0;
+}
+.status-shell .rpg-scenery {
+  flex: 0 1 48px;
+  min-height: 0;
+}
+.child-status {
+  border-block: 1px solid #3c4437;
+  padding: 6px 0;
+  min-width: 0;
+}
+.child-status-heading {
+  color: #d3bd89;
+  font-size: 11px;
+  margin: 0 8px 3px;
+}
+.child-status-heading > span {
+  color: #9a9d8f;
+  font-size: 10px;
+  margin-left: 10px;
+}
+.child-status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.4fr;
+}
+.child-status-grid > button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 3px 10px;
+  text-align: left;
+  border-left: 1px solid #383e33;
+  display: grid;
+  grid-template-columns: auto;
+  align-content: start;
+  gap: 3px;
+}
+.child-status-grid > button:first-child {
+  border-left: 0;
+}
+.child-status-grid > button > span {
+  font-size: 10px;
+  color: #a7ae9c;
+}
+.child-status-grid strong {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.child-status-grid strong > span {
+  display: block;
+}
+.child-status-grid button:hover,
+.party-compact:hover {
+  background: #252d22;
+}
+.status-shell button:focus-visible,
+.map-viewport:focus-visible {
+  outline: 2px solid #e2c887;
+  outline-offset: -2px;
+}
+.rpg-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 16px;
+  border-top: 1px solid #62624f;
+  padding-top: 8px;
+}
+.status-shell .rpg-party {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0;
+  min-width: 0;
+}
+.status-shell .rpg-party[data-members="4"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.status-shell .party-member {
+  box-shadow: none;
+  border: 0;
+  border-right: 1px solid #3c4437;
+  background: transparent;
+  padding: 0 12px 0 0;
+  min-width: 0;
+}
+.party-desktop h2 {
+  margin: 0;
+}
+.party-desktop h2 button {
+  min-height: 44px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 15px;
+  text-align: left;
+}
+.party-desktop h2 button span {
+  font-size: 10px;
+  font-weight: 400;
+  color: #a8ab9f;
+}
+.party-full-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+  margin: 0 0 6px;
+}
+.party-full-stats > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11px;
+}
+.party-full-stats dt {
+  color: #b6bbae;
+  white-space: nowrap;
+}
+.party-full-stats dd {
+  margin: 0 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.party-full-stats meter {
+  flex: 1;
+  min-width: 12px;
+  height: 5px;
+  appearance: none;
+  border: 0;
+  background: #383d32;
+}
+.party-full-stats meter::-webkit-meter-bar {
+  height: 5px;
+  border: 0;
+  border-radius: 0;
+  background: #383d32;
+}
+.party-full-stats meter::-webkit-meter-optimum-value {
+  background: #b6c1a3;
+}
+.party-full-stats meter::-moz-meter-bar {
+  background: #b6c1a3;
+}
+.party-member:last-of-type .party-full-stats {
+  grid-template-columns: 1fr;
+}
+.party-compact {
+  display: none;
+}
+.status-shell .rpg-dock {
+  position: static;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  align-self: stretch;
+}
+.status-shell .rpg-dock-controls {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(44px, 1fr));
+  grid-template-rows: repeat(2, minmax(44px, 1fr));
+  grid-template-areas: none;
+  gap: 3px;
+}
+.status-shell .rpg-dock-controls button {
+  grid-area: auto;
+  min-width: 44px;
+  min-height: 44px;
+  width: auto;
+  height: auto;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid #48513d;
+  background: #1c241c;
+}
+.status-shell .rpg-dock-controls button[aria-current] {
+  border-color: #c4ae76;
+  color: #e8d8af;
+  box-shadow: inset 0 -2px #c4ae76;
+}
+.status-shell .rpg-dock-controls .rpg-dock-advance {
+  background: #ccb67a;
+  color: #171e18;
+  border-color: #e4ce90;
+}
+.status-shell .rpg-dock-advance-icon {
+  border: 0;
+  width: auto;
+  height: auto;
+  background: none;
+  box-shadow: none;
+}
+.status-shell .rpg-dock-advance-icon svg {
+  width: 23px;
+  height: 23px;
+}
+.status-shell .rpg-dock-advance[data-blocked] {
+  background: #4a4938;
+  color: #d0c8ac;
+}
+.dock-label {
+  font-size: 10px;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+.status-detail {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid #b7a06b;
+  background: #1b231c;
+  color: #ece8d8;
+  box-shadow: 0 20px 80px #000a;
+}
+.status-detail::backdrop {
+  background: #080b08c9;
+}
+.status-detail > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid #48513d;
+  position: sticky;
+  top: 0;
+  background: #1b231c;
+}
+.status-detail h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.status-detail button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px;
+}
+.status-detail button:focus-visible {
+  outline: 2px solid #e2c887;
+  outline-offset: -2px;
+}
+.status-detail-body {
+  padding: 12px 20px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.status-detail-body .party-full-stats {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.status-detail-body .party-full-stats > div {
+  font-size: 14px;
+}
+.status-detail > footer {
+  padding: 8px 16px max(12px, env(safe-area-inset-bottom));
+  text-align: right;
+}
+.status-detail > footer button {
+  border: 1px solid #b7a06b;
+}
+.map-viewport {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  container-type: size;
+  display: grid;
+  place-items: safe center;
+  overscroll-behavior: contain;
+}
+.status-shell .action-tree-content.is-map .action-map {
+  position: relative;
+  flex: none;
+  align-self: auto;
+  width: min(100cqw, 178.57cqh, 1000px);
+  min-width: 520px;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 1000 / 560;
+}
+.status-shell .action-map > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+}
+.map-roads {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #d6c18d;
+  stroke-width: 2;
+  stroke-dasharray: 3 9;
+  opacity: 0.7;
+}
+.map-roads circle {
+  stroke-dasharray: 2 8;
+  opacity: 0.5;
+}
+.status-shell .map-marker {
+  left: var(--marker-x);
+  top: var(--marker-y);
+  width: 116px;
+  min-width: 0;
+  min-height: 44px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px;
+}
+.status-shell .map-marker-icon {
+  width: 36px;
+  height: 36px;
+}
+.status-shell .map-marker svg {
+  width: 22px;
+  height: 22px;
+}
+.status-shell .map-marker strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.status-shell .map-marker small {
+  font-size: 10px;
+}
+.status-shell .tree-back,
+.status-shell .map-footer button,
+.status-shell .tree-dialog-actions button {
+  min-height: 44px;
+}
+.status-shell .map-footer {
+  max-height: 70px;
+  overflow: auto;
+}
+@media (max-width: 1200px) and (min-width: 1024px) {
+  .rpg-bottom {
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) 156px;
+  }
+  .status-shell .rpg-party {
+    gap: 8px;
+  }
+  .status-shell .party-member {
+    padding-right: 8px;
+  }
+  .party-full-stats {
+    gap: 3px 8px;
+  }
+  .party-full-stats meter {
+    display: none;
+  }
+}
+@media (max-width: 1023px) {
+  .status-shell {
+    grid-template-rows: 44px minmax(0, 1fr) auto;
+    padding-inline: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right));
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
+  }
+  .status-shell .rpg-header {
+    font-size: 11px;
+  }
+  .status-shell .rpg-header .brand {
+    font-size: 17px;
+  }
+  .status-shell .rpg-header a {
+    min-height: 44px;
+  }
+  .rpg-bottom {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding-top: 4px;
+  }
+  .status-shell .rpg-party {
+    gap: 8px;
+  }
+  .status-shell .party-member {
+    padding-right: 8px;
+  }
+  .status-shell .party-member:last-of-type {
+    border-right: 0;
+    padding-right: 0;
+  }
+  .party-desktop {
+    display: none;
+  }
+  .party-compact {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 4px;
+    text-align: left;
+  }
+  .party-compact-name {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  .party-compact-name > span {
+    color: #cdb981;
+  }
+  .party-compact-stats {
+    margin: 2px 0;
+    display: grid;
+    gap: 2px;
+  }
+  .party-compact-stats > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .party-compact-stats dt {
+    color: #aeb5a2;
+  }
+  .party-compact-stats dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .status-shell .rpg-dock-controls {
+    display: flex;
+    gap: 0;
+    height: 48px;
+  }
+  .status-shell .rpg-dock-controls button {
+    flex: 1;
+    padding: 2px;
+    border: 0;
+    border-top: 1px solid #48513d;
+  }
+  .status-shell .rpg-dock-controls .rpg-dock-advance {
+    flex: 1.65;
+    min-width: 80px;
+  }
+  .status-shell .rpg-dock-controls button svg {
+    width: 20px;
+    height: 20px;
+  }
+  .status-detail {
+    margin: auto 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - 20px);
+    border-bottom: 0;
+    animation: status-rise 160ms ease-out;
+  }
+}
+@media (max-width: 640px) {
+  .status-shell .rpg-hud {
+    min-height: 60px;
+  }
+  .status-shell .rpg-age > strong {
+    font-size: 24px;
+  }
+  .status-shell .rpg-age small {
+    font-size: 11px;
+  }
+  .status-shell .rpg-family-status strong {
+    font-size: 10px;
+  }
+  .status-shell .rpg-window-body {
+    padding: 6px;
+  }
+  .status-shell .rpg-window {
+    margin-bottom: 6px;
+  }
+  .status-shell .rpg-caption {
+    padding-block: 2px 4px;
+  }
+  .child-status {
+    padding: 3px 0;
+  }
+  .child-status-heading {
+    margin-bottom: 2px;
+    font-size: 10px;
+  }
+  .child-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .child-status-grid > button {
+    padding: 2px 6px;
+    gap: 1px;
+  }
+  .child-status-grid > button:nth-child(3) {
+    border-left: 0;
+  }
+  .child-status-grid strong {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .child-status-grid > button > span {
+    font-size: 10px;
+  }
+  .status-shell .action-tree-content.is-map .action-map {
+    width: min(100cqw, 78.947cqh);
+    min-width: 280px;
+    aspect-ratio: 600 / 760;
+  }
+  .status-shell .map-marker {
+    width: 104px;
+    padding: 6px;
+  }
+  .status-shell .rpg-party[data-members="4"] {
+    gap: 4px;
+  }
+  .status-shell .rpg-party[data-members="4"] .party-compact-stats > div {
+    flex-wrap: wrap;
+  }
+}
+@media (max-height: 700px) {
+  .status-shell .map-marker {
+    min-height: 44px;
+    flex-direction: row;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px;
+  }
+  .status-shell .map-marker-icon {
+    width: 23px;
+    height: 23px;
+    flex: none;
+  }
+  .status-shell .map-marker svg {
+    width: 16px;
+    height: 16px;
+  }
+  .status-shell .map-marker small {
+    display: none;
+  }
+}
+@keyframes status-rise {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-detail {
+    animation: none;
+  }
+}
+@media (max-height: 500px) and (min-width: 641px) {
+  .status-shell .rpg-hud {
+    min-height: 44px;
+  }
+  .status-shell .rpg-hud-right.has-money-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .status-shell .rpg-family-status strong {
+    font-size: 11px;
+  }
+  .child-status {
+    padding: 0;
+  }
+  .child-status-heading {
+    line-height: 14px;
+    font-size: 10px;
+    margin-bottom: 0;
+  }
+  .child-status-grid > button {
+    padding-block: 0;
+    gap: 0;
+  }
+  .child-status-grid > button > span {
+    line-height: 12px;
+  }
+  .child-status-grid strong {
+    font-size: 11px;
+    line-height: 14px;
+  }
+  .party-compact-name {
+    line-height: 18px;
+  }
+  .party-compact-stats > div {
+    font-size: 10px;
+    line-height: 13px;
+  }
+  .rpg-bottom {
+    gap: 2px;
+  }
+  .status-shell .rpg-caption {
+    padding-block: 1px;
+  }
+  .status-shell .rpg-window-body {
+    padding: 4px;
+  }
+}
+@media (max-width: 640px) {
+  .child-status-heading {
+    line-height: 14px;
+  }
+  .child-status-grid > button {
+    gap: 0;
+  }
+  .child-status-grid > button > span {
+    line-height: 12px;
+  }
+  .child-status-grid strong {
+    line-height: 14px;
+  }
+  .status-shell .rpg-party {
+    gap: 6px;
+  }
+  .status-shell .party-member {
+    padding-right: 6px;
+  }
+  .party-compact {
+    padding-inline: 2px;
+  }
+  .party-compact-stats dt {
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .party-compact-stats dd {
+    white-space: nowrap;
+  }
+}
+@media (max-height: 600px) {
+  .status-shell .rpg-window-body:has(.action-tree-content) {
+    overflow: auto;
+  }
+  .status-shell .action-tree-content.is-category {
+    min-height: 220px;
+  }
+  .status-shell .action-tree-content.is-map {
+    min-height: 180px;
   }
 }
