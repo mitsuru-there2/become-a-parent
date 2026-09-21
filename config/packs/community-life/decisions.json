@@ -3,7 +3,7 @@
     "id": "community-life-workshop",
     "menu": "afterschool",
     "title": "地域の工作会",
-    "reason": "工作教室を体験したことをきっかけに、地域でも作れます。",
+    "reason": "台所科学で小さな博士になった経験を、地域の工作でも生かせます。",
     "kind": "selection",
     "min_age_months": 48,
     "max_age_months": 239,
@@ -51,8 +51,8 @@
     "requires": {
       "history": [
         {
-          "decision": "base-craft-trial",
-          "option": "try",
+          "decision": "afterschool-maker-1-01",
+          "option": "take",
           "after": 0
         }
       ]

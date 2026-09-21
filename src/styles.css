@@ -3875,6 +3875,16 @@ meter::-moz-meter-bar {
 .stage-selection strong {
   font-size: 14px;
 }
+.stage-selection-impact {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.65;
+  color: #d8d1ae;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
 .stage-effect-tags {
   display: flex;
   flex-wrap: wrap;

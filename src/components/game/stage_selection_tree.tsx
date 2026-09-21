@@ -215,10 +215,21 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                                   : "◇ 条件待ち"}
                           </span>
                           <strong>{option.label}</strong>
-                          <small>
-                            {choice.text}
-                            {option.routes!.length === group.routes.length ? " · 全ルート共通" : ""}
-                          </small>
+                          {(choice.text !== option.label ||
+                            option.routes!.length === group.routes.length) && (
+                            <small>
+                              {choice.text !== option.label ? choice.text : ""}
+                              {option.routes!.length === group.routes.length
+                                ? " · 全ルート共通"
+                                : ""}
+                            </small>
+                          )}
+                          <p className="stage-selection-impact">
+                            {
+                              option.effect_details?.find((effect) => effect.duration === "instant")
+                                ?.description
+                            }
+                          </p>
                           <div className="stage-effect-tags">
                             {option.effect_details?.map((effect) => (
                               <em key={effect.duration}>

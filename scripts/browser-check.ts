@@ -1,7 +1,7 @@
 /** 公開UIのみでステージの操作を検証。Browser plugin not available. */
 import { chromium, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
-const out = process.env.BROWSER_ARTIFACTS ?? "/tmp/parent-browser-stage";
+const out = process.env.BROWSER_ARTIFACTS ?? "/tmp/parent-browser-850";
 const url = process.env.GAME_URL ?? "http://127.0.0.1:5173";
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
@@ -97,6 +97,22 @@ try {
   await back.click();
   await expect(next).toBeEnabled();
   await page.screenshot({ path: `${out}/map-desktop.png` });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 });
+    for (const menu of ["education", "home", "grandparents", "afterschool", "work"]) {
+      await page.locator(`[data-menu="${menu}"]`).click();
+      for (const age of ["0〜3歳 · 現在", "4〜7歳", "8〜11歳", "12〜15歳", "16〜19歳"]) {
+        await page.getByRole("button", { name: age, exact: true }).click();
+        const lanes = page.locator(".stage-route");
+        await expect(lanes).toHaveCount(["education", "home"].includes(menu) ? 4 : 3);
+        for (const lane of await lanes.all())
+          await expect(lane.locator(".stage-selection")).toHaveCount(10);
+        await expect(page.locator(".stage-selection-impact").first()).toContainText("支出");
+        await viewport();
+      }
+      await back.click();
+    }
+  }
   for (const [width, height] of [
     [1440, 900],
     [1024, 768],
@@ -117,8 +133,13 @@ try {
     await expect(page.locator('[data-menu="home"]')).toBeFocused();
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('[data-menu="work"]').click();
+  await page.getByRole("button", { name: /不要な仕事道具を大売却/ }).click();
+  await expect(detail).toContainText("入金 125万円");
+  await detail.getByRole("button", { name: "この選択を取得", exact: true }).click();
+  await back.click();
   await page.locator('[data-menu="home"]').click();
-  const trial = page.getByRole("button", { name: /家事支援を試す/ }).first();
+  const trial = page.getByRole("button", { name: /家事ロボ軍団を試験配備する/ }).first();
   await trial.click();
   await expect(detail).toContainText("取得時のみ");
   await detail.getByRole("button", { name: "この選択を取得", exact: true }).click();
@@ -127,7 +148,7 @@ try {
   await trial.click();
   await expect(detail.getByRole("button", { name: "取得済み", exact: true })).toBeDisabled();
   await detail.getByRole("button", { name: "閉じる", exact: true }).click();
-  const help = page.getByRole("button", { name: /家事支援の利用.*定期/ }).first();
+  const help = page.getByRole("button", { name: /住み込み執事に家事を託す/ }).first();
   await help.click();
   await expect(detail).toContainText("このステージ中・毎期");
   await expect(detail.getByRole("button", { name: "この選択を取得", exact: true })).toBeEnabled();
@@ -137,9 +158,9 @@ try {
   await page.reload();
   await dismiss();
   await page.locator('[data-menu="home"]').click();
-  await expect(page.getByRole("button", { name: /家事支援の利用.*定期/ }).first()).toContainText(
-    "取得済み",
-  );
+  await expect(
+    page.getByRole("button", { name: /住み込み執事に家事を託す/ }).first(),
+  ).toContainText("取得済み");
   await back.click();
   for (let n = 0; n < 8; n++) {
     await expect(next).toBeEnabled();
@@ -203,6 +224,8 @@ try {
         "switch-penalty",
         "focus",
         "responsive",
+        "all-85-stage-route-groups-have-10-judgments",
+        "card-cost-and-effect-preview",
       ],
       artifacts: out,
     }),

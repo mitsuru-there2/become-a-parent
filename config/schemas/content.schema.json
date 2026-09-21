@@ -4,6 +4,9 @@
     "life_game": {
       "type": "object",
       "properties": {
+        "judgment_catalog": {
+          "const": "routes-10"
+        },
         "selection_tree": {
           "type": "boolean"
         },

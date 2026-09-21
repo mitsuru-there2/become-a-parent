@@ -93,6 +93,7 @@ export const lifeDecisionSchema = v.pipe(
 );
 export const lifeDecisionsSchema = v.array(lifeDecisionSchema);
 export const lifeGameSchema = v.strictObject({
+  judgment_catalog: v.optional(v.literal("routes-10")),
   selection_tree: v.optional(v.boolean()),
   stage_model: v.optional(v.boolean()),
   crossroads: v.optional(

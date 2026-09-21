@@ -4,161 +4,48 @@ import { createInterface } from "node:readline";
 import { mkdir, appendFile, writeFile, readdir } from "node:fs/promises";
 import type { Request, Response } from "../src/service/service";
 
-type Step = [months: number, decision: string, option: string];
-const routes: Record<string, Step[]> = {
-  rocket: [
-    [0, "story-keepsake", "capsule"],
-    [24, "story-cardboard", "build"],
-    [48, "story-science-entry", "try"],
-    [72, "story-science-fair", "rocket"],
-    [120, "story-invention", "exhibit"],
-    [216, "story-reunion", "open"],
-  ],
-  robot: [
-    [0, "story-keepsake", "album"],
-    [24, "story-cardboard", "theater"],
-    [48, "base-craft-trial", "try"],
-    [54, "base-other-trial", "try"],
-    [72, "story-science-fair", "robot"],
-    [120, "story-invention", "demo"],
-    [216, "story-reunion", "screen"],
-  ],
-  musicTour: [
-    [48, "story-music-trial", "try"],
-    [54, "story-music", "stage"],
-    [96, "story-festival", "national"],
-    [108, "story-music", "standard"],
-    [180, "story-encore", "tour"],
-  ],
-  musicRecord: [
-    [48, "story-music-trial", "try"],
-    [54, "story-music", "stage"],
-    [96, "story-festival", "national"],
-    [108, "story-music", "standard"],
-    [180, "story-encore", "record"],
-  ],
-  musicLocal: [
-    [48, "story-music-trial", "try"],
-    [54, "story-music", "casual"],
-    [96, "story-festival", "local"],
-    [108, "story-music", "standard"],
-  ],
-  sportsNational: [
-    [48, "story-sports-trial", "try"],
-    [54, "story-team", "compete"],
-    [108, "story-cup", "national"],
-    [120, "story-team", "standard"],
-    [180, "story-coach", "clinic"],
-  ],
-  sportsLocal: [
-    [48, "story-sports-trial", "try"],
-    [54, "story-team", "play"],
-    [108, "story-cup", "relay"],
-    [120, "story-team", "standard"],
-    [180, "story-coach", "neighbors"],
-  ],
-  mountains: [
-    [60, "story-camp", "forest"],
-    [108, "story-expedition", "trek"],
-    [156, "story-exchange", "outdoor"],
-  ],
-  railway: [
-    [60, "story-camp", "city"],
-    [108, "story-expedition", "rail"],
-    [156, "story-exchange", "host"],
-  ],
-  scholarship: [
-    [0, "base-learning", "together"],
-    [144, "base-career-talk", "talk"],
-    [150, "base-career-visit", "visit"],
-    [156, "story-exchange", "study"],
-    [180, "story-pathway", "scholarship"],
-    [186, "base-learning", "standard"],
-  ],
-  apprentice: [
-    [144, "base-career-talk", "talk"],
-    [150, "base-career-visit", "visit"],
-    [180, "story-pathway", "apprentice"],
-  ],
-  localCareer: [
-    [144, "base-career-talk", "talk"],
-    [150, "base-career-visit", "visit"],
-    [180, "story-pathway", "local"],
-  ],
-  stall: [
-    [42, "base-grand-visit", "visit"],
-    [48, "story-recipe", "learn"],
-    [78, "base-grand-visit", "visit"],
-    [84, "story-stall", "sell"],
-    [180, "story-recipe-legacy", "book"],
-  ],
-  feast: [
-    [42, "base-grand-visit", "visit"],
-    [48, "story-recipe", "learn"],
-    [84, "story-stall", "feast"],
-    [180, "story-recipe-legacy", "cook"],
-  ],
-  businessFair: [
-    [66, "base-work-consult", "talk"],
-    [72, "story-market", "sell"],
-    [84, "story-venture", "launch"],
-    [96, "story-venture-pivot", "fair"],
-    [108, "story-venture", "standard"],
-    [120, "story-home-project", "move"],
-  ],
-  businessHelp: [
-    [66, "base-work-consult", "talk"],
-    [72, "story-market", "sell"],
-    [84, "story-venture", "launch"],
-    [96, "story-venture-pivot", "delegate"],
-    [108, "story-venture", "standard"],
-    [120, "story-home-project", "studio"],
-  ],
-  smallShop: [
-    [66, "base-work-consult", "talk"],
-    [72, "story-market", "sell"],
-    [84, "story-venture", "small"],
-    [108, "story-venture", "standard"],
-  ],
-  sharedHome: [
-    [72, "story-market", "swap"],
-    [180, "story-independence", "shared"],
-    [216, "story-departure", "share"],
-  ],
-  newHome: [
-    [180, "story-independence", "budget"],
-    [216, "story-departure", "move"],
-  ],
-};
-const routeChoices: Record<string, [string, string][]> = {
-  rocket: [["crossroad-home", "memory"]],
-  robot: [["crossroad-home", "memory"]],
-  musicTour: [["crossroad-afterschool", "music"]],
-  musicRecord: [["crossroad-afterschool", "music"]],
-  musicLocal: [["crossroad-afterschool", "music"]],
-  sportsNational: [["crossroad-afterschool", "sports"]],
-  sportsLocal: [["crossroad-afterschool", "sports"]],
-  mountains: [["crossroad-home", "adventure"]],
-  railway: [["crossroad-home", "adventure"]],
-  stall: [["crossroad-grandparents", "legacy"]],
-  feast: [["crossroad-grandparents", "legacy"]],
-  businessFair: [
-    ["crossroad-work", "venture"],
-    ["crossroad-home", "independence"],
-  ],
-  businessHelp: [
-    ["crossroad-work", "venture"],
-    ["crossroad-home", "independence"],
-  ],
-  smallShop: [["crossroad-work", "venture"]],
-  sharedHome: [
-    ["crossroad-work", "venture"],
-    ["crossroad-home", "independence"],
-  ],
-  newHome: [["crossroad-home", "independence"]],
-};
+// 公開されたID・費用・前提を使う固定プレイ。内部状態は読まない。
+const routes = {
+  research: {
+    school: "home",
+    home: "daily",
+    grandparents: "visit",
+    afterschool: "maker",
+    work: "balance",
+  },
+  music: {
+    school: "private",
+    home: "memory",
+    grandparents: "care",
+    afterschool: "music",
+    work: "balance",
+  },
+  world: {
+    school: "international",
+    home: "adventure",
+    grandparents: "legacy",
+    afterschool: "sports",
+    work: "balance",
+  },
+  career: {
+    school: "public",
+    home: "daily",
+    grandparents: "visit",
+    afterschool: "maker",
+    work: "career",
+  },
+  venture: {
+    school: "public",
+    home: "independence",
+    grandparents: "legacy",
+    afterschool: "maker",
+    work: "venture",
+  },
+} as const;
 const out = process.argv[2] ?? `/tmp/parent-stories-${Date.now()}`;
 const seeds = Number(process.argv[3] ?? 2);
+const onlyRoute = process.argv[4];
+if (onlyRoute && !Object.hasOwn(routes, onlyRoute)) throw new Error("不明な経路です");
 if (!Number.isInteger(seeds) || seeds < 1 || seeds > 20) throw new Error("seedsは1〜20");
 await mkdir(out, { recursive: true });
 if ((await readdir(out)).length) throw new Error("空の出力先を指定してください");
@@ -170,14 +57,8 @@ const iterator = lines[Symbol.asyncIterator]();
 const results: unknown[] = [];
 const covered = new Set<string>();
 try {
-  for (const [route, steps] of Object.entries(routes)) {
-    const seenSteps = new Set<string>();
-    const routeSteps = steps.filter(([, decision, option]) => {
-      const key = `${decision}:${option}`;
-      if (option === "standard" || seenSteps.has(key)) return false;
-      seenSteps.add(key);
-      return true;
-    });
+  for (const [route, selectedRoutes] of Object.entries(routes)) {
+    if (onlyRoute && onlyRoute !== route) continue;
     for (let seed = 0; seed < seeds; seed++) {
       const run = `${route}-${seed}`;
       let response: Response;
@@ -212,7 +93,10 @@ try {
         events.push(...(r.public!.decision_turn?.event_results ?? []).map((e) => e.event_id));
         for (const missing of r.public!.life!.crossroad?.missing ?? []) {
           const choice = r.choices.find((c) => c.event_id === missing.decision_id)!;
-          const desired = routeChoices[route]?.find(([id]) => id === choice.event_id)?.[1];
+          const desired =
+            selectedRoutes[
+              choice.event_id.replace("crossroad-", "") as keyof typeof selectedRoutes
+            ];
           const group = r.public!.life!.route_groups!.find((g) => g.menu === choice.menu)!;
           const option = choice.options.find(
             (o) => o.route === (desired ?? group.previous ?? group.routes[0].id),
@@ -222,30 +106,85 @@ try {
             option_id: option.option_id,
           });
         }
-        for (const [, decision, option] of routeSteps.filter(([age]) => age === months)) {
-          const choice = r.choices.find((c) => c.event_id === decision)!;
-          const target = choice.options.find((o) => o.option_id === `${decision}:${option}`)!;
-          if (!target?.available)
-            throw new Error(
-              `${run}/${months}: ${decision}:${option} ${JSON.stringify(target?.reasons)}`,
-            );
-          r = await call(
-            "choose",
-            `${choice.text}：${target.label}。公開された条件と費用を確認。`,
-            { event_instance: choice.instance_id, option_id: target.option_id },
+        const stage = Math.floor(months / 48);
+        const phase = (months % 48) / 6;
+        const id = (menu: string, branch: string, slot: string) =>
+          `${menu}-${branch}-${stage}-${slot}`;
+        const targets: string[] = [];
+        if (phase === 0) {
+          targets.push(
+            id("education", selectedRoutes.school, "06"),
+            id("afterschool", selectedRoutes.afterschool, "06"),
           );
+          targets.push(id("work", selectedRoutes.work, "06"));
+          if (route === "career" || route === "venture") {
+            targets.push(
+              id("work", selectedRoutes.work, "01"),
+              id("work", selectedRoutes.work, "04"),
+            );
+          } else {
+            targets.push(
+              id("afterschool", selectedRoutes.afterschool, "01"),
+              id("afterschool", selectedRoutes.afterschool, "04"),
+            );
+          }
+          if (selectedRoutes.home === "daily")
+            targets.push(id("home", "daily", "01"), id("home", "daily", "04"));
+        }
+        if (phase === 3) targets.push(id("work", selectedRoutes.work, "07"));
+        if (phase === 5)
+          targets.push(
+            id("home", selectedRoutes.home, "07"),
+            id("home", selectedRoutes.home, "10"),
+          );
+        if (phase === 7)
+          targets.push(
+            id("education", selectedRoutes.school, "01"),
+            id("grandparents", selectedRoutes.grandparents, "01"),
+          );
+        for (const decision of targets) {
+          const choice = r.choices.find((c) => c.event_id === decision)!;
+          const target = choice.options[0];
+          if (target.acquired) continue;
+          if (!target.available)
+            throw new Error(`${run}/${months}: ${decision} ${JSON.stringify(target.reasons)}`);
+          r = await call("choose", `${target.label}。公開された費用・効果・負担を確認して取得。`, {
+            event_instance: choice.instance_id,
+            option_id: target.option_id,
+          });
           covered.add(target.option_id);
           executed++;
+        }
+        // 公開された夫婦関係と効果を読み、高負担の仕事には回復を組み合わせる。
+        if (r.public!.couple <= 4) {
+          const recovery = r.choices.find(
+            (choice) =>
+              !choice.route_choice &&
+              choice.options.some(
+                (option) =>
+                  option.available &&
+                  option.cost === 0 &&
+                  option.effect_details?.some(
+                    (effect) =>
+                      effect.duration === "instant" && effect.description.includes("夫婦の関係 +3"),
+                  ),
+              ),
+          );
+          if (recovery) {
+            const option = recovery.options[0];
+            r = await call("choose", "夫婦関係の公開値が4以下。公開効果のある対話で立て直す。", {
+              event_instance: recovery.instance_id,
+              option_id: option.option_id,
+            });
+            covered.add(option.option_id);
+            executed++;
+          }
         }
         if (!r.public!.forecast!.can_advance)
           throw new Error(JSON.stringify(r.public!.forecast!.reasons));
         r = await call("advance", "取得した選択とルートを維持し、半年進める。");
       }
-      if (
-        r.phase !== "finished" ||
-        r.public!.time.completed_turns !== 40 ||
-        executed !== routeSteps.length
-      )
+      if (r.phase !== "finished" || r.public!.time.completed_turns !== 40)
         throw new Error(`${run}: 未完走`);
       const result = await call("result", "成人後と父母の最期を含む最終結果を確認。");
       const replay = await call("replay", "同じ選択からの再生一致を確認。");
@@ -257,6 +196,7 @@ try {
         versions,
         settings: fingerprint,
         events,
+        executed,
         result: result.payload,
         replay: true,
         turns: 40,

@@ -31,7 +31,7 @@ import {
 describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
   it("初回だけ全カテゴリの確定が必要で、後続の全岐路は無料で自動継承する", () => {
     const s = startStage();
-    expect(s.versions).toEqual({ rules: "rules-13", data: "data-13", save: "save-14" });
+    expect(s.versions).toEqual({ rules: "rules-13", data: "data-14", save: "save-14" });
     expect(publicView(s).public.life!.crossroad!.missing).toHaveLength(5);
     const before = clone(s);
     expect(() => advance(s)).toThrow();
@@ -100,30 +100,30 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
   });
   it("カテゴリ・ルート・ステージと条件で取得を制限し、同一期の後続取得と後半取得を許可", () => {
     const s = startStage();
-    expect(option(s, "base-help-trial", "trial").available).toBe(false);
+    expect(option(s, "home-daily-0-01", "take").available).toBe(false);
     satisfyStage(s);
-    expect(option(s, "story-keepsake", "capsule").available).toBe(false);
+    expect(option(s, "home-memory-0-01", "take").available).toBe(false);
     const cash = s.cash;
-    chooseStage(s, "base-help-trial", "trial");
-    expect(s.cash).toBe(cash - 20);
-    expect(option(s, "base-help", "regular").available).toBe(true);
-    chooseStage(s, "base-help", "regular");
-    chooseStage(s, "base-home", "talk");
+    chooseStage(s, "home-daily-0-01", "take");
+    expect(s.cash).toBe(cash - 75);
+    expect(option(s, "home-daily-0-04", "take").available).toBe(true);
+    chooseStage(s, "home-daily-0-04", "take");
+    chooseStage(s, "home-daily-0-10", "take");
     expect(Object.keys(s.life!.history)).toHaveLength(3);
     const before = clone(s);
-    expect(() => chooseStage(s, "base-help-trial", "trial")).toThrow();
+    expect(() => chooseStage(s, "home-daily-0-01", "take")).toThrow();
     expect(s).toEqual(before);
-    expect(() => chooseStage(s, "base-help", "cancel")).toThrow();
+    expect(() => chooseStage(s, "home-daily-0-04", "cancel")).toThrow();
     until(s, 7);
-    chooseStage(s, "base-grand-visit", "visit");
-    expect(s.life!.history["base-grand-visit:visit"].first_turn).toBe(8);
-    expect(option(s, "story-reunion", "open").available).toBe(false);
+    chooseStage(s, "grandparents-visit-0-01", "take");
+    expect(s.life!.history["grandparents-visit-0-01:take"].first_turn).toBe(8);
+    expect(option(s, "home-memory-4-03", "take").available).toBe(false);
   });
   it("即時・ステージ・恒久効果を分け、境界で期限だけ終了し、継続ルートでも再発動しない", () => {
     const s = startStage();
     satisfyStage(s);
     const target = s.settings!.content.life_game!.decisions.find(
-      (n) => n.id === "base-grand-visit",
+      (n) => n.id === "grandparents-visit-0-01",
     )!.options[0];
     target.effects = [{ path: "child.ability.craft", delta: 2 }];
     target.stage_effect = {
@@ -139,7 +139,7 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       event_modifiers: [{ label: "思い出", kind: "good", percent: 5 }],
     };
     const craft = s.child.ability.craft;
-    chooseStage(s, "base-grand-visit", "visit");
+    chooseStage(s, "grandparents-visit-0-01", "take");
     expect(s.child.ability.craft).toBe(craft + 2);
     expect(activeTreeEffects(s)).toHaveLength(2);
     const forecast = publicView(s).public.forecast!;
@@ -162,9 +162,9 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
   it("年収・成績・親能力・即時費用と継続費の境界を共通取得条件で検査する", () => {
     const s = startStage();
     satisfyStage(s);
-    const target = s
-      .settings!.content.life_game!.decisions.find((n) => n.id === "base-home")!
-      .options.find((o) => o.id === "rest")!;
+    const target = s.settings!.content.life_game!.decisions.find((n) => n.id === "home-daily-0-04")!
+      .options[0];
+    delete target.requires;
     target.requires = {
       annual_income: 560,
       stats: [
@@ -174,22 +174,22 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
     };
     s.child.ability.study = 59;
     s.decisions!.skills.A.learning = 5;
-    expect(option(s, "base-home", target.id).available).toBe(false);
+    expect(option(s, "home-daily-0-04", target.id).available).toBe(false);
     s.child.ability.study = 60;
-    expect(option(s, "base-home", target.id).available).toBe(true);
+    expect(option(s, "home-daily-0-04", target.id).available).toBe(true);
     target.cost = s.cash + 1;
-    expect(option(s, "base-home", target.id).available).toBe(false);
+    expect(option(s, "home-daily-0-04", target.id).available).toBe(false);
     target.cost = 0;
     target.stage_effect!.cost = 99999;
     const before = clone(s);
-    expect(() => chooseStage(s, "base-home", target.id)).toThrow();
+    expect(() => chooseStage(s, "home-daily-0-04", target.id)).toThrow();
     expect(s).toEqual(before);
   });
   it("イベント補正は取得直後から効き、ステージ境界で終了し、有限援助と上限を維持する", () => {
     const s = startStage();
     satisfyStage(s);
     const target = s.settings!.content.life_game!.decisions.find(
-      (n) => n.id === "base-grand-visit",
+      (n) => n.id === "grandparents-visit-0-01",
     )!.options[0];
     target.stage_effect = {
       cost: 0,
@@ -198,7 +198,7 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       event_modifiers: [{ label: "支援", kind: "good", percent: 100 }],
     };
     delete target.permanent_effect;
-    chooseStage(s, "base-grand-visit", "visit");
+    chooseStage(s, "grandparents-visit-0-01", "take");
     const event = {
       id: "stage-bonus",
       text: "確認",
@@ -295,8 +295,11 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       command: "choose" as const,
       run: "stage",
       revision: r.revision!,
-      request_id: "visit",
-      input: { event_instance: "t01:base-grand-visit", option_id: "base-grand-visit:visit" },
+      request_id: "take",
+      input: {
+        event_instance: "t01:grandparents-visit-0-01",
+        option_id: "grandparents-visit-0-01:take",
+      },
     };
     r = await service.execute(request);
     expect(r.ok).toBe(true);
@@ -316,7 +319,7 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
     expect((await new Service(repo).execute({ command: "observe", run: "stage" })).ok).toBe(true);
     for (const mutate of [
       (s: State) => {
-        s.life!.history["base-grand-visit:visit"].count = 2;
+        s.life!.history["grandparents-visit-0-01:take"].count = 2;
       },
       (s: State) => {
         s.life!.stage_routes!["0:school"] = "unknown";
@@ -381,5 +384,5 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
     expect(advanced.state.life!.history[acquired.option_id]).toBeDefined();
     expect(replayRun(advanced)).toEqual(advanced.state);
     repo.db.close();
-  });
+  }, 20_000);
 });

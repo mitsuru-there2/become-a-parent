@@ -112,7 +112,10 @@ export function validateRun(run: Run) {
     (version?.save === "save-11" && version.rules === "rules-10" && version.data === "data-10") ||
     (version?.save === "save-12" && version.rules === "rules-11" && version.data === "data-11") ||
     (version?.save === "save-13" && version.rules === "rules-12" && version.data === "data-12") ||
-    (version?.save === "save-14" && version.rules === "rules-13" && version.data === "data-13");
+    (version?.save === "save-14" &&
+      version.rules === "rules-13" &&
+      version.data ===
+        (run.state.settings?.content?.life_game?.judgment_catalog ? "data-14" : "data-13"));
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {

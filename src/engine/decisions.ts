@@ -77,7 +77,11 @@ export function startDecisions(
   const state = start(scenario, seed, settings);
   state.versions =
     rules === "rules-13"
-      ? { rules, data: "data-13", save: "save-14" }
+      ? {
+          rules,
+          data: settings.content.life_game?.judgment_catalog ? "data-14" : "data-13",
+          save: "save-14",
+        }
       : rules === "rules-12"
         ? { rules, data: "data-12", save: "save-13" }
         : rules === "rules-11"

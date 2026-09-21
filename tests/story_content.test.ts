@@ -12,34 +12,26 @@ import {
   stageOption,
 } from "./fixtures/stage_helpers";
 
-describe("ステージ内取得と世代をまたぐ物語", () => {
-  it("幼児期の取得履歴を最終ステージの異なる思い出へ接続する", () => {
-    for (const [keepsake, reunion, other] of [
-      ["capsule", "open", "screen"],
-      ["album", "screen", "open"],
-    ]) {
+describe("850判断の物語と期限", () => {
+  it("幼児期の宝箱だけが最後のステージで開封を解放する", () => {
+    for (const keepsake of [true, false]) {
       const s = startStage();
       chooseStage(s, "crossroad-home", "memory");
       satisfyStage(s);
-      chooseStage(s, "story-keepsake", keepsake);
-      expect(stageOption(s, "story-keepsake", keepsake).available).toBe(false);
+      if (keepsake) chooseStage(s, "home-memory-0-01", "take");
       until(s, 32);
-      satisfyStage(s);
-      expect(stageOption(s, "story-reunion", reunion).available).toBe(true);
-      expect(stageOption(s, "story-reunion", other).available).toBe(false);
-      chooseStage(s, "story-reunion", reunion);
+      expect(stageOption(s, "home-memory-4-03", "take").available).toBe(keepsake);
+      if (keepsake) chooseStage(s, "home-memory-4-03", "take");
       until(s, 40);
       expect(s.phase).toBe("finished");
     }
   });
-  it("同一期に音楽を始め、ステージ終了で専用イベントを止めても後年の大会は履歴から選べる", () => {
+  it("音楽教室のイベントは期間内だけ発生し、次のステージは独自の大会を選べる", () => {
     const s = startStage();
     until(s, 8);
     chooseStage(s, "crossroad-afterschool", "music");
-    satisfyStage(s);
-    chooseStage(s, "story-music-trial", "try");
-    expect(stageOption(s, "story-music", "stage").available).toBe(true);
-    chooseStage(s, "story-music", "stage");
+    chooseStage(s, "afterschool-music-1-01", "take");
+    chooseStage(s, "afterschool-music-1-04", "take");
     advance(s);
     const event = clone(
       defaultContent.automatic_events!.find((e) => e.id === "story-amp-trouble")!,
@@ -49,27 +41,27 @@ describe("ステージ内取得と世代をまたぐ物語", () => {
     expect(applyAutomaticEvents(s)?.events[0].event_id).toBe(event.id);
     s.settings!.content.automatic_events = [];
     until(s, 16);
-    satisfyStage(s);
     s.settings!.content.automatic_events = [event];
     expect(applyAutomaticEvents(s)).toBeNull();
-    expect(stageOption(s, "story-festival", "national").available).toBe(true);
-    chooseStage(s, "story-festival", "national");
-    expect(stageOption(s, "story-music", "stage").available).toBe(false);
+    expect(stageOption(s, "afterschool-music-2-01", "take").available).toBe(true);
+    chooseStage(s, "afterschool-music-2-01", "take");
+    expect(stageOption(s, "afterschool-music-1-04", "take").available).toBe(false);
   });
-  it("起業の即時費用・継続収支が一致し、次の岐路で継続収支と専用イベントを終了", () => {
+  it("起業は大幅な収入と負担を生み、次の岐路で収支と専用イベントが終了する", () => {
     const s = startStage();
     until(s, 8);
     chooseStage(s, "crossroad-work", "venture");
-    satisfyStage(s);
-    chooseStage(s, "story-market", "sell");
-    chooseStage(s, "base-work-consult", "talk");
+    chooseStage(s, "work-venture-1-01", "take");
     const cash = s.cash;
-    chooseStage(s, "story-venture", "launch");
-    expect(s.cash).toBe(cash - 100);
+    chooseStage(s, "work-venture-1-04", "take");
+    expect(s.cash).toBe(cash - 65);
     const forecast = publicView(s).public.forecast!;
-    expect(forecast.income).toBe(355);
+    expect(forecast.income).toBe(460);
     advance(s);
     expect(s.cash).toBe(forecast.projected_cash);
+    // 継続負担を家族の回復で受け止めて境界まで進める。
+    chooseStage(s, "home-daily-1-01", "take");
+    chooseStage(s, "home-daily-1-04", "take");
     until(s, 16);
     expect(publicView(s).public.forecast!.income).toBe(280);
     const event = clone(defaultContent.automatic_events!.find((e) => e.id === "story-big-order")!);
@@ -77,11 +69,10 @@ describe("ステージ内取得と世代をまたぐ物語", () => {
     s.settings!.content.automatic_events = [event];
     expect(applyAutomaticEvents(s)).toBeNull();
   });
-  it("現行DLCもルート条件と一度限りの即時取得・永久補正を共有する", () => {
+  it("DLCは本編850判断へ追加し、工作の履歴から取得できる", () => {
     const s = startDecisions("home-01", 0, new Catalog().resolve("normal", ["community-life"]));
     until(s, 8);
-    satisfyStage(s);
-    chooseStage(s, "base-craft-trial", "try");
+    chooseStage(s, "afterschool-maker-1-01", "take");
     expect(stageOption(s, "community-life-workshop", "join").available).toBe(true);
     chooseStage(s, "community-life-workshop", "join");
     expect(s.life!.history["community-life-workshop:join"].count).toBe(1);

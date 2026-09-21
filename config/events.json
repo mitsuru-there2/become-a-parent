@@ -926,8 +926,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-cardboard",
-          "option": "build",
+          "decision": "afterschool-maker-0-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -935,7 +935,7 @@
   },
   {
     "id": "story-dragon-encore",
-    "text": "タオルのドラゴン劇にアンコール！ 子どもが新しい歌まで作り、家族の小劇場が大盛況になった。",
+    "text": "鍋とお玉の赤ちゃん楽団にアンコール！ 家族の庭が小さな音楽堂になり、次の一曲にも拍手が起きた。",
     "kind": "good",
     "min_age_months": 30,
     "max_age_months": 77,
@@ -957,8 +957,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-cardboard",
-          "option": "theater",
+          "decision": "afterschool-music-0-09",
+          "option": "take",
           "after": 0
         }
       ]
@@ -988,8 +988,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-science-fair",
-          "option": "rocket",
+          "decision": "afterschool-maker-1-05",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1019,8 +1019,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-science-fair",
-          "option": "robot",
+          "decision": "afterschool-maker-1-03",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1028,7 +1028,7 @@
   },
   {
     "id": "story-invention-award",
-    "text": "全国展示の宇宙基地に審査員が大注目！ 特別賞と活動奨励金120万円。家の小さなお城から、ずいぶん遠くへ来た。",
+    "text": "全国の発明コンクールで特別賞！ 活動奨励金120万円。家族で作った作品が、知らない誰かにも届いた。",
     "kind": "good",
     "min_age_months": 126,
     "max_age_months": 234,
@@ -1050,8 +1050,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-invention",
-          "option": "exhibit",
+          "decision": "afterschool-maker-2-05",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1059,7 +1059,7 @@
   },
   {
     "id": "story-robot-order",
-    "text": "実演した靴下ロボに注文が入った！ 材料費を引いて80万円の収入。家族で最初の発送箱を見送った。",
+    "text": "全国大会で実演したロボットに注文が入った！ 材料費を引いて80万円の収入。家族で最初の発送箱を見送った。",
     "kind": "good",
     "min_age_months": 126,
     "max_age_months": 234,
@@ -1081,8 +1081,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-invention",
-          "option": "demo",
+          "decision": "afterschool-maker-2-09",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1093,7 +1093,7 @@
     "text": "気ままなセッションに近所の人が手拍子。予定外の小さなライブで、いつもの一曲が好きになった。",
     "kind": "good",
     "min_age_months": 54,
-    "max_age_months": 215,
+    "max_age_months": 95,
     "probability": 18,
     "conditions": [],
     "modifiers": [],
@@ -1112,8 +1112,8 @@
     "requires": {
       "policies": [
         {
-          "decision": "story-music",
-          "option": "casual"
+          "decision": "afterschool-music-1-04",
+          "option": "take"
         }
       ]
     }
@@ -1123,7 +1123,7 @@
     "text": "本番練習でアンプが沈黙！ 修理代は痛いが、急きょ始めた生演奏に仲間が笑った。",
     "kind": "bad",
     "min_age_months": 54,
-    "max_age_months": 215,
+    "max_age_months": 95,
     "probability": 16,
     "conditions": [],
     "modifiers": [],
@@ -1142,8 +1142,8 @@
     "requires": {
       "policies": [
         {
-          "decision": "story-music",
-          "option": "stage"
+          "decision": "afterschool-music-1-04",
+          "option": "take"
         }
       ]
     }
@@ -1172,8 +1172,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-festival",
-          "option": "national",
+          "decision": "afterschool-music-2-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1207,8 +1207,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-encore",
-          "option": "tour",
+          "decision": "afterschool-music-3-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1238,8 +1238,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-cup",
-          "option": "relay",
+          "decision": "afterschool-sports-1-05",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1269,8 +1269,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-cup",
-          "option": "national",
+          "decision": "afterschool-sports-2-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1281,7 +1281,7 @@
     "text": "チームの道具が一斉に限界！ 買い替えの出費に、送迎係も思わず深いため息。",
     "kind": "bad",
     "min_age_months": 54,
-    "max_age_months": 215,
+    "max_age_months": 95,
     "probability": 16,
     "conditions": [],
     "modifiers": [],
@@ -1300,8 +1300,8 @@
     "requires": {
       "policies": [
         {
-          "decision": "story-team",
-          "option": "compete"
+          "decision": "afterschool-sports-1-04",
+          "option": "take"
         }
       ]
     }
@@ -1330,8 +1330,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-camp",
-          "option": "forest",
+          "decision": "home-adventure-1-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1365,8 +1365,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-expedition",
-          "option": "trek",
+          "decision": "home-adventure-2-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1396,8 +1396,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-expedition",
-          "option": "rail",
+          "decision": "home-adventure-2-03",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1427,8 +1427,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-exchange",
-          "option": "study",
+          "decision": "education-international-3-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1458,8 +1458,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-exchange",
-          "option": "outdoor",
+          "decision": "home-adventure-3-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1493,8 +1493,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-exchange",
-          "option": "host",
+          "decision": "home-adventure-3-03",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1528,8 +1528,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-stall",
-          "option": "sell",
+          "decision": "grandparents-legacy-1-06",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1559,8 +1559,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-stall",
-          "option": "sell",
+          "decision": "grandparents-legacy-1-06",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1590,8 +1590,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-stall",
-          "option": "feast",
+          "decision": "grandparents-legacy-1-05",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1602,7 +1602,7 @@
     "text": "週末のお店に初めての常連さん。「また来たよ」の一言に、準備の疲れが少し軽くなった。",
     "kind": "good",
     "min_age_months": 90,
-    "max_age_months": 234,
+    "max_age_months": 95,
     "probability": 18,
     "conditions": [],
     "modifiers": [],
@@ -1621,18 +1621,18 @@
     "requires": {
       "policies": [
         {
-          "decision": "story-venture",
-          "option": "small"
+          "decision": "work-venture-1-04",
+          "option": "take"
         }
       ]
     }
   },
   {
     "id": "story-big-order",
-    "text": "本格オープンした工房に、まさかの大口注文！ 経費を引いて100万円の臨時収入。家族会議の声も大きくなった。",
+    "text": "週末のお店に、まさかの大口注文！ 経費を引いて100万円の臨時収入。家族会議の声も大きくなった。",
     "kind": "good",
     "min_age_months": 90,
-    "max_age_months": 234,
+    "max_age_months": 95,
     "probability": 20,
     "conditions": [],
     "modifiers": [],
@@ -1651,18 +1651,18 @@
     "requires": {
       "policies": [
         {
-          "decision": "story-venture",
-          "option": "launch"
+          "decision": "work-venture-1-04",
+          "option": "take"
         }
       ]
     }
   },
   {
     "id": "story-shop-repair",
-    "text": "工房の機械が故障し、納期の前に大騒ぎ。修理費と調整の負担で、店主もひと休みが必要になった。",
+    "text": "お店の機械が故障し、納期の前に大騒ぎ。修理費と調整の負担で、店主もひと休みが必要になった。",
     "kind": "bad",
     "min_age_months": 90,
-    "max_age_months": 234,
+    "max_age_months": 95,
     "probability": 16,
     "conditions": [],
     "modifiers": [],
@@ -1681,8 +1681,8 @@
     "requires": {
       "policies": [
         {
-          "decision": "story-venture",
-          "option": "launch"
+          "decision": "work-venture-1-04",
+          "option": "take"
         }
       ]
     }
@@ -1692,7 +1692,7 @@
     "text": "商談会で交わした名刺が大きな契約に！ 経費差引で150万円。あの一日店長の看板がまだ店に飾られている。",
     "kind": "good",
     "min_age_months": 102,
-    "max_age_months": 234,
+    "max_age_months": 143,
     "probability": 25,
     "conditions": [],
     "modifiers": [],
@@ -1711,15 +1711,15 @@
     "requires": {
       "history": [
         {
-          "decision": "story-venture-pivot",
-          "option": "fair",
+          "decision": "work-venture-2-05",
+          "option": "take",
           "after": 0
         }
       ],
       "policies": [
         {
-          "decision": "story-venture",
-          "option": "launch"
+          "decision": "work-venture-2-04",
+          "option": "take"
         }
       ]
     }
@@ -1728,7 +1728,7 @@
     "id": "story-new-town",
     "text": "新天地の近所からお祭りのお誘い。引っ越し箱が片付く前に、新しい顔見知りができた。",
     "kind": "good",
-    "min_age_months": 102,
+    "min_age_months": 198,
     "max_age_months": 234,
     "probability": 40,
     "conditions": [],
@@ -1752,8 +1752,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-home-project",
-          "option": "move",
+          "decision": "home-independence-4-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1763,7 +1763,7 @@
     "id": "story-scholarship-result",
     "text": "奨学生の選考に合格！ 進学準備の給付金100万円。本人が書いた志望理由書を、家族でもう一度読んだ。",
     "kind": "good",
-    "min_age_months": 186,
+    "min_age_months": 198,
     "max_age_months": 234,
     "probability": 30,
     "conditions": [],
@@ -1783,8 +1783,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-pathway",
-          "option": "scholarship",
+          "decision": "education-public-4-05",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1794,7 +1794,7 @@
     "id": "story-apprentice-piece",
     "text": "体験先の工房から、本人の作品を店頭に置きたいと連絡。小さな売上15万円より、名札の自分の名前がまぶしい。",
     "kind": "good",
-    "min_age_months": 186,
+    "min_age_months": 198,
     "max_age_months": 234,
     "probability": 35,
     "conditions": [],
@@ -1814,8 +1814,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-pathway",
-          "option": "apprentice",
+          "decision": "education-home-4-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1825,7 +1825,7 @@
     "id": "story-local-path",
     "text": "見学した地域の職場で顔を覚えてもらえた。「また話を聞きにおいで」。身近な場所に将来の入口が見えた。",
     "kind": "good",
-    "min_age_months": 186,
+    "min_age_months": 198,
     "max_age_months": 234,
     "probability": 35,
     "conditions": [],
@@ -1845,8 +1845,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-pathway",
-          "option": "local",
+          "decision": "education-public-4-03",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1880,8 +1880,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-departure",
-          "option": "move",
+          "decision": "home-independence-4-01",
+          "option": "take",
           "after": 0
         }
       ]
@@ -1915,8 +1915,8 @@
     "requires": {
       "history": [
         {
-          "decision": "story-departure",
-          "option": "share",
+          "decision": "home-independence-4-03",
+          "option": "take",
           "after": 0
         }
       ]
