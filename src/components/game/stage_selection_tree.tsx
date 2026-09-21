@@ -36,6 +36,11 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
   const missing = life.crossroad?.missing ?? [];
   const changeable = life.crossroad?.changeable ?? [];
   const canChangeRoute = changeable.some((item) => item.menu === menu);
+  const availableMenus = new Set(
+    choices
+      .filter((choice) => !choice.route_choice && choice.options.some((option) => option.available))
+      .map((choice) => choice.menu),
+  );
   useEffect(() => {
     if (menu) heading.current?.focus();
   }, [menu]);
@@ -142,7 +147,7 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
             <span>
               {currentView
                 ? group.current
-                  ? "条件を満たせば、ステージ中いつでも取得できます。"
+                  ? "選択中のルートの判断だけ取得できます。ほかのルートは閲覧のみです。"
                   : "岐路で、このステージのルートを確定してください。"
                 : "別のステージを閲覧しています。取得は対象ステージで行います。"}
             </span>
@@ -152,6 +157,7 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
               {group.routes.map((route) => {
                 const routeOption = routeChoice.options.find((o) => o.route === route.id)!;
                 const chosen = group.chosen_stages?.[String(viewStage)] === route.id;
+                const inactive = currentView && !!group.current && !chosen;
                 const candidates = visibleChoices
                   .flatMap((choice) =>
                     choice.options
@@ -161,19 +167,21 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                   .sort((a, b) => a.option.routes!.length - b.option.routes!.length);
                 return (
                   <section
-                    className={`stage-route ${chosen ? "is-current" : ""}`}
+                    className={`stage-route ${chosen ? "is-current" : inactive ? "is-inactive" : ""}`}
                     key={route.id}
                     aria-label={`${route.label}ルート`}
                   >
                     <header className="stage-route-heading">
                       <span>
                         {chosen
-                          ? canChangeRoute && currentView
-                            ? "✓ 引き継いだルート"
-                            : "✓ 確定したルート"
-                          : currentView && group.previous === route.id
-                            ? "前のステージのルート"
-                            : "ルート"}
+                          ? currentView
+                            ? "✓ 選択中のルート"
+                            : "✓ このステージで選んだルート"
+                          : inactive
+                            ? "— 選択不可・閲覧のみ"
+                            : currentView
+                              ? "ルート未選択"
+                              : "このステージのルート"}
                       </span>
                       <h3>{route.label}</h3>
                       {currentView && (!group.current || (canChangeRoute && !chosen)) ? (
@@ -192,8 +200,8 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                             ? canChangeRoute && currentView
                               ? "変更しなければ、このルートを継続します"
                               : "次の岐路まで変更できません"
-                            : currentView
-                              ? "次の岐路で変更できます"
+                            : inactive
+                              ? "判断の取得には、このルートへの変更が必要です"
                               : "岐路で選べるルート"}
                         </p>
                       )}
@@ -211,9 +219,13 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                               ? "✓ 取得済み"
                               : !currentView
                                 ? "◇ 対象ステージで取得"
-                                : option.available
-                                  ? "○ 取得できます"
-                                  : "◇ 条件待ち"}
+                                : inactive
+                                  ? "— 別ルートのため選択不可"
+                                  : !group.current
+                                    ? "◇ 先にルートを選択"
+                                    : option.available
+                                      ? "○ 取得できます"
+                                      : "◇ 条件待ち"}
                           </span>
                           <strong>{option.label}</strong>
                           {(choice.text !== option.label ||
@@ -256,6 +268,20 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
         </>
       ) : (
         <>
+          {availableMenus.size > 0 && (
+            <aside className="judgment-alert" role="alert" aria-label="取得可能な判断">
+              <strong>選択中のルートに、取得できる判断があります</strong>
+              <nav aria-label="判断を取得できるカテゴリ">
+                {life.menus
+                  .filter((item) => availableMenus.has(item.id))
+                  .map((item) => (
+                    <button key={item.id} onClick={() => openMenu(item.id)}>
+                      {item.id === "grandparents" ? "実家との関わり" : item.label}へ →
+                    </button>
+                  ))}
+              </nav>
+            </aside>
+          )}
           <p className="stage-map-caption">
             ステージ {currentStage.label} <span>判断カテゴリから、ルートと選択を確認</span>
           </p>

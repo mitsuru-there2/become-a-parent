@@ -3514,6 +3514,12 @@ meter::-moz-meter-bar {
 .stage-tree {
   min-height: 0;
 }
+.stage-tree.is-map {
+  overflow: auto;
+}
+.stage-tree.is-map .map-viewport {
+  min-height: 160px;
+}
 .stage-tabs {
   display: flex;
   gap: 6px;
@@ -3568,8 +3574,23 @@ meter::-moz-meter-bar {
   padding: 12px;
 }
 .stage-route.is-current {
-  border-color: #b6c79b;
+  border-color: #e2c783;
   background: #293222;
+  box-shadow: inset 0 0 0 1px #b69e61;
+}
+.stage-route.is-inactive {
+  border-top-style: dashed;
+  border-color: #666a63;
+  background: #202320;
+}
+.stage-route.is-inactive .stage-selection:not(.is-acquired) {
+  background: #1c1e1c;
+  border-color: #565a53;
+  border-style: dashed;
+  box-shadow: none;
+}
+.stage-route.is-inactive .stage-selection-impact {
+  color: #b8bab0;
 }
 .stage-route-heading {
   min-height: 115px;
@@ -3580,6 +3601,16 @@ meter::-moz-meter-bar {
   font-size: 10px;
   letter-spacing: 0.07em;
   color: #b7b99e;
+}
+.stage-route.is-current .stage-route-heading > span {
+  display: inline-block;
+  padding: 4px 7px;
+  background: #e2c783;
+  color: #28291e;
+  font-weight: 700;
+}
+.stage-route.is-inactive .stage-route-heading > span {
+  color: #c3c5bb;
 }
 .stage-route-heading h3 {
   margin: 7px 0 10px;
@@ -3665,6 +3696,31 @@ meter::-moz-meter-bar {
   font-size: 12px;
   flex-shrink: 0;
 }
+.judgment-alert {
+  flex-shrink: 0;
+  margin: 4px 12px;
+  padding: 8px 12px;
+  border: 1px solid #a7b986;
+  border-left-width: 4px;
+  background: #293222;
+  color: #edf1df;
+  font-size: 12px;
+}
+.judgment-alert nav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-top: 4px;
+}
+.judgment-alert button {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid #7b8c66;
+  background: #1c2518;
+  color: #edf1df;
+  white-space: nowrap;
+}
 .stage-map-caption span {
   color: #b7b69e;
   margin-left: 12px;
@@ -3729,7 +3785,6 @@ meter::-moz-meter-bar {
     min-height: 0;
     padding-bottom: 6px;
   }
-  .stage-tree .stage-route-heading > span,
   .stage-tree .stage-route-heading > p {
     display: none;
   }

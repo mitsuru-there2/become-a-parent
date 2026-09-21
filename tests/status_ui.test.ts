@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
 import "fake-indexeddb/auto";
 import { createElement, type ReactNode } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeAll, afterAll, expect, it, vi } from "vite-plus/test";
 import { ChildStatus } from "../src/components/game/child_status";
 import { PartyStatus } from "../src/components/game/party_status";
 import { publicView, start } from "../src/engine/simulation";
+import { chooseDecision } from "../src/engine/decisions";
+import { StageSelectionTree } from "../src/components/game/stage_selection_tree";
+import { chooseStage, startStage, until } from "./fixtures/stage_helpers";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: ReactNode }) => createElement("a", null, children),
@@ -155,4 +158,66 @@ it("岐路の必須選択が残る間は半年進行ボタンを無効にする"
   expect(advance.getAttribute("title")).toBe("ホームで残りのルートを選んでください");
   fireEvent.click(advance);
   expect(update).not.toHaveBeenCalled();
+});
+
+it("現在ルートの取得可能な判断だけを通知し、取得後に通知を更新する", () => {
+  const state = startStage();
+  const props = () => {
+    const view = publicView(state);
+    return { state: view.public, choices: view.choices };
+  };
+  const { rerender } = render(createElement(StageSelectionTree, props()));
+  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+  chooseStage(state, "crossroad-school", "public");
+  rerender(createElement(StageSelectionTree, props()));
+  const alert = screen.getByRole("alert", { name: "取得可能な判断" });
+  expect(within(alert).getAllByRole("button")).toHaveLength(1);
+  fireEvent.click(within(alert).getByRole("button", { name: "教育・進路へ →" }));
+  expect(screen.getByRole("heading", { name: "教育・進路" })).toBeTruthy();
+  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "← ホームに戻る" }));
+  // 公開された取得可能な判断をすべて取得し、取得済み・条件待ち・別ステージだけにする。
+  for (;;) {
+    const choice = publicView(state).choices.find(
+      (item) => !item.route_choice && item.options.some((option) => option.available),
+    );
+    if (!choice) break;
+    const option = choice.options.find((item) => item.available)!;
+    chooseDecision(state, choice.instance_id, option.option_id);
+  }
+  rerender(createElement(StageSelectionTree, props()));
+  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+});
+
+it("別ルートは閲覧専用と示して取得を拒否し、将来ステージと岐路の変更を区別する", () => {
+  const state = startStage();
+  chooseStage(state, "crossroad-school", "public");
+  const props = () => {
+    const view = publicView(state);
+    return { state: view.public, choices: view.choices };
+  };
+  const { container, rerender } = render(createElement(StageSelectionTree, props()));
+  fireEvent.click(
+    within(screen.getByRole("alert", { name: "取得可能な判断" })).getByRole("button"),
+  );
+  expect(screen.getByText("✓ 選択中のルート")).toBeTruthy();
+  expect(screen.getAllByText("— 選択不可・閲覧のみ")).toHaveLength(3);
+  const otherRoute = container.querySelector<HTMLElement>(".stage-route.is-inactive")!;
+  const candidate = within(otherRoute).getAllByRole("button")[0];
+  expect(candidate.textContent).toContain("別ルートのため選択不可");
+  fireEvent.click(candidate);
+  const detail = screen.getByRole("dialog");
+  expect(
+    (within(detail).getByRole("button", { name: "この選択を取得" }) as HTMLButtonElement).disabled,
+  ).toBe(true);
+  fireEvent.click(within(detail).getByRole("button", { name: "閉じる" }));
+  expect(document.activeElement).toBe(candidate);
+  fireEvent.click(screen.getByRole("button", { name: "4〜7歳" }));
+  expect(screen.queryByText("✓ 選択中のルート")).toBeNull();
+  expect(screen.queryByText("— 選択不可・閲覧のみ")).toBeNull();
+  expect(screen.getAllByText("◇ 対象ステージで取得").length).toBeGreaterThan(0);
+  until(state, 8);
+  rerender(createElement(StageSelectionTree, props()));
+  expect(screen.getByText("✓ 選択中のルート")).toBeTruthy();
+  expect(screen.getAllByRole("button", { name: /このルートを確認/ })).toHaveLength(3);
 });
