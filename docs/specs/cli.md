@@ -1,5 +1,10 @@
 # CLI・保存・公開情報の契約
 
+## 現行ステージ方式の操作（D-068）
+
+rules-13 / data-13 / save-14では[S-018](selection-tree.md)を優先します。`choose` は `choices` に公開された `crossroad-<group>` のルート、または通常の選択を即時確定し、その操作自体を保存・再生ログへ記録します。`advance` は岐路の全カテゴリ確定後に利用できます。`life.stage` / `stages` / `route_groups` / `crossroad` と各選択の `stages` / `routes` / `effect_details` で条件・対象期間・効果を発見できます。現行のコマンド一覧から`reset-plan`を除き、直接送信されても拒否します。旧保存の移行処理は追加しません。
+
+
 [SPEC索引](../SPEC.md)のS-007・S-008・S-011を担当する。2026-09-15、cli-2 / save-2。D-023・[S-014](web.md)により旧Godot・Python・SQLiteの実装契約を置き換える。育児規則は[core](core.md)、成人後は[ending](ending.md)。
 
 ## S-008：技術構成と抽選

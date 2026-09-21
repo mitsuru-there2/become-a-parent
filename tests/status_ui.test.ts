@@ -115,7 +115,7 @@ it("岐路の必須選択が残る間は半年進行ボタンを無効にする"
   render(createElement(DecisionPlay, { response }));
   const advance = screen.getByRole("button", { name: "この暮らしで半年進める →" });
   expect((advance as HTMLButtonElement).disabled).toBe(true);
-  expect(advance.getAttribute("title")).toBe("マップで残りの方針を選んでください");
+  expect(advance.getAttribute("title")).toBe("マップで残りのルートを選んでください");
   fireEvent.click(advance);
   expect(update).not.toHaveBeenCalled();
 });

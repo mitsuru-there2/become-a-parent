@@ -9,9 +9,16 @@ import { draw, observeChild } from "./simulation";
 import { activeTreeEffects, modifiedDelta, treeEnabled } from "./tree_effects";
 
 export const automaticEventsEnabled = (state: State) =>
-  ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(
-    state.versions.rules,
-  );
+  [
+    "rules-6",
+    "rules-7",
+    "rules-8",
+    "rules-9",
+    "rules-10",
+    "rules-11",
+    "rules-12",
+    "rules-13",
+  ].includes(state.versions.rules);
 export function applyAutomaticEvents(state: State): History | null {
   const turn = state.n + 1;
   const age = state.n * 6;

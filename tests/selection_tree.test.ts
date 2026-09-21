@@ -2,489 +2,192 @@ import "fake-indexeddb/auto";
 import { describe, expect, it } from "vite-plus/test";
 import { Catalog, defaultContent } from "../src/content/catalog";
 import { clone } from "../src/engine/shared";
-import { startDecisions, chooseDecision, openDecisionTurn } from "../src/engine/decisions";
+import { startDecisions } from "../src/engine/decisions";
 import { advance, publicView } from "../src/engine/simulation";
-import { openLife } from "../src/engine/life";
-import { activeTreeEffects, modifiedDelta } from "../src/engine/tree_effects";
-import { applyAutomaticEvents } from "../src/engine/automatic_events";
+import { activeTreeEffects } from "../src/engine/tree_effects";
+import { validateLifeState } from "../src/engine/life_save";
 import { annualIncome } from "../src/engine/life_requirements";
-import { Service, replayRun, exportRun, importRun, digest } from "../src/service/service";
+import { activeStageEffects } from "../src/engine/stage_state";
+import { applyAutomaticEvents } from "../src/engine/automatic_events";
+import {
+  Service,
+  replayRun,
+  exportRun,
+  importRun,
+  validateRun,
+  digest,
+} from "../src/service/service";
 import { GameDatabase, IndexedRepository } from "../src/storage/indexeddb";
 import type { State } from "../src/engine/types";
-const start = (age = 0) => {
-  const content = clone(defaultContent);
-  content.automatic_events = [];
-  delete content.life_game!.crossroads;
-  const s = startDecisions("home-01", 2, new Catalog(content, []).resolve());
-  s.n = age / 6;
-  openLife(s);
-  return s;
-};
-const satisfyCrossroad = (s: State) => {
-  for (const required of publicView(s).public.life!.crossroad?.missing ?? []) {
-    const node = s.settings!.content.life_game!.decisions.find(
-      (item) => item.id === required.decision_id,
-    )!;
-    choose(s, node.id, node.default_option!);
-  }
-};
-const choices = (s: State) => publicView(s).choices;
-const option = (s: State, id: string, value: string) =>
-  choices(s)
-    .find((c) => c.event_id === id)!
-    .options.find((o) => o.option_id === `${id}:${value}`)!;
-const choose = (s: State, id: string, value: string) =>
-  chooseDecision(s, choices(s).find((c) => c.event_id === id)!.instance_id, `${id}:${value}`);
 
-describe("S-018 選択ツリー", () => {
-  it("岐路では全カテゴリの必須選択を終えるまで進めず、警告から対象を特定できる", () => {
-    const s = startDecisions("home-01", 2, new Catalog().resolve());
-    const initial = publicView(s).public;
-    expect(s.versions).toEqual({ rules: "rules-12", data: "data-12", save: "save-13" });
-    expect(initial.time.child_months).toBe(0);
-    expect(initial.time.season).toBe("春〜夏");
-    expect(initial.life!.crossroad?.label).toBe("0歳・春夏の岐路");
-    expect(initial.life!.crossroad?.missing.map((item) => item.menu)).toEqual([
-      "education",
-      "home",
-      "grandparents",
-      "afterschool",
-      "work",
-    ]);
-    expect(initial.forecast!.can_advance).toBe(false);
-    expect(
-      initial.forecast!.reasons.filter((reason) => reason.code === "CROSSROAD_SELECTION_REQUIRED"),
-    ).toHaveLength(5);
-    expect(() => advance(s)).toThrow("今期の予定と資金を確認してください");
+import {
+  startStage,
+  chooseStage,
+  satisfyStage,
+  until,
+  stageOption as option,
+} from "./fixtures/stage_helpers";
 
-    const [first, ...remaining] = initial.life!.crossroad!.missing;
-    const firstNode = s.settings!.content.life_game!.decisions.find(
-      (item) => item.id === first.decision_id,
-    )!;
-    choose(s, firstNode.id, firstNode.default_option!);
-    expect(publicView(s).public.life!.crossroad?.missing).toEqual(remaining);
-    expect(publicView(s).public.forecast!.can_advance).toBe(false);
-    expect(() => advance(s)).toThrow("今期の予定と資金を確認してください");
-
-    satisfyCrossroad(s);
-    expect(publicView(s).public.life!.crossroad?.missing).toEqual([]);
-    expect(publicView(s).public.forecast!.can_advance).toBe(true);
-    choose(s, "route-home", "cancel");
-    expect(publicView(s).public.life!.crossroad?.missing.map((item) => item.decision_id)).toContain(
-      "route-home",
-    );
-    choose(s, "route-home", "daily");
-    advance(s);
-    expect(s.n).toBe(1);
-  });
-
-  it("資金予測の内訳は、予定を追加した後も収入・支出の合計と一致する", () => {
-    const s = start();
-    const incomeChoice = choices(s)
-      .flatMap((choice) => choice.options.map((option) => ({ choice, option })))
-      .find(({ option }) => option.available && option.income > 0)!;
-    chooseDecision(s, incomeChoice.choice.instance_id, incomeChoice.option.option_id);
-    const forecast = publicView(s).public.forecast!;
-    expect(forecast.cash_flow?.reduce((sum, line) => sum + (line.income ?? 0), 0)).toBe(
-      forecast.income,
-    );
-    expect(forecast.cash_flow?.reduce((sum, line) => sum + (line.cost ?? 0), 0)).toBe(
-      forecast.cost,
-    );
-    expect(forecast.cash_flow?.some((line) => line.income === incomeChoice.option.income)).toBe(
-      true,
-    );
-    expect(forecast.projected_cash).toBe(s.cash + forecast.income - forecast.cost);
-  });
-  it("各実行案へ画像を設定でき、未設定時は共通の仮画像を公開する", () => {
-    const s = start();
-    const selection = option(s, "base-extra-work", "accept");
-    expect(selection.visual).toEqual(s.settings!.content.visuals.hero);
-    const content = clone(defaultContent);
-    content.visuals.custom = { src: "/assets/test/custom.webp", alt: "個別の選択画像" };
-    content.life_game!.decisions.find((d) => d.id === "base-extra-work")!.options[0].visual =
-      "custom";
-    const custom = startDecisions("home-01", 2, new Catalog(content, []).resolve());
-    expect(option(custom, "base-extra-work", "accept").visual).toEqual(content.visuals.custom);
-    content.life_game!.decisions.find((d) => d.id === "base-extra-work")!.options[0].visual =
-      "missing";
-    expect(() => new Catalog(content, []).resolve()).toThrow("base-extra-work.accept.visual");
-  });
-  it("全ノードを公開し、未取得と同一期の連続取得を拒否。取消では履歴・効果を残さない", () => {
-    const s = start(48);
-    expect(choices(s)).toHaveLength(s.settings!.content.life_game!.decisions.length);
-    expect(option(s, "base-craft", "enrolled").available).toBe(false);
-    expect(option(s, "tree-university", "challenge").requirements!.join()).toContain("成績");
-    expect(() => choose(s, "base-craft", "enrolled")).toThrow();
-    choose(s, "base-craft-trial", "try");
-    expect(option(s, "base-craft", "enrolled").available).toBe(false);
-    expect(activeTreeEffects(s)).toEqual([]);
-    choose(s, "base-craft-trial", "cancel");
-    advance(s);
-    expect(activeTreeEffects(s)).toEqual([]);
-    choose(s, "base-craft-trial", "try");
-    advance(s);
-    expect(option(s, "base-craft", "enrolled").available).toBe(true);
-    expect(option(s, "base-craft-trial", "try").acquired).toBe(true);
-    expect(option(s, "base-craft-trial", "try").available).toBe(false);
-    const effects = activeTreeEffects(s);
-    choose(s, "base-craft", "enrolled");
-    advance(s);
-    expect(activeTreeEffects(s).length).toBeGreaterThan(effects.length);
-    choose(s, "base-craft", "standard");
-    advance(s);
-    expect(activeTreeEffects(s)).toEqual(effects);
-  });
-  it("年収・成績・親能力・資金の境界は共通の取得判定で扱う", () => {
-    const s = start(72);
-    s.life!.history["base-school-visit:visit"] = { first_turn: 5, last_turn: 5, count: 1 };
-    const school = s.settings!.content.life_game!.decisions.find((d) => d.id === "tree-primary")!;
-    const requirements = school.options.find((o) => o.id === "private")!.requires!;
-    requirements.annual_income = annualIncome(s) + 1;
-    s.child.ability.study = 20;
-    expect(option(s, school.id, "private").available).toBe(false);
-    requirements.annual_income = annualIncome(s);
-    s.child.ability.study = 19;
-    expect(option(s, school.id, "private").available).toBe(false);
-    s.child.ability.study = 20;
-    s.cash = 71;
-    expect(option(s, school.id, "private").available).toBe(false);
-    s.cash = 72;
-    expect(option(s, school.id, "private").available).toBe(true);
-    const international = school.options.find((o) => o.id === "international")!;
-    international.requires!.annual_income = annualIncome(s);
-    s.cash = 108;
-    s.decisions!.skills.B.dialogue = 4;
-    expect(option(s, school.id, "international").available).toBe(false);
-    s.decisions!.skills.B.dialogue = 5;
-    expect(option(s, school.id, "international").available).toBe(true);
-    choose(s, "base-work", "reduced");
-    expect(annualIncome(s)).toBe(560);
-    advance(s);
-    expect(annualIncome(s)).toBe(500);
-  });
-  it("4歳の保育所・6歳の公立を既定とし、卒業後は費用・効果を終了", () => {
-    const s = start(42);
-    expect(publicView(s).public.life!.policies.some((p) => p.id === "base-school")).toBe(false);
-    advance(s);
-    expect(publicView(s).public.life!.policies.find((p) => p.id === "base-school")!.label).toBe(
-      "保育所に通う",
-    );
-    advance(s);
-    s.n = 11;
-    choose(s, "school-switch", "private");
-    advance(s);
-    expect(publicView(s).public.life!.policies.find((p) => p.id === "tree-primary")!.label).toBe(
-      "公立小学校",
-    );
-    s.life!.history["base-school-visit:visit"] = { first_turn: 5, last_turn: 5, count: 1 };
-    s.settings!.content.life_game!.decisions.find(
-      (d) => d.id === "tree-primary",
-    )!.options[1].requires!.annual_income = 560;
-    s.child.ability.study = 50;
-    choose(s, "tree-primary", "private");
-    advance(s);
-    expect(s.life!.policies["tree-primary"]).toBe("private");
-    expect(activeTreeEffects(s).some((e) => e.source.includes("私立"))).toBe(true);
-    s.n = 24;
-    openLife(s);
-    expect(s.life!.policies["tree-primary"]).toBe("public");
-    expect(s.life!.policies["tree-secondary"]).toBe("advanced");
-    expect(activeTreeEffects(s).some((e) => e.source.includes("小学校の進路 / 私立"))).toBe(false);
-    expect(publicView(s).public.life!.policies.some((p) => p.id === "tree-primary")).toBe(false);
-  });
-  it("学校の4ルートを園から高校まで公開し、転換準備の翌期だけ別ルートを選べる", () => {
-    const s = start(48);
-    const school = s.settings!.content.life_game!.decisions;
-    const stages = school.filter(
-      (node) =>
-        node.route_group === "school" &&
-        node.kind === "policy" &&
-        node.options.some((item) => item.route),
-    );
-    expect(stages.map((node) => node.route_stage)).toEqual([0, 1, 2, 3]);
-    expect(
-      choices(start()).find((choice) => choice.event_id === "base-school")?.current_option,
-    ).toBeUndefined();
-    for (const stage of stages)
-      expect(stage.options.map((item) => item.route).sort((a, b) => a!.localeCompare(b!))).toEqual([
-        "home",
-        "international",
-        "private",
-        "public",
-      ]);
-    advance(s);
-    expect(option(s, "base-school", "home").available).toBe(false);
-    expect(option(s, "school-switch", "home").available).toBe(true);
-    choose(s, "school-switch", "home");
-    expect(publicView(s).public.forecast!.cash_flow?.some((line) => line.cost === 80)).toBe(true);
-    choose(s, "school-switch", "cancel");
-    expect(publicView(s).public.forecast!.cash_flow?.some((line) => line.cost === 80)).toBe(false);
-    expect(s.life!.history["school-switch:home"]).toBeUndefined();
-    choose(s, "school-switch", "home");
-    advance(s);
-    expect(s.life!.history["school-switch:home"]?.last_turn).toBe(s.n);
-    expect(option(s, "base-school", "home").available).toBe(true);
-    choose(s, "base-school", "home");
-    advance(s);
-    expect(s.life!.policies["base-school"]).toBe("home");
-    expect(option(s, "base-school", "enrolled").available).toBe(false);
-    s.n = 12;
-    openLife(s);
-    expect(s.life!.policies["tree-primary"]).toBe("home");
-    expect(publicView(s).public.life!.route_groups?.[0].current).toBe("home");
-    advance(s);
-    s.n = 24;
-    openLife(s);
-    expect(s.life!.policies["tree-secondary"]).toBe("home");
-    advance(s);
-    s.n = 30;
-    openLife(s);
-    expect(s.life!.policies["tree-high"]).toBe("home");
-    advance(s);
-    s.n = 36;
-    openLife(s);
-    expect(option(s, "school-future-home", "plan").available).toBe(true);
-  });
-  it("教育の全選択は年代と表示レーンを持ち、共通領域へ落ちない", () => {
-    const game = defaultContent.life_game!;
-    const group = game.route_groups!.find((item) => item.id === "school")!;
-    expect(group.stage_labels).toHaveLength(5);
-    const nodes = game.decisions.filter(
-      (node) => node.route_group === "school" && node.id !== group.switch_decision,
-    );
-    expect(nodes.length).toBeGreaterThan(0);
-    for (const node of nodes) {
-      expect(node.route_stage).toBeTypeOf("number");
-      for (const item of node.options)
-        expect(item.route ?? item.tree_route ?? node.route ?? node.tree_route).toBeTruthy();
+describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
+  it("全岐路で全カテゴリの明示確定が必要、未確定と途中確定では進行しない", () => {
+    const s = startStage();
+    expect(s.versions).toEqual({ rules: "rules-13", data: "data-13", save: "save-14" });
+    for (let index = 0; index < 5; index++) {
+      expect(s.n).toBe(index * 8);
+      expect(publicView(s).public.life!.crossroad!.missing).toHaveLength(5);
+      const before = clone(s);
+      expect(() => advance(s)).toThrow();
+      expect(s).toEqual(before);
+      chooseStage(s, "crossroad-school", "public");
+      expect(publicView(s).public.life!.crossroad!.missing).toHaveLength(4);
+      expect(publicView(s).public.forecast!.can_advance).toBe(false);
+      satisfyStage(s);
+      expect(publicView(s).public.forecast!.can_advance).toBe(true);
+      until(s, (index + 1) * 8);
     }
+    expect(s.phase).toBe("finished");
+    expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
   });
-  it("同じ学校ルートへの進級は開始費なしで引き継ぎ、継続条件を失えば無料経路へ戻る", () => {
-    const s = start(48);
-    s.life!.history["base-school-visit:visit"] = { first_turn: 5, last_turn: 5, count: 1 };
-    choose(s, "base-school", "enrolled");
+  it("岐路ごとに一度のみ確定し、途中変更・取消を拒否する", () => {
+    const s = startStage();
+    satisfyStage(s);
+    for (const id of ["public", "private", "cancel"]) {
+      const before = clone(s);
+      expect(() => chooseStage(s, "crossroad-school", id)).toThrow();
+      expect(s).toEqual(before);
+    }
     advance(s);
-    s.n = 12;
-    const primary = s.settings!.content.life_game!.decisions.find(
-      (node) => node.id === "tree-primary",
-    )!;
-    primary.options.find((item) => item.id === "private")!.requires!.annual_income = 560;
-    s.child.ability.study = 50;
-    s.cash = 500;
-    openLife(s);
-    expect(s.life!.policies["tree-primary"]).toBe("private");
-    expect(
-      publicView(s).public.forecast!.cash_flow?.some(
-        (line) => line.label.includes("開始費") && line.cost === 24,
-      ),
-    ).toBe(false);
-    s.n = 24;
-    s.child.ability.study = 0;
-    openLife(s);
-    expect(s.life!.policies["tree-secondary"]).toBe("public");
-    expect(s.life!.notices.join()).toContain("継続条件");
-    expect(
-      publicView(s).public.forecast!.cash_flow?.some((line) => line.label.includes("切替")),
-    ).toBe(false);
+    expect(() => chooseStage(s, "crossroad-school", "home")).toThrow();
+    expect(publicView(s).public.life!.crossroad).toBeNull();
   });
-  it("切替準備は資金不足なら取れず、実行後に進路を選ばなければ翌々期に失効する", () => {
-    const s = start(48);
-    advance(s);
+  it("初回・継続は無料、変更費と負担は即時一度だけ、資金不足は無変更", () => {
+    const s = startStage();
+    const initial = s.cash;
+    satisfyStage(s);
+    expect(s.cash).toBe(initial);
+    until(s, 8);
     s.cash = 79;
-    expect(option(s, "school-switch", "home").available).toBe(false);
+    const before = clone(s);
+    expect(() => chooseStage(s, "crossroad-school", "private")).toThrow();
+    expect(s).toEqual(before);
     s.cash = 80;
-    expect(option(s, "school-switch", "home").available).toBe(true);
-    choose(s, "school-switch", "home");
+    const stress = s.child.stress;
+    chooseStage(s, "crossroad-school", "private");
+    expect(s.cash).toBe(0);
+    expect(s.child.stress).toBe(Math.min(100, stress + 3));
+    satisfyStage(s);
+    const forecast = publicView(s).public.forecast!;
+    expect(forecast.cash_flow!.reduce((n, item) => n + (item.cost ?? 0), 0)).toBe(forecast.cost);
     advance(s);
-    expect(option(s, "base-school", "home").available).toBe(true);
-    advance(s);
-    expect(option(s, "base-school", "home").available).toBe(false);
-    expect(s.life!.policies["base-school"]).toBe("standard");
-  });
-  it("全5分類に大方針があり、別枝への移行は前期の準備を要する", () => {
-    const s = start();
-    const groups = publicView(s).public.life!.route_groups!;
-    expect(groups.map((group) => group.id)).toEqual([
-      "school",
-      "home",
-      "grandparents",
-      "afterschool",
-      "work",
-    ]);
-    expect(groups.filter((group) => group.layout === "branches")).toHaveLength(4);
-    expect(option(s, "story-keepsake", "capsule").available).toBe(false);
-    choose(s, "route-home", "memory");
-    expect(option(s, "story-keepsake", "capsule").available).toBe(true);
-    advance(s);
-    expect(
-      publicView(s).public.life!.route_groups?.find((group) => group.id === "home")?.current,
-    ).toBe("memory");
-    s.n = 10;
-    openLife(s);
-    expect(option(s, "story-camp", "forest").available).toBe(false);
-    expect(option(s, "route-home", "adventure").available).toBe(false);
-    expect(option(s, "route-home-switch", "adventure").available).toBe(true);
-    choose(s, "route-home-switch", "adventure");
-    expect(publicView(s).public.forecast!.cash_flow?.some((line) => line.cost === 70)).toBe(true);
-    advance(s);
-    expect(option(s, "route-home", "adventure").available).toBe(true);
-    choose(s, "route-home", "adventure");
-    expect(option(s, "story-camp", "forest").available).toBe(true);
-    advance(s);
-    expect(option(s, "base-help-trial", "trial").available).toBe(false);
-  });
-  it("学校だけのrules-10設定は新しい分類ルートなしで保存・再開できる", () => {
-    const content = clone(defaultContent);
-    content.automatic_events = [];
-    const game = content.life_game!;
-    delete game.crossroads;
-    game.route_groups = game.route_groups!.filter((group) => group.id === "school");
-    game.decisions = game.decisions.filter((node) => !node.id.startsWith("route-"));
-    for (const node of game.decisions.filter((item) => item.menu !== "education")) {
-      delete node.route_group;
-      delete node.route_stage;
-      delete node.route;
-    }
-    const s = startDecisions("home-01", 2, new Catalog(content, []).resolve());
-    expect(s.versions).toEqual({ rules: "rules-10", data: "data-10", save: "save-11" });
-    advance(s);
-    const run = {
-      id: "school-only",
-      revision: 0,
-      state: s,
-      digest: digest(s),
-      commits: [],
-      receipts: {},
-      updated_at: "2026-09-21T00:00:00.000Z",
-    };
-    expect(importRun(exportRun(run)).state.versions.rules).toBe("rules-10");
-  });
-  it("遊びの大方針を転換すると旧ルート専用の継続方針が終了する", () => {
-    const s = start(48);
-    choose(s, "route-afterschool", "music");
-    choose(s, "story-music-trial", "try");
-    advance(s);
-    choose(s, "story-music", "stage");
-    advance(s);
-    expect(s.life!.policies["story-music"]).toBe("stage");
-    s.cash = 500;
-    choose(s, "route-afterschool-switch", "sports");
-    advance(s);
-    choose(s, "route-afterschool", "sports");
-    advance(s);
-    expect(s.life!.policies["story-music"]).toBe("standard");
-    expect(option(s, "story-music", "stage").available).toBe(false);
-  });
-  it("学校ルート導入前のrules-9設定は従来の選択と保存形式を維持する", () => {
-    const content = clone(defaultContent);
-    content.automatic_events = [];
-    const game = content.life_game!;
-    delete game.crossroads;
-    delete game.route_groups;
-    game.decisions = game.decisions.filter(
-      (node) =>
-        !node.id.startsWith("route-") &&
-        (node.route_group !== "school" ||
-          node.tree_route ||
-          node.options.some((item) => item.tree_route) ||
-          ["base-school", "tree-primary", "tree-secondary"].includes(node.id)),
-    );
-    for (const node of game.decisions) {
-      delete node.route_group;
-      delete node.route_stage;
-      delete node.route;
-      delete node.tree_route;
-      for (const item of node.options) {
-        delete item.route;
-        delete item.tree_route;
-        delete item.switch_to;
-      }
-    }
-    game.decisions
-      .find((node) => node.id === "tree-primary")!
-      .options.find((item) => item.id === "private")!.requires!.annual_income = 560;
-    const s = startDecisions("home-01", 2, new Catalog(content, []).resolve());
-    expect(s.versions).toEqual({ rules: "rules-9", data: "data-9", save: "save-10" });
-    expect(s.life!.route_stage_resolved).toBeUndefined();
-    for (let turn = 0; turn < 12; turn++) advance(s);
-    s.child.ability.study = 20;
-    s.cash = 200;
-    s.life!.history["base-school-visit:visit"] = { first_turn: 5, last_turn: 5, count: 1 };
-    expect(option(s, "tree-primary", "private").available).toBe(true);
-    const run = {
-      id: "legacy-tree",
-      revision: 0,
-      state: s,
-      digest: digest(s),
-      commits: [],
-      receipts: {},
-      updated_at: "2026-09-21T00:00:00.000Z",
-    };
-    expect(importRun(exportRun(run)).state.versions.rules).toBe("rules-9");
-  });
-  it("取得補正を善悪別に適用し、援助は実家の有限資金から正確に移転する", () => {
-    const s = start();
-    choose(s, "base-extra-work", "accept");
-    advance(s);
-    const baseEvent = {
-      id: "test",
-      text: "確認",
-      kind: "good" as const,
-      min_age_months: 0,
-      max_age_months: 234,
-      probability: 100,
-      conditions: [],
-      modifiers: [],
-      cooldown: 1,
-      once: false,
-    };
-    s.settings!.content.automatic_events = [
-      { ...baseEvent, effects: [{ path: "cash", delta: 100 }] },
-    ];
-    const before = s.cash;
-    const result = applyAutomaticEvents(s)!;
-    expect(s.cash - before).toBe(110);
-    expect(result.event_results![0].changes.join()).toContain("取得効果");
-    s.settings!.content.automatic_events = [
-      { ...baseEvent, id: "bad", kind: "bad", effects: [{ path: "cash", delta: -100 }] },
-    ];
-    const nextCash = s.cash;
-    applyAutomaticEvents(s);
-    expect(nextCash - s.cash).toBe(110);
-    const gift = clone(defaultContent.automatic_events!.find((e) => e.id === "family-home-gift")!);
-    gift.probability = 100;
-    gift.cooldown = 1;
-    s.settings!.content.automatic_events = [gift];
+    expect(s.cash).toBe(forecast.projected_cash);
+    until(s, 16);
     const cash = s.cash;
-    for (let i = 0; i < 3; i++) {
-      s.n++;
-      openDecisionTurn(s);
-    }
-    expect(s.cash - cash).toBe(100);
-    expect(s.grandparents.funds).toBe(0);
-    expect(s.grandparents.members).toBeUndefined();
-    expect(modifiedDelta(-1, 20)).toBe(-2);
-    expect(modifiedDelta(-1, -20)).toBe(-0);
-    const deeper = s.settings!.content.life_game!.decisions.find((d) => d.id === "tree-university")!
-      .options[0].event_modifiers!;
-    expect(deeper[0].percent).toBeGreaterThan(activeTreeEffects(s)[0].percent);
+    satisfyStage(s);
+    expect(s.cash).toBe(cash);
   });
-  it("補正は重複取得せず、上限・下限とパラメータの上下限に収まる", () => {
-    const s = start();
-    const nodes = s.settings!.content.life_game!.decisions;
-    const node = nodes.find((d) => d.id === "base-extra-work")!;
-    node.options[0].event_modifiers = [{ label: "強い成果", kind: "good", percent: 200 }];
-    const other = nodes.find((d) => d.id === "base-extra-work-mother")!;
-    other.options[0].event_modifiers = [{ label: "強い成果", kind: "good", percent: 200 }];
-    choose(s, node.id, "accept");
-    choose(s, other.id, "accept");
-    advance(s);
-    choose(s, node.id, "accept");
-    advance(s);
+  it("カテゴリ・ルート・ステージと条件で取得を制限し、同一期の後続取得と後半取得を許可", () => {
+    const s = startStage();
+    expect(option(s, "base-help-trial", "trial").available).toBe(false);
+    satisfyStage(s);
+    expect(option(s, "story-keepsake", "capsule").available).toBe(false);
+    const cash = s.cash;
+    chooseStage(s, "base-help-trial", "trial");
+    expect(s.cash).toBe(cash - 20);
+    expect(option(s, "base-help", "regular").available).toBe(true);
+    chooseStage(s, "base-help", "regular");
+    chooseStage(s, "base-home", "talk");
+    expect(Object.keys(s.life!.history)).toHaveLength(3);
+    const before = clone(s);
+    expect(() => chooseStage(s, "base-help-trial", "trial")).toThrow();
+    expect(s).toEqual(before);
+    expect(() => chooseStage(s, "base-help", "cancel")).toThrow();
+    until(s, 7);
+    chooseStage(s, "base-grand-visit", "visit");
+    expect(s.life!.history["base-grand-visit:visit"].first_turn).toBe(8);
+    expect(option(s, "story-reunion", "open").available).toBe(false);
+  });
+  it("即時・ステージ・恒久効果を分け、境界で期限だけ終了し、継続ルートでも再発動しない", () => {
+    const s = startStage();
+    satisfyStage(s);
+    const target = s.settings!.content.life_game!.decisions.find(
+      (n) => n.id === "base-grand-visit",
+    )!.options[0];
+    target.effects = [{ path: "child.ability.craft", delta: 2 }];
+    target.stage_effect = {
+      cost: 3,
+      income: 5,
+      effects: [{ path: "child.ability.craft", delta: 1 }],
+      event_modifiers: [{ label: "今の支援", kind: "good", percent: 10 }],
+    };
+    target.permanent_effect = {
+      cost: 1,
+      income: 2,
+      effects: [{ path: "child.ability.study", delta: 1 }],
+      event_modifiers: [{ label: "思い出", kind: "good", percent: 5 }],
+    };
+    const craft = s.child.ability.craft;
+    chooseStage(s, "base-grand-visit", "visit");
+    expect(s.child.ability.craft).toBe(craft + 2);
     expect(activeTreeEffects(s)).toHaveLength(2);
+    const forecast = publicView(s).public.forecast!;
+    advance(s);
+    expect(s.child.ability.craft).toBe(craft + 3);
+    expect(s.cash).toBe(forecast.projected_cash);
+    until(s, 8);
+    expect(activeTreeEffects(s).map((e) => e.label)).toEqual(["思い出"]);
+    const income = annualIncome(s);
+    satisfyStage(s);
+    expect(annualIncome(s)).toBe(income);
+    expect(activeStageEffects(s)).toHaveLength(1);
+    until(s, 16);
+    chooseStage(s, "crossroad-grandparents", "care");
+    satisfyStage(s);
+    expect(activeTreeEffects(s).map((e) => e.label)).toEqual(["思い出"]);
+    until(s, 40);
+    expect(activeStageEffects(s)).toEqual([]);
+  });
+  it("年収・成績・親能力・即時費用と継続費の境界を共通取得条件で検査する", () => {
+    const s = startStage();
+    satisfyStage(s);
+    const target = s
+      .settings!.content.life_game!.decisions.find((n) => n.id === "base-home")!
+      .options.find((o) => o.id === "rest")!;
+    target.requires = {
+      annual_income: 560,
+      stats: [
+        { path: "child.ability.study", op: "gte", value: 60 },
+        { path: "decisions.skills.A.learning", op: "gte", value: 5 },
+      ],
+    };
+    s.child.ability.study = 59;
+    s.decisions!.skills.A.learning = 5;
+    expect(option(s, "base-home", target.id).available).toBe(false);
+    s.child.ability.study = 60;
+    expect(option(s, "base-home", target.id).available).toBe(true);
+    target.cost = s.cash + 1;
+    expect(option(s, "base-home", target.id).available).toBe(false);
+    target.cost = 0;
+    target.stage_effect!.cost = 99999;
+    const before = clone(s);
+    expect(() => chooseStage(s, "base-home", target.id)).toThrow();
+    expect(s).toEqual(before);
+  });
+  it("イベント補正は取得直後から効き、ステージ境界で終了し、有限援助と上限を維持する", () => {
+    const s = startStage();
+    satisfyStage(s);
+    const target = s.settings!.content.life_game!.decisions.find(
+      (n) => n.id === "base-grand-visit",
+    )!.options[0];
+    target.stage_effect = {
+      cost: 0,
+      income: 0,
+      effects: [],
+      event_modifiers: [{ label: "支援", kind: "good", percent: 100 }],
+    };
+    delete target.permanent_effect;
+    chooseStage(s, "base-grand-visit", "visit");
     const event = {
-      id: "cap",
+      id: "stage-bonus",
       text: "確認",
       kind: "good" as const,
       min_age_months: 0,
@@ -494,86 +197,135 @@ describe("S-018 選択ツリー", () => {
       modifiers: [],
       cooldown: 1,
       once: false,
-      effects: [
-        { path: "cash" as const, delta: 100 },
-        { path: "parents.A.health" as const, delta: 10 },
-      ],
+      effects: [{ path: "cash" as const, delta: 10 }],
     };
     s.settings!.content.automatic_events = [event];
     const cash = s.cash;
     applyAutomaticEvents(s);
-    expect(s.cash - cash).toBe(300);
-    expect(s.parents.A.health).toBe(10);
-    node.options[0].event_modifiers[0].percent = -80;
-    other.options[0].event_modifiers[0].percent = -80;
-    event.id = "floor";
-    const nextCash = s.cash;
+    expect(s.cash - cash).toBe(20);
+    s.settings!.content.automatic_events = [];
+    until(s, 8);
+    s.settings!.content.automatic_events = [event];
+    const next = s.cash;
     applyAutomaticEvents(s);
-    expect(s.cash - nextCash).toBe(20);
+    expect(s.cash - next).toBe(10);
   });
-  it("新規ゲームは3難易度・複数シードで40期と成人後を完走する", () => {
+  it("岐路に入る直前のゲームオーバー保存は、未到達の次ステージのルートを要求しない", () => {
+    const s = startStage();
+    until(s, 7);
+    s.couple = 0;
+    s.child.trust.A = 0;
+    s.child.trust.B = 0;
+    s.decisions!.crisis.separation = 1;
+    advance(s);
+    expect(s.n).toBe(8);
+    expect(s.phase).toBe("game_over");
+    expect(() => validateLifeState(s)).not.toThrow();
+  });
+  it("不正なステージ・ルート・効果参照・岐路の欠落を設定検査で拒否する", () => {
+    for (const mutate of [
+      (c: typeof defaultContent) => {
+        c.life_game!.decisions[0].stages = [];
+      },
+      (c: typeof defaultContent) => {
+        c.life_game!.decisions[0].options[0].routes = ["unknown"];
+      },
+      (c: typeof defaultContent) => {
+        c.life_game!.crossroads![0].required_decisions.pop();
+      },
+      (c: typeof defaultContent) => {
+        c.life_game!.decisions[0].options[0].requires = {
+          history: [{ decision: "missing", option: "x", after: 0 }],
+        };
+      },
+    ]) {
+      const content = clone(defaultContent);
+      mutate(content);
+      expect(() => new Catalog(content, [])).toThrow();
+    }
+  });
+  it("3難易度・複数シードで40期と親の最期まで到達し、同一シードで一致する", () => {
     for (const difficulty of ["easy", "normal", "hard"])
       for (let seed = 0; seed < 3; seed++) {
-        const s = startDecisions("home-01", seed, new Catalog().resolve(difficulty));
-        expect(s.versions.rules).toBe("rules-12");
-        while (s.phase === "childhood") {
-          satisfyCrossroad(s);
-          advance(s);
-        }
-        expect(s.n).toBe(40);
+        const run = () => {
+          const s = startDecisions("home-01", seed, new Catalog().resolve(difficulty));
+          until(s, 40);
+          return s;
+        };
+        const s = run();
         expect(s.phase).toBe("finished");
         expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
+        if (!seed) expect(run()).toEqual(s);
       }
-  }, 15_000);
-  it("予定・取得の保存再開、再送、操作再生が一致する", async () => {
-    const repo = new IndexedRepository(new GameDatabase(`tree-${crypto.randomUUID()}`));
+  }, 30_000);
+  it("即時確定を保存再開・再送・再生でき、改ざんした取得とルートを拒否する", async () => {
+    const repo = new IndexedRepository(new GameDatabase(`stage-${crypto.randomUUID()}`));
     const service = new Service(repo);
     let r = await service.execute({
       command: "new",
-      run: "tree",
+      run: "stage",
       scenario: "home-01",
       seed: 3,
       request_id: "new",
     });
-    const choice = r.choices.find((c) => c.event_id === "base-extra-work")!;
+    for (const choice of r.choices.filter((c) => c.route_choice)) {
+      r = await service.execute({
+        command: "choose",
+        run: "stage",
+        revision: r.revision!,
+        request_id: choice.event_id,
+        input: { event_instance: choice.instance_id, option_id: choice.options[0].option_id },
+      });
+      expect(r.ok).toBe(true);
+    }
     const request = {
       command: "choose" as const,
-      run: "tree",
+      run: "stage",
       revision: r.revision!,
-      request_id: "choose",
-      input: { event_instance: choice.instance_id, option_id: "base-extra-work:accept" },
+      request_id: "visit",
+      input: { event_instance: "t01:base-grand-visit", option_id: "base-grand-visit:visit" },
     };
     r = await service.execute(request);
     expect(r.ok).toBe(true);
     expect((await service.execute(request)).payload!.receipt!.duplicate).toBe(true);
-    const planned = (await repo.read("tree"))!;
-    expect(importRun(exportRun(planned))).toEqual(planned);
-    for (const required of r.public!.life!.crossroad!.missing) {
-      const requiredChoice = r.choices.find((item) => item.event_id === required.decision_id)!;
-      const selected = requiredChoice.options.find(
-        (item) => item.available && !item.option_id.endsWith(":cancel"),
-      )!;
-      r = await service.execute({
-        command: "choose",
-        run: "tree",
-        revision: r.revision!,
-        request_id: `crossroad-${required.decision_id}`,
-        input: {
-          event_instance: requiredChoice.instance_id,
-          option_id: selected.option_id,
-        },
-      });
+    const rejected = await service.execute({
+      command: "reset-plan",
+      run: "stage",
+      revision: r.revision!,
+      request_id: "cancel",
+    });
+    expect(rejected.ok).toBe(false);
+    const contract = await service.execute({ command: "selections", run: "stage" });
+    expect(contract.payload!.selections!.commands.some((c) => c.id === "reset-plan")).toBe(false);
+    const saved = (await repo.read("stage"))!;
+    expect(importRun(exportRun(saved))).toEqual(saved);
+    expect(replayRun(saved)).toEqual(saved.state);
+    expect((await new Service(repo).execute({ command: "observe", run: "stage" })).ok).toBe(true);
+    for (const mutate of [
+      (s: State) => {
+        s.life!.history["base-grand-visit:visit"].count = 2;
+      },
+      (s: State) => {
+        s.life!.stage_routes!["0:school"] = "unknown";
+      },
+      (s: State) => {
+        s.life!.stage_routes!["1:school"] = "public";
+      },
+    ]) {
+      const bad = clone(saved);
+      mutate(bad.state);
+      bad.digest = digest(bad.state);
+      expect(() => validateRun(bad)).toThrow();
     }
     r = await service.execute({
       command: "advance",
-      run: "tree",
+      run: "stage",
       revision: r.revision!,
       request_id: "advance",
     });
     expect(r.ok).toBe(true);
-    const saved = (await repo.read("tree"))!;
-    expect(importRun(exportRun(saved))).toEqual(saved);
-    expect(replayRun(saved)).toEqual(saved.state);
+    const advanced = (await repo.read("stage"))!;
+    expect(replayRun(advanced)).toEqual(advanced.state);
     repo.db.close();
   });
 });

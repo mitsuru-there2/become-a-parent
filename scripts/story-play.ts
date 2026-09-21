@@ -131,31 +131,31 @@ const routes: Record<string, Step[]> = {
   ],
 };
 const routeChoices: Record<string, [string, string][]> = {
-  rocket: [["route-home", "memory"]],
-  robot: [["route-home", "memory"]],
-  musicTour: [["route-afterschool", "music"]],
-  musicRecord: [["route-afterschool", "music"]],
-  musicLocal: [["route-afterschool", "music"]],
-  sportsNational: [["route-afterschool", "sports"]],
-  sportsLocal: [["route-afterschool", "sports"]],
-  mountains: [["route-home", "adventure"]],
-  railway: [["route-home", "adventure"]],
-  stall: [["route-grandparents", "legacy"]],
-  feast: [["route-grandparents", "legacy"]],
+  rocket: [["crossroad-home", "memory"]],
+  robot: [["crossroad-home", "memory"]],
+  musicTour: [["crossroad-afterschool", "music"]],
+  musicRecord: [["crossroad-afterschool", "music"]],
+  musicLocal: [["crossroad-afterschool", "music"]],
+  sportsNational: [["crossroad-afterschool", "sports"]],
+  sportsLocal: [["crossroad-afterschool", "sports"]],
+  mountains: [["crossroad-home", "adventure"]],
+  railway: [["crossroad-home", "adventure"]],
+  stall: [["crossroad-grandparents", "legacy"]],
+  feast: [["crossroad-grandparents", "legacy"]],
   businessFair: [
-    ["route-work", "venture"],
-    ["route-home", "independence"],
+    ["crossroad-work", "venture"],
+    ["crossroad-home", "independence"],
   ],
   businessHelp: [
-    ["route-work", "venture"],
-    ["route-home", "independence"],
+    ["crossroad-work", "venture"],
+    ["crossroad-home", "independence"],
   ],
-  smallShop: [["route-work", "venture"]],
+  smallShop: [["crossroad-work", "venture"]],
   sharedHome: [
-    ["route-work", "venture"],
-    ["route-home", "independence"],
+    ["crossroad-work", "venture"],
+    ["crossroad-home", "independence"],
   ],
-  newHome: [["route-home", "independence"]],
+  newHome: [["crossroad-home", "independence"]],
 };
 const out = process.argv[2] ?? `/tmp/parent-stories-${Date.now()}`;
 const seeds = Number(process.argv[3] ?? 2);
@@ -171,10 +171,13 @@ const results: unknown[] = [];
 const covered = new Set<string>();
 try {
   for (const [route, steps] of Object.entries(routes)) {
-    const routeSteps: Step[] = [
-      ...(routeChoices[route] ?? []).map(([decision, option]): Step => [0, decision, option]),
-      ...steps,
-    ];
+    const seenSteps = new Set<string>();
+    const routeSteps = steps.filter(([, decision, option]) => {
+      const key = `${decision}:${option}`;
+      if (option === "standard" || seenSteps.has(key)) return false;
+      seenSteps.add(key);
+      return true;
+    });
     for (let seed = 0; seed < seeds; seed++) {
       const run = `${route}-${seed}`;
       let response: Response;
@@ -207,6 +210,18 @@ try {
       while (r.phase === "childhood") {
         const months = r.public!.time.completed_turns * 6;
         events.push(...(r.public!.decision_turn?.event_results ?? []).map((e) => e.event_id));
+        for (const missing of r.public!.life!.crossroad?.missing ?? []) {
+          const choice = r.choices.find((c) => c.event_id === missing.decision_id)!;
+          const desired = routeChoices[route]?.find(([id]) => id === choice.event_id)?.[1];
+          const group = r.public!.life!.route_groups!.find((g) => g.menu === choice.menu)!;
+          const option = choice.options.find(
+            (o) => o.route === (desired ?? group.previous ?? group.routes[0].id),
+          )!;
+          r = await call("choose", "岐路で物語のルートを確定する。", {
+            event_instance: choice.instance_id,
+            option_id: option.option_id,
+          });
+        }
         for (const [, decision, option] of routeSteps.filter(([age]) => age === months)) {
           const choice = r.choices.find((c) => c.event_id === decision)!;
           const target = choice.options.find((o) => o.option_id === `${decision}:${option}`)!;
@@ -224,7 +239,7 @@ try {
         }
         if (!r.public!.forecast!.can_advance)
           throw new Error(JSON.stringify(r.public!.forecast!.reasons));
-        r = await call("advance", "予定を確定し、この暮らしで半年進める。");
+        r = await call("advance", "取得した選択とルートを維持し、半年進める。");
       }
       if (
         r.phase !== "finished" ||

@@ -3752,3 +3752,231 @@ meter::-moz-meter-bar {
     min-height: 180px;
   }
 }
+
+/* 岐路を入口に、ステージごとのルートと自由取得を並べる。 */
+.stage-tree {
+  min-height: 0;
+}
+.stage-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px 10px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.stage-tabs button {
+  min-height: 44px;
+  padding: 8px 16px;
+  white-space: nowrap;
+  border: 1px solid #555a47;
+  background: #25291f;
+  color: #dedac8;
+}
+.stage-tabs button[aria-pressed="true"] {
+  background: #3d4931;
+  color: #fff8e9;
+  border-color: #3d4931;
+}
+.stage-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  padding: 0 18px 12px;
+  font-size: 12px;
+  color: #bbb9a5;
+  flex-shrink: 0;
+}
+.stage-summary strong {
+  color: #e1d39b;
+}
+.stage-lanes {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 16px 20px;
+  position: relative;
+}
+.stage-lanes-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  min-width: min-content;
+}
+.stage-route {
+  color: #ecebdf;
+  width: 260px;
+  flex: 0 0 260px;
+  border-top: 3px solid #555c46;
+  background: #20251c;
+  padding: 12px;
+}
+.stage-route.is-current {
+  border-color: #b6c79b;
+  background: #293222;
+}
+.stage-route-heading {
+  min-height: 115px;
+  border-bottom: 1px solid #505740;
+  padding-bottom: 10px;
+}
+.stage-route-heading > span {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: #b7b99e;
+}
+.stage-route-heading h3 {
+  margin: 7px 0 10px;
+  font-size: 18px;
+}
+.stage-route-heading p {
+  font-size: 11px;
+  color: #b5b79e;
+}
+.stage-route-select {
+  width: 100%;
+  min-height: 44px;
+  font-size: 12px;
+  padding: 6px;
+  background: #343c29;
+  border: 1px solid #818966;
+}
+.stage-route-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 15px;
+}
+.stage-selection {
+  color: #ecebdf;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  padding: 12px;
+  min-height: 116px;
+  background: #191e16;
+  border: 1px solid #555f44;
+  box-shadow: 0 2px 0 #11150f;
+}
+.stage-selection.is-available {
+  border-color: #849768;
+}
+.stage-selection.is-acquired {
+  background: #34452b;
+  border-color: #9aa77c;
+}
+.stage-selection.is-locked {
+  color: #aeb49d;
+}
+.stage-selection > span,
+.stage-selection small {
+  font-size: 10px;
+}
+.stage-selection strong {
+  font-size: 14px;
+}
+.stage-effect-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+.stage-effect-tags em {
+  font-style: normal;
+  font-size: 9px;
+  padding: 2px 5px;
+  border: 1px solid #65704f;
+}
+.stage-empty {
+  padding: 20px 4px;
+  font-size: 12px;
+  color: #aeb49d;
+}
+.stage-map-caption {
+  margin: 0;
+  padding: 10px 16px 4px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.stage-map-caption span {
+  color: #b7b69e;
+  margin-left: 12px;
+  font-size: 11px;
+}
+.stage-effect-detail {
+  border-top: 1px solid #565e46;
+  padding: 10px 0;
+}
+.stage-effect-detail strong {
+  color: #dfd19b;
+}
+.stage-effect-detail p {
+  margin: 6px 0 0;
+}
+.stage-tree .map-marker small {
+  max-width: 120px;
+  font-size: 10px;
+}
+@media (max-width: 600px) {
+  .stage-tabs {
+    padding: 0 10px 7px;
+    gap: 4px;
+  }
+  .stage-tabs button {
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+  .stage-summary {
+    padding: 0 12px 10px;
+    font-size: 11px;
+  }
+  .stage-lanes {
+    padding: 0 10px 15px;
+  }
+  .stage-route {
+    color: #ecebdf;
+    width: 248px;
+    flex-basis: 248px;
+  }
+  .stage-map-caption span {
+    display: none;
+  }
+}
+.stage-tree .tree-back {
+  min-height: 44px;
+}
+@media (max-height: 600px) {
+  .status-shell .stage-tree.is-category {
+    min-height: 0;
+  }
+  .stage-tree .tree-category-heading {
+    padding-bottom: 4px;
+  }
+  .stage-tree .stage-summary {
+    display: none;
+  }
+  .stage-tree .stage-route {
+    padding: 8px;
+  }
+  .stage-tree .stage-route-heading {
+    min-height: 0;
+    padding-bottom: 6px;
+  }
+  .stage-tree .stage-route-heading > span,
+  .stage-tree .stage-route-heading > p {
+    display: none;
+  }
+  .stage-tree .stage-route-heading h3 {
+    font-size: 14px;
+    margin: 0 0 4px;
+  }
+  .stage-tree .stage-route-choices {
+    padding-top: 8px;
+  }
+  .stage-tree .stage-tabs {
+    padding-bottom: 4px;
+  }
+  .stage-tree .stage-lanes {
+    min-height: 64px;
+  }
+}

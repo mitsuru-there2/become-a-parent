@@ -1,8 +1,10 @@
+import { stageModel, stageIndex } from "./stage_state";
 import * as v from "valibot";
 import { dictionary, integer, contentIdSchema } from "../validation/primitives";
 import type { State } from "./types";
 import { contentFor } from "../content/catalog";
 const lifeStateSchema = v.strictObject({
+  stage_routes: v.optional(dictionary(contentIdSchema, false)),
   policies: dictionary(contentIdSchema),
   history: dictionary(
     v.strictObject({
@@ -20,8 +22,56 @@ const lifeStateSchema = v.strictObject({
 export function validateLifeState(state: State) {
   if (!v.is(lifeStateSchema, state.life)) throw new Error("生活状態の構造が不正です");
   const nodes = contentFor(state).life_game!.decisions;
+  if (stageModel(state)) {
+    const life = state.life;
+    const groups = contentFor(state).life_game!.route_groups!;
+    if (
+      !life.stage_routes ||
+      Object.keys(life.policies).length ||
+      Object.keys(state.decisions!.selections).length ||
+      life.route_stage_resolved !== undefined ||
+      life.visible.length ||
+      life.fresh.length ||
+      life.notices.length
+    )
+      throw new Error("ステージ状態が不正です");
+    for (const [id, route] of Object.entries(life.stage_routes)) {
+      const [stage, groupId] = id.split(":");
+      const group = groups.find((g) => g.id === groupId);
+      if (
+        !/^[0-4]$/.test(stage) ||
+        id !== `${stage}:${groupId}` ||
+        Number(stage) > stageIndex(state) ||
+        !group?.routes.some((r) => r.id === route)
+      )
+        throw new Error("ルート記録が不正です");
+    }
+    for (let index = 0; index <= stageIndex(state); index++)
+      if (index < stageIndex(state) || state.n % 8 !== 0 || state.phase !== "childhood")
+        for (const group of groups)
+          if (!life.stage_routes[`${index}:${group.id}`])
+            throw new Error("確定済みルートがありません");
+    for (const [id, acquired] of Object.entries(life.history)) {
+      const node = nodes.find((n) => n.options.some((o) => `${n.id}:${o.id}` === id));
+      const option = node?.options.find((o) => `${node.id}:${o.id}` === id);
+      const index = Math.floor((acquired.first_turn - 1) / 8);
+      const route = life.stage_routes[`${index}:${node?.route_group}`];
+      if (
+        !node ||
+        !option ||
+        acquired.count !== 1 ||
+        acquired.first_turn !== acquired.last_turn ||
+        acquired.first_turn > Math.min(40, state.n + (state.phase === "childhood" ? 1 : 0)) ||
+        !node.stages?.includes(index) ||
+        !route ||
+        !option.routes?.includes(route)
+      )
+        throw new Error("選択の取得記録が不正です");
+    }
+    return;
+  }
   if (
-    ["rules-10", "rules-11", "rules-12"].includes(state.versions.rules) &&
+    ["rules-10", "rules-11", "rules-12", "rules-13"].includes(state.versions.rules) &&
     (!state.life.route_stage_resolved ||
       Object.entries(state.life.route_stage_resolved).some(
         ([id, turn]) =>

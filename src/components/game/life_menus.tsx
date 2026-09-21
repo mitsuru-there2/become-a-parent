@@ -1,3 +1,4 @@
+import { StageSelectionTree } from "./stage_selection_tree";
 import { SelectionTree } from "./selection_tree";
 import { useState } from "react";
 import { useStore } from "@nanostores/react";
@@ -8,6 +9,8 @@ export function LifeMenus({ state, choices }: { state: PublicState; choices: Cho
   const [menu, setMenu] = useState<string | null>(null);
   const busy = useStore($busy);
   const life = state.life!;
+  if (life.stage_model)
+    return <StageSelectionTree key={life.stage!.index} state={state} choices={choices} />;
   if (life.selection_tree) return <SelectionTree state={state} choices={choices} />;
   const selectedMenu = life.menus.find((m) => m.id === menu);
   const scheduled = choices.filter((c) => c.selected_option);

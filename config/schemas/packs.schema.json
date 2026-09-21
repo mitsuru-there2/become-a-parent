@@ -389,6 +389,15 @@
               "type": "string",
               "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
             },
+            "stages": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4
+              },
+              "minItems": 1
+            },
             "route_group": {
               "type": "string",
               "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
@@ -568,6 +577,216 @@
               "items": {
                 "type": "object",
                 "properties": {
+                  "routes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+                    },
+                    "minItems": 1
+                  },
+                  "stage_effect": {
+                    "type": "object",
+                    "properties": {
+                      "effects": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "enum": [
+                                "couple",
+                                "child.stress",
+                                "child.autonomy",
+                                "child.trust.A",
+                                "child.trust.B",
+                                "child.interest.study",
+                                "child.interest.craft",
+                                "child.ability.study",
+                                "child.ability.craft",
+                                "parents.A.stress",
+                                "parents.A.health",
+                                "parents.A.fulfillment",
+                                "parents.A.social",
+                                "parents.A.regret",
+                                "parents.B.stress",
+                                "parents.B.health",
+                                "parents.B.fulfillment",
+                                "parents.B.social",
+                                "parents.B.regret",
+                                "decisions.fatigue.A",
+                                "decisions.fatigue.B",
+                                "decisions.skills.A.dialogue",
+                                "decisions.skills.A.planning",
+                                "decisions.skills.A.learning",
+                                "decisions.skills.B.dialogue",
+                                "decisions.skills.B.planning",
+                                "decisions.skills.B.learning",
+                                "grandparents.members.grandfather.health",
+                                "grandparents.members.grandfather.relation",
+                                "grandparents.members.grandfather.funds",
+                                "grandparents.members.grandmother.health",
+                                "grandparents.members.grandmother.relation",
+                                "grandparents.members.grandmother.funds",
+                                "grandparents.health",
+                                "grandparents.relation",
+                                "grandparents.funds"
+                              ],
+                              "type": "string"
+                            },
+                            "delta": {
+                              "type": "integer",
+                              "minimum": -100,
+                              "maximum": 100
+                            }
+                          },
+                          "required": ["path", "delta"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "cost": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 99999
+                      },
+                      "income": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 99999
+                      },
+                      "income_reduction": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 99999
+                      },
+                      "event_modifiers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "kind": {
+                              "enum": ["good", "bad"],
+                              "type": "string"
+                            },
+                            "percent": {
+                              "type": "integer",
+                              "minimum": -80,
+                              "maximum": 200
+                            }
+                          },
+                          "required": ["label", "kind", "percent"],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": ["effects", "cost", "income"],
+                    "additionalProperties": false
+                  },
+                  "permanent_effect": {
+                    "type": "object",
+                    "properties": {
+                      "effects": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "enum": [
+                                "couple",
+                                "child.stress",
+                                "child.autonomy",
+                                "child.trust.A",
+                                "child.trust.B",
+                                "child.interest.study",
+                                "child.interest.craft",
+                                "child.ability.study",
+                                "child.ability.craft",
+                                "parents.A.stress",
+                                "parents.A.health",
+                                "parents.A.fulfillment",
+                                "parents.A.social",
+                                "parents.A.regret",
+                                "parents.B.stress",
+                                "parents.B.health",
+                                "parents.B.fulfillment",
+                                "parents.B.social",
+                                "parents.B.regret",
+                                "decisions.fatigue.A",
+                                "decisions.fatigue.B",
+                                "decisions.skills.A.dialogue",
+                                "decisions.skills.A.planning",
+                                "decisions.skills.A.learning",
+                                "decisions.skills.B.dialogue",
+                                "decisions.skills.B.planning",
+                                "decisions.skills.B.learning",
+                                "grandparents.members.grandfather.health",
+                                "grandparents.members.grandfather.relation",
+                                "grandparents.members.grandfather.funds",
+                                "grandparents.members.grandmother.health",
+                                "grandparents.members.grandmother.relation",
+                                "grandparents.members.grandmother.funds",
+                                "grandparents.health",
+                                "grandparents.relation",
+                                "grandparents.funds"
+                              ],
+                              "type": "string"
+                            },
+                            "delta": {
+                              "type": "integer",
+                              "minimum": -100,
+                              "maximum": 100
+                            }
+                          },
+                          "required": ["path", "delta"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "cost": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 99999
+                      },
+                      "income": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 99999
+                      },
+                      "income_reduction": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 99999
+                      },
+                      "event_modifiers": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "kind": {
+                              "enum": ["good", "bad"],
+                              "type": "string"
+                            },
+                            "percent": {
+                              "type": "integer",
+                              "minimum": -80,
+                              "maximum": 200
+                            }
+                          },
+                          "required": ["label", "kind", "percent"],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": ["effects", "cost", "income"],
+                    "additionalProperties": false
+                  },
                   "visual": {
                     "type": "string",
                     "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"

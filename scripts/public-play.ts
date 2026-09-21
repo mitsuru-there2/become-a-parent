@@ -48,6 +48,37 @@ try {
       if (selections.payload!.selections!.plan_fields.length)
         throw new Error("新方式で配分操作が公開されています");
       while (r.phase === "childhood") {
+        if (r.public!.life?.stage_model) {
+          for (const required of r.public!.life!.crossroad?.missing ?? []) {
+            const routeChoice = r.choices.find((c) => c.event_id === required.decision_id)!;
+            const group = r.public!.life!.route_groups!.find((g) => g.menu === routeChoice.menu)!;
+            const option = routeChoice.options.find(
+              (o) => o.route === (group.previous ?? group.routes[0].id),
+            )!;
+            r = await call("choose", "岐路でカテゴリのルートを明示的に確定する。", {
+              event_instance: routeChoice.instance_id,
+              option_id: option.option_id,
+            });
+          }
+          if (policy !== "quiet") {
+            const candidates = r.choices.filter(
+              (c) => !c.route_choice && (policy !== "pressure" || c.menu === "work"),
+            );
+            const choice = candidates.find((c) =>
+              c.options.some((o) => o.available && o.cost <= 12),
+            );
+            const option = choice?.options.find((o) => o.available && o.cost <= 12);
+            if (choice && option)
+              r = await call("choose", "条件を満たした選択を即時取得する。", {
+                event_instance: choice.instance_id,
+                option_id: option.option_id,
+              });
+          }
+          if (!r.public!.forecast!.can_advance)
+            throw new Error(JSON.stringify(r.public!.forecast!.reasons));
+          r = await call("advance", "ルートを維持して半年を進める。");
+          continue;
+        }
         if (r.public!.life) {
           const recover = policy === "recovery" && r.public!.family_status!.level <= 3;
           if (["support", "adaptation"].includes(policy) || recover) {

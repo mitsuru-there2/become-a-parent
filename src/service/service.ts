@@ -1,3 +1,4 @@
+import { stageModel } from "../engine/stage_state";
 import { validateLifeState } from "../engine/life_save";
 import * as v from "valibot";
 import { grandparentSchema } from "../content/decision_schema";
@@ -110,7 +111,8 @@ export function validateRun(run: Run) {
     (version?.save === "save-10" && version.rules === "rules-9" && version.data === "data-9") ||
     (version?.save === "save-11" && version.rules === "rules-10" && version.data === "data-10") ||
     (version?.save === "save-12" && version.rules === "rules-11" && version.data === "data-11") ||
-    (version?.save === "save-13" && version.rules === "rules-12" && version.data === "data-12");
+    (version?.save === "save-13" && version.rules === "rules-12" && version.data === "data-12") ||
+    (version?.save === "save-14" && version.rules === "rules-13" && version.data === "data-13");
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
@@ -130,26 +132,32 @@ export function validateRun(run: Run) {
         if (canonical(expected) !== canonical(group)) throw new Error("祖父母の集計が一致しません");
       }
       if (
-        ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(version.rules) &&
+        ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(
+          version.rules,
+        ) &&
         (!run.state.life || !run.state.settings!.content.life_game)
       )
         throw new Error("生活メニューの状態がありません");
-      if (["rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(version.rules))
+      if (
+        ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(
+          version.rules,
+        )
+      )
         validateLifeState(run.state);
       if (
-        ["rules-9", "rules-10", "rules-11", "rules-12"].includes(version.rules) &&
+        ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(version.rules) &&
         (!v.is(grandparentSchema, run.state.grandparents) ||
           !run.state.settings!.content.life_game?.selection_tree ||
           !run.state.settings!.content.life_game?.initial_family_home)
       )
         throw new Error("実家の状態が不正です");
       if (
-        ["rules-10", "rules-11", "rules-12"].includes(version.rules) &&
+        ["rules-10", "rules-11", "rules-12", "rules-13"].includes(version.rules) &&
         !run.state.settings!.content.life_game?.route_groups?.length
       )
         throw new Error("長期ルートの設定がありません");
       if (
-        ["rules-11", "rules-12"].includes(version.rules) &&
+        ["rules-11", "rules-12", "rules-13"].includes(version.rules) &&
         run.state.settings!.content.life_game?.route_groups?.length !== 5
       )
         throw new Error("5分類のルート設定がありません");
@@ -158,12 +166,21 @@ export function validateRun(run: Run) {
         !run.state.settings!.content.life_game?.crossroads?.length
       )
         throw new Error("岐路の設定がありません");
+      if (stageModel(run.state) && !run.state.settings!.content.life_game?.stage_model)
+        throw new Error("ステージ設定がありません");
       if (decisions && (!run.state.settings!.content.decision_game || !run.state.decisions))
         throw new Error("選択ゲームの状態がありません");
       if (
-        ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(
-          version.rules,
-        ) &&
+        [
+          "rules-6",
+          "rules-7",
+          "rules-8",
+          "rules-9",
+          "rules-10",
+          "rules-11",
+          "rules-12",
+          "rules-13",
+        ].includes(version.rules) &&
         !run.state.settings!.content.automatic_events
       )
         throw new Error("自動イベント設定がありません");
@@ -356,7 +373,7 @@ export class Service {
                   .options.find((o) => o.option_id === choice.option_id)!;
                 if (!option.available)
                   throw new Failure("RESOURCE_LIMIT", option.reasons[0].message);
-                const special = !state.decisions.special_answer;
+                const special = stageModel(state) || !state.decisions.special_answer;
                 chooseDecision(state, choice.event_instance, choice.option_id);
                 if (special)
                   run.commits.push({
@@ -371,6 +388,11 @@ export class Service {
               break;
             }
             case "reset-plan":
+              if (stageModel(state))
+                throw new Failure(
+                  "UNKNOWN_SELECTION",
+                  "確定済みのルートと取得した選択は取り消せません。",
+                );
               if (state.life) {
                 state.decisions!.selections = {};
                 break;
@@ -436,6 +458,7 @@ export class Service {
               publicView(state).public.extra_selections,
               !!state.decisions,
               !!state.life,
+              stageModel(state),
             ),
           };
           break;
@@ -521,6 +544,7 @@ export function importRun(text: string): Run {
         "parent-save-11",
         "parent-save-12",
         "parent-save-13",
+        "parent-save-14",
       ].includes(parsed.format)
     )
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");

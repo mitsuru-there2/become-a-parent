@@ -13,7 +13,24 @@ export const lifeEffectsSchema = v.array(
     delta: integer(-100, 100),
   }),
 );
+const eventModifiersSchema = v.array(
+  v.strictObject({
+    label: text,
+    kind: v.picklist(["good", "bad"]),
+    percent: integer(-80, 200),
+  }),
+);
+export const ongoingLifeEffectSchema = v.strictObject({
+  effects: lifeEffectsSchema,
+  cost: integer(),
+  income: integer(),
+  income_reduction: v.optional(integer()),
+  event_modifiers: v.optional(eventModifiersSchema),
+});
 const lifeOptionSchema = v.strictObject({
+  routes: v.optional(v.pipe(v.array(contentIdSchema), v.minLength(1))),
+  stage_effect: v.optional(ongoingLifeEffectSchema),
+  permanent_effect: v.optional(ongoingLifeEffectSchema),
   visual: v.optional(contentIdSchema),
   route: v.optional(contentIdSchema),
   tree_route: v.optional(contentIdSchema),
@@ -56,6 +73,7 @@ export const lifeDecisionSchema = v.pipe(
   v.strictObject({
     id: contentIdSchema,
     menu: contentIdSchema,
+    stages: v.optional(v.pipe(v.array(integer(0, 4)), v.minLength(1))),
     route_group: v.optional(contentIdSchema),
     route_stage: v.optional(integer(0, 10)),
     route: v.optional(contentIdSchema),
@@ -76,6 +94,7 @@ export const lifeDecisionSchema = v.pipe(
 export const lifeDecisionsSchema = v.array(lifeDecisionSchema);
 export const lifeGameSchema = v.strictObject({
   selection_tree: v.optional(v.boolean()),
+  stage_model: v.optional(v.boolean()),
   crossroads: v.optional(
     v.array(
       v.strictObject({
@@ -91,7 +110,9 @@ export const lifeGameSchema = v.strictObject({
         id: contentIdSchema,
         label: text,
         menu: contentIdSchema,
-        switch_decision: contentIdSchema,
+        switch_decision: v.optional(contentIdSchema),
+        switch_cost: v.optional(integer()),
+        switch_effects: v.optional(lifeEffectsSchema),
         layout: v.optional(v.picklist(["staged", "branches"])),
         stage_labels: v.optional(v.array(text)),
         routes: v.pipe(
@@ -109,7 +130,7 @@ export const lifeGameSchema = v.strictObject({
     }),
   ),
   schema_version: v.literal(1),
-  max_selections: integer(1, 5),
+  max_selections: integer(0, 5),
   income: integer(),
   standard_effects: lifeEffectsSchema,
   menus: v.pipe(

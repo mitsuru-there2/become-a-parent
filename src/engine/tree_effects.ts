@@ -1,10 +1,18 @@
+import { stageModel, activeStageEffects } from "./stage_state";
 import { contentFor } from "../content/catalog";
 import type { State } from "./types";
 
 export const treeEnabled = (state: State) =>
-  ["rules-9", "rules-10", "rules-11", "rules-12"].includes(state.versions.rules);
+  ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(state.versions.rules);
 
 export function activeTreeEffects(state: State) {
+  if (stageModel(state))
+    return activeStageEffects(state).flatMap(({ effect, source, duration }) =>
+      (effect.event_modifiers ?? []).map((m) => ({
+        ...m,
+        source: `${source}（${duration === "stage" ? "ステージ中" : "恒久"}）`,
+      })),
+    );
   if (!treeEnabled(state) || !state.life) return [];
   return contentFor(state).life_game!.decisions.flatMap((node) =>
     node.options.flatMap((option) => {

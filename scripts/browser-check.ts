@@ -1,668 +1,179 @@
-/** 公開UIのみで検証。保存・ストアの内部値は参照しない。Browser plugin not available. */
+/** 公開UIのみでステージの操作を検証。Browser plugin not available. */
 import { chromium, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
-const out = process.env.BROWSER_ARTIFACTS ?? "/tmp/parent-browser-tree";
+const out = process.env.BROWSER_ARTIFACTS ?? "/tmp/parent-browser-stage";
 const url = process.env.GAME_URL ?? "http://127.0.0.1:5173";
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 try {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(15000);
   await page.addInitScript(() => {
-    const getRandomValues = crypto.getRandomValues.bind(crypto);
+    const original = crypto.getRandomValues.bind(crypto);
     crypto.getRandomValues = <T extends ArrayBufferView>(array: T): T => {
       if (array instanceof Uint32Array && array.length === 1) {
         array[0] = 3;
         return array;
       }
-      return getRandomValues(array);
+      return original(array);
     };
   });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
-    if (
-      ["error", "warning"].includes(m.type()) &&
-      !m.text().startsWith("You have Reduced Motion enabled on your device")
-    )
+    if (["error", "warning"].includes(m.type()) && !m.text().includes("Reduced Motion"))
       errors.push(m.text());
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(url);
   await expect(page).toHaveTitle(/親伝説/);
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
-  await expect(page.getByRole("combobox")).toHaveCount(1);
-  await expect(page.getByRole("checkbox")).toHaveCount(0);
-  await expect(page.getByLabel("人生のシード（偶然を決める番号）")).toHaveCount(0);
-  await page.getByLabel("難易度").selectOption("hard");
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
-  const events = page.getByRole("dialog", { name: "今期の出来事" });
   const dismiss = async () => {
     await expect(page.locator(".rpg-save")).not.toHaveText("保存中…");
-    await page.waitForTimeout(100);
-    while (await events.isVisible())
-      await events.getByRole("button", { name: "閉じる" }).last().click();
-  };
-  const fulfillVisibleCrossroad = async () => {
-    const alert = page.getByRole("alert", { name: "岐路の必須選択" });
-    if (!(await alert.isVisible())) return;
-    while (await alert.isVisible()) {
-      const missing = alert.getByRole("navigation", { name: "未実施の必須選択" });
-      const count = await missing.getByRole("button").count();
-      await missing.getByRole("button").first().click();
-      const target = page.locator(".tree-node:focus");
-      await expect(target).toHaveCount(1);
-      await target.click();
+    // Dialogs deliberately appear on a 300 ms stagger.
+    await page.waitForTimeout(700);
+    while (await page.getByRole("dialog", { name: "今期の出来事" }).count())
       await page
-        .locator(".tree-detail")
-        .getByRole("button", { name: "この選択を確定", exact: true })
+        .getByRole("dialog", { name: "今期の出来事" })
+        .last()
+        .getByRole("button", { name: "閉じる" })
+        .last()
         .click();
-      await expect(alert).toHaveCount(0);
-      await page.getByRole("button", { name: "← マップに戻る" }).click();
-      if (count > 1)
-        await expect(
-          alert.getByRole("navigation", { name: "未実施の必須選択" }).getByRole("button"),
-        ).toHaveCount(count - 1);
-    }
   };
   const next = page.getByRole("button", { name: "この暮らしで半年進める →", exact: true });
-  const progress = async (turn: number) => {
-    await dismiss();
-    await fulfillVisibleCrossroad();
+  const alert = page.getByRole("alert", { name: "岐路の必須選択" });
+  const back = page.getByRole("button", { name: "← マップに戻る" });
+  const detail = page.getByRole("dialog").filter({ has: page.locator("#stage-detail-title") });
+  const viewport = async () => {
+    const problems = await page.evaluate(() => {
+      const result: string[] = [];
+      if (document.documentElement.scrollWidth > innerWidth + 1)
+        result.push("document horizontal overflow");
+      if (document.documentElement.scrollHeight > innerHeight + 1)
+        result.push("document vertical overflow");
+      const dock = document.querySelector<HTMLElement>(".rpg-bottom")!.getBoundingClientRect();
+      if (dock.bottom > innerHeight + 1 || dock.left < -1 || dock.right > innerWidth + 1)
+        result.push("footer outside viewport");
+      const lanes = document.querySelector<HTMLElement>(".stage-lanes");
+      if (lanes && lanes.clientHeight < 44) result.push("choices viewport too short");
+      for (const button of document.querySelectorAll<HTMLElement>(
+        ".stage-tabs button, .stage-route-select, .stage-selection",
+      )) {
+        const bounds = button.getBoundingClientRect();
+        if (bounds.height < 44 || bounds.width < 44) result.push("control below 44px");
+      }
+      return result;
+    });
+    expect(problems).toEqual([]);
+  };
+  await dismiss();
+  await expect(alert).toBeVisible();
+  await expect(next).toBeDisabled();
+  for (let remaining = 5; remaining > 0; remaining--) {
+    await expect(alert.getByRole("button")).toHaveCount(remaining);
+    await alert.getByRole("button").first().click();
+    await expect(page.locator(".tree-category-heading h2")).toBeFocused();
+    await page.locator(".stage-route-select").first().click();
+    await expect(detail).toContainText("無料");
+    await expect(detail).toContainText("次の岐路まで変更できません");
+    await detail.getByRole("button", { name: "このルートを確定", exact: true }).click();
+    await expect(detail).toHaveCount(0);
+    await expect(alert).toHaveCount(0);
+    await expect(page.locator(".stage-route.is-current")).toHaveCount(1);
+    await back.click();
+  }
+  await expect(next).toBeEnabled();
+  await page.screenshot({ path: `${out}/map-desktop.png` });
+  for (const [width, height] of [
+    [1440, 900],
+    [1024, 768],
+    [390, 844],
+    [320, 568],
+    [844, 390],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await viewport();
+    await page.locator('[data-menu="home"]').click();
+    await viewport();
+    await expect(page.getByRole("navigation", { name: "ステージ", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "16〜19歳", exact: true }).click();
+    await expect(page.locator(".stage-summary")).toContainText("別のステージを閲覧");
+    await page.getByRole("button", { name: "0〜3歳 · 現在", exact: true }).click();
+    await page.screenshot({ path: `${out}/home-${width}x${height}.png` });
+    await back.click();
+    await expect(page.locator('[data-menu="home"]')).toBeFocused();
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('[data-menu="home"]').click();
+  const trial = page.getByRole("button", { name: /家事支援を試す/ }).first();
+  await trial.click();
+  await expect(detail).toContainText("取得時のみ");
+  await detail.getByRole("button", { name: "この選択を取得", exact: true }).click();
+  await expect(trial).toContainText("取得済み");
+  await expect(trial).toBeFocused();
+  await trial.click();
+  await expect(detail.getByRole("button", { name: "取得済み", exact: true })).toBeDisabled();
+  await detail.getByRole("button", { name: "閉じる", exact: true }).click();
+  const help = page.getByRole("button", { name: /家事支援の利用.*定期/ }).first();
+  await help.click();
+  await expect(detail).toContainText("このステージ中・毎期");
+  await expect(detail.getByRole("button", { name: "この選択を取得", exact: true })).toBeEnabled();
+  await page.screenshot({ path: `${out}/effect-detail-mobile.png` });
+  await detail.getByRole("button", { name: "この選択を取得", exact: true }).click();
+  await expect(help).toContainText("取得済み");
+  await page.reload();
+  await dismiss();
+  await page.locator('[data-menu="home"]').click();
+  await expect(page.getByRole("button", { name: /家事支援の利用.*定期/ }).first()).toContainText(
+    "取得済み",
+  );
+  await back.click();
+  for (let n = 0; n < 8; n++) {
     await expect(next).toBeEnabled();
     await next.click();
-    if (turn < 40) await expect(page.locator(".rpg-caption")).toContainText(`第 ${turn + 1} 期`);
-  };
-  const backToMap = async () => page.getByRole("button", { name: "← マップに戻る" }).click();
-  const menu = async (name: string) => {
-    if (await page.getByRole("button", { name: "← マップに戻る" }).count()) await backToMap();
-    await page
-      .getByRole("group", { name: "選択の地図" })
-      .getByRole("button", { name: new RegExp(name) })
-      .click();
-  };
-  const viewport = async () => {
-    await page.waitForTimeout(200);
-    await page.screenshot({ path: out + "/viewport-latest.png" });
-    const issues = await page.evaluate(() => {
-      const found: string[] = [];
-      if (document.documentElement.scrollWidth > innerWidth)
-        found.push("document horizontal scroll");
-      if (document.documentElement.scrollHeight > innerHeight)
-        found.push("document vertical scroll");
-      const body = document.querySelector<HTMLElement>(".rpg-window-body");
-      if (
-        body &&
-        body.scrollHeight > body.clientHeight + 1 &&
-        !(innerHeight <= 600 && body.querySelector(".selection-tree-content"))
-      )
-        found.push("main vertical scroll");
-      if (body && body.scrollWidth > body.clientWidth + 1) found.push("main horizontal scroll");
-      const dock = document.querySelector<HTMLElement>(".rpg-dock");
-      if (dock) {
-        const bounds = dock.getBoundingClientRect();
-        if (bounds.left < -1 || bounds.right > innerWidth + 1 || bounds.bottom > innerHeight + 1)
-          found.push("dock outside viewport");
-        const stage = document.querySelector<HTMLElement>(".rpg-stage")!.getBoundingClientRect();
-        if (bounds.top < stage.bottom - 1) found.push("dock overlaps workspace");
-        const controls = [...dock.querySelectorAll<HTMLElement>(".rpg-dock-controls button")].map(
-          (button) => button.getBoundingClientRect(),
-        );
-        controls.forEach((button, index) => {
-          if (button.width < 44 || button.height < 44) found.push(`dock button ${index} too small`);
-          if (
-            button.left < bounds.left - 1 ||
-            button.right > bounds.right + 1 ||
-            button.top < bounds.top - 1 ||
-            button.bottom > bounds.bottom + 1
-          )
-            found.push(`dock button ${index} outside`);
-          controls.slice(index + 1).forEach((other, offset) => {
-            if (
-              button.left < other.right - 1 &&
-              button.right > other.left + 1 &&
-              button.top < other.bottom - 1 &&
-              button.bottom > other.top + 1
-            )
-              found.push(`dock buttons ${index} and ${index + offset + 1} overlap`);
-          });
-        });
-      }
-      const hud = document.querySelector<HTMLElement>(".rpg-hud");
-      const age = document.querySelector<HTMLElement>(".rpg-age");
-      const right = document.querySelector<HTMLElement>(".rpg-hud-right");
-      const finance = document.querySelector<HTMLElement>(".rpg-money-summary");
-      if (hud && age && right) {
-        const hudBounds = hud.getBoundingClientRect();
-        const ageBounds = age.getBoundingClientRect();
-        const rightBounds = right.getBoundingClientRect();
-        if (ageBounds.right > rightBounds.left + 1) found.push("age and finance overlap");
-        if (rightBounds.right > hudBounds.right + 1 || rightBounds.bottom > hudBounds.bottom + 1)
-          found.push("finance outside header");
-        if (finance && finance.scrollWidth > finance.clientWidth + 1)
-          found.push("finance text overflow");
-      }
-      const map = document.querySelector<HTMLElement>(".selection-map");
-      if (map) {
-        const bounds = map.getBoundingClientRect();
-        const mapViewport = map.closest(".map-viewport")!;
-        if (mapViewport.clientHeight < 44) found.push("map viewport too short");
-        if (bounds.width > 1002) found.push("map exceeds fixed width");
-        const markerElements = [...map.querySelectorAll<HTMLElement>(".map-marker")];
-        const markers = markerElements.map((marker) => marker.getBoundingClientRect());
-        {
-          markerElements.forEach((element, index) => {
-            const path = map.querySelector<SVGPathElement>(`[data-road="${element.dataset.menu}"]`);
-            const end = path ? path.getPointAtLength(path.getTotalLength()) : { x: 50, y: 50 };
-            const marker = markers[index];
-            const x = ((marker.left + marker.right) / 2 - bounds.left) / bounds.width;
-            const y = ((marker.top + marker.bottom) / 2 - bounds.top) / bounds.height;
-            if (Math.abs(x - end.x / 100) > 0.02 || Math.abs(y - end.y / 100) > 0.02)
-              found.push(`${element.dataset.menu} misses map road`);
-          });
-        }
-        markers.forEach((marker, index) => {
-          if (
-            marker.left < bounds.left - 1 ||
-            marker.right > bounds.right + 1 ||
-            marker.top < bounds.top - 1 ||
-            marker.bottom > bounds.bottom + 1
-          )
-            found.push(`marker ${index} outside map`);
-          if (dock) {
-            const scrollBounds = map.closest(".map-viewport")!.getBoundingClientRect();
-            const outerBounds = map.closest(".rpg-window-body")!.getBoundingClientRect();
-            const visibleMap = {
-              left: Math.max(scrollBounds.left, outerBounds.left),
-              right: Math.min(scrollBounds.right, outerBounds.right),
-              top: Math.max(scrollBounds.top, outerBounds.top),
-              bottom: Math.min(scrollBounds.bottom, outerBounds.bottom),
-            };
-            const visibleMarker = {
-              left: Math.max(marker.left, visibleMap.left),
-              right: Math.min(marker.right, visibleMap.right),
-              top: Math.max(marker.top, visibleMap.top),
-              bottom: Math.min(marker.bottom, visibleMap.bottom),
-            };
-            const dockBounds = dock.getBoundingClientRect();
-            if (
-              visibleMarker.left < visibleMarker.right &&
-              visibleMarker.top < visibleMarker.bottom &&
-              visibleMarker.left < dockBounds.right - 1 &&
-              visibleMarker.right > dockBounds.left + 1 &&
-              visibleMarker.top < dockBounds.bottom - 1 &&
-              visibleMarker.bottom > dockBounds.top + 1
-            )
-              found.push(`marker ${index} covered by dock`);
-          }
-          markers.slice(index + 1).forEach((other, offset) => {
-            if (
-              marker.left < other.right &&
-              marker.right > other.left &&
-              marker.top < other.bottom &&
-              marker.bottom > other.top
-            )
-              found.push(`markers ${index} and ${index + offset + 1} overlap`);
-          });
-        });
-      }
-      const tree = document.querySelector<HTMLElement>(
-        ".selection-tree-content.is-category .tree-scroll",
-      );
-      if (tree && tree.clientHeight < 60) found.push("category tree too short");
-      return found;
-    });
-    expect(issues, `viewport ${page.viewportSize()?.width}x${page.viewportSize()?.height}`).toEqual(
-      [],
-    );
-  };
-  await expect(events).toBeVisible();
-  const eventText = await events.innerText();
-  const cashText = await page.locator(".rpg-cash").innerText();
-  await page.reload();
-  await expect(events).toHaveText(eventText, { useInnerText: true });
-  await expect(page.locator(".rpg-cash")).toHaveText(cashText, { useInnerText: true });
-  await dismiss();
-  const crossroad = page.getByRole("alert", { name: "岐路の必須選択" });
-  await expect(crossroad).toContainText("0歳・春夏の岐路");
-  await expect(crossroad).toContainText("方針を選ぶまで半年を進められません。");
-  await expect(next).toHaveAttribute("data-blocked", "true");
-  await expect(next).toBeDisabled();
-  await expect(next).toHaveAttribute("title", "マップで残りの方針を選んでください");
-  await page.screenshot({ path: `${out}/crossroad-alert-desktop.png` });
-  await page.setViewportSize({ width: 390, height: 844 });
-  await viewport();
-  await page.screenshot({ path: `${out}/crossroad-alert-mobile.png` });
-  await page.setViewportSize({ width: 1280, height: 900 });
-  for (const [index, [title, option]] of [
-    ["学びへの関わり", "日々の遊びや学校で学ぶ"],
-    ["家庭の大方針", "日常を整える"],
-    ["実家との大方針", "交流を続ける"],
-    ["遊びの大方針", "工作・科学を楽しむ"],
-    ["仕事の大方針", "家族時間を守る"],
-  ].entries()) {
-    await crossroad.getByRole("button", { name: `${title}へ →` }).click();
-    const target = page.getByRole("button", { name: `${title}：${option}`, exact: true });
-    await expect(target).toBeFocused();
-    await target.click();
-    const selection = page.getByRole("dialog", { name: option, exact: true });
-    await expect(selection).toContainText("岐路では、この方針を明示的に選ぶ必要があります。");
-    await selection.getByRole("button", { name: "この選択を確定", exact: true }).click();
-    await expect(crossroad).toHaveCount(0);
-    if (index < 4) await expect(next).toBeDisabled();
-    if (index === 0)
-      await page.screenshot({ path: `${out}/crossroad-category-cleared-desktop.png` });
-    await backToMap();
-    if (index < 4) {
-      await expect(crossroad.getByRole("button")).toHaveCount(4 - index);
-      await expect(crossroad.getByRole("button", { name: `${title}へ →` })).toHaveCount(0);
-      if (index === 0)
-        await page.screenshot({ path: `${out}/crossroad-map-remaining-desktop.png` });
-    }
-  }
-  await expect(crossroad).toHaveCount(0);
-  await expect(next).toBeEnabled();
-  await expect(page.locator(".tree-map-heading")).toHaveCount(0);
-  await expect(page.getByRole("group", { name: "選択の地図" })).toBeVisible();
-  await expect(page.locator(".rpg-window-bar, .rpg-family-status > span")).toHaveCount(0);
-  await expect(page.locator(".rpg-money-summary")).toContainText("▲");
-  await expect(page.locator(".rpg-money-summary")).toContainText("▼");
-  await expect(page.locator(".rpg-dock-budget")).toHaveCount(0);
-  await page.locator(".rpg-money-summary").click();
-  const moneyDialog = page.getByRole("dialog", { name: "半年の資金予定" });
-  await expect(moneyDialog).toBeVisible();
-  await expect(moneyDialog).toContainText("基本生活費");
-  await expect(moneyDialog).toContainText("半年後の資金予定");
-  await moneyDialog.getByRole("button", { name: "閉じる" }).click();
-  await expect(page.getByText("地図のアイコンから、選びたい暮らしの分野へ進みます。")).toHaveCount(
-    0,
-  );
-  await expect(page.getByText("何も選ばずに半年を進められます。")).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "今期の予定" })).toContainText("今期の予定 5件");
-  await expect(next).toBeEnabled();
-  const dockMenu = page.getByRole("navigation", { name: "ゲーム内" });
-  await expect(dockMenu.getByRole("button")).toHaveCount(6);
-  await expect(dockMenu.getByRole("button")).toHaveText([
-    "マップ",
-    "家族",
-    "記録",
-    "ヘルプ",
-    "出来事",
-    "半年進める",
-  ]);
-  await expect(dockMenu.getByRole("button", { name: "今期の出来事 ↗" })).toBeVisible();
-  await expect(page.locator(".rpg-menu, .life-advance")).toHaveCount(0);
-  await expect(next.locator(".rpg-dock-advance-icon")).toBeVisible();
-  await page.getByRole("button", { name: "今期の出来事 ↗" }).click();
-  await expect(events).toBeVisible();
-  await expect(events.getByRole("button", { name: "閉じる" })).toHaveCount(2);
-  await events.getByRole("button", { name: "閉じる" }).first().click();
-  await dismiss();
-  await expect(events).toHaveCount(0);
-  await expect(page.getByRole("group", { name: "選択の地図" }).getByRole("button")).toHaveCount(5);
-  await expect(page.getByRole("region", { name: "選択のつながり" })).toHaveCount(0);
-  await expect(page.getByText("現在の暮らしと取得効果")).toHaveCount(0);
-  await page.getByRole("button", { name: "家族の様子", exact: true }).click();
-  await expect(page.getByRole("region", { name: "現在の暮らしと取得効果" })).toBeVisible();
-  await page.getByRole("button", { name: "いまの暮らし", exact: true }).click();
-  for (const meter of await page.locator(".rpg-party meter").all())
-    await expect(meter).toHaveAttribute("max", "10");
-  await expect(page.getByRole("region", { name: "実家のステータス" })).toBeVisible();
-  await page.waitForTimeout(450);
-  for (const [width, height] of [
-    [1440, 900],
-    [1024, 768],
-    [844, 390],
-    [1600, 760],
-    [1280, 900],
-    [1280, 720],
-    [1026, 760],
-    [1024, 600],
-    [789, 760],
-    [641, 600],
-    [390, 844],
-    [360, 640],
-    [320, 568],
-    [320, 480],
-  ]) {
-    await page.setViewportSize({ width, height });
-    await viewport();
-    await expect(page.getByRole("region", { name: "子どもの様子", exact: true })).toBeVisible();
-    for (const name of ["父", "母", "実家"]) {
-      const member = page.getByRole("region", { name: `${name}のステータス`, exact: true });
-      await expect(member).toBeInViewport();
-      await member.getByRole("button", { name: `${name}の詳細を開く` }).click();
-      const sheet = page.getByRole("dialog", { name: `${name}の状態`, exact: true });
-      await expect(sheet).toBeVisible();
-      await expect(sheet).toContainText(name === "実家" ? "地域のつながり" : "段取り");
-      await page.keyboard.press("Tab");
-      expect(await sheet.evaluate((element) => element.contains(document.activeElement))).toBe(
-        true,
-      );
-      if (name === "父" && width === 390 && height === 844) {
-        await sheet.evaluate((element) =>
-          Promise.all(element.getAnimations().map((animation) => animation.finished)),
-        );
-        await page.screenshot({ path: `${out}/father-detail-mobile.png` });
-      }
-      await page.keyboard.press("Escape");
-      await expect(member.getByRole("button", { name: `${name}の詳細を開く` })).toBeFocused();
-    }
-    if (
-      width === 1440 ||
-      width === 1024 ||
-      width === 844 ||
-      width === 320 ||
-      (width === 1600 && height === 760) ||
-      (width === 1280 && height === 900) ||
-      (width === 390 && height === 844) ||
-      height === 480
-    )
-      await page.screenshot({ path: `${out}/overview-${width}x${height}.png` });
-  }
-  // Exercise all five categories even when map scrolling is needed.
-  for (const [width, height] of [
-    [1440, 900],
-    [1024, 768],
-    [390, 844],
-    [320, 568],
-    [844, 390],
-  ]) {
-    await page.setViewportSize({ width, height });
-    for (let index = 0; index < 5; index++) {
-      await page.locator(".map-marker").nth(index).click();
-      await expect(page.getByRole("region", { name: "選択のつながり" })).toBeVisible();
-      await backToMap();
-    }
-  }
-  await page.setViewportSize({ width: 390, height: 844 });
-  const node = (name: string) =>
-    page.getByRole("region", { name: "選択のつながり" }).getByRole("button", { name, exact: true });
-  const detail = page.getByRole("dialog", { name: /./ });
-  const confirm = () => detail.locator(".tree-select");
-  const cancel = async () => detail.getByRole("button", { name: "キャンセル" }).click();
-  await expect(page.locator(".rpg-scenery")).toHaveCount(0);
-  await menu("教育・進路");
-  await expect(page.locator(".tree-route-lane")).toHaveCount(4);
-  await expect(page.locator(".tree-stage-label")).toHaveCount(5);
-  await expect(page.locator(".tree-stage-label").first()).toContainText("学びと園の準備");
-  await expect(page.locator('.tree-node[data-route="home"][data-stage="3"]')).toHaveCount(3);
-  await expect(page.locator('.tree-node[data-route="home"][data-stage="4"]')).toHaveCount(1);
-  await expect(page.locator(".tree-route-summary")).toContainText("別ルートへの転換");
-  await expect(page.locator(".tree-other-label")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "切替準備を見る ↑" })).toBeVisible();
-  const treeGeometry = await page.locator(".tree-canvas").evaluate((canvas) => {
-    const position = (route: string, stage: string) => {
-      const node = canvas.querySelector<HTMLElement>(
-        `.tree-node[data-route="${route}"][data-stage="${stage}"]`,
-      )!;
-      return { x: node.offsetLeft, y: node.offsetTop };
-    };
-    return {
-      vertical: position("public", "0").y < position("public", "1").y,
-      aligned: position("public", "0").x === position("public", "1").x,
-      columns: position("public", "0").x < position("private", "0").x,
-      switchFirst:
-        canvas.querySelector<HTMLElement>('.tree-node[data-route="public"]')!.offsetTop <
-        position("public", "0").y,
-      tall: canvas.clientHeight > canvas.clientWidth,
-    };
-  });
-  expect(treeGeometry).toEqual({
-    vertical: true,
-    aligned: true,
-    columns: true,
-    switchFirst: true,
-    tall: true,
-  });
-  await page.screenshot({ path: `${out}/school-tree-mobile.png` });
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.screenshot({ path: `${out}/school-tree-desktop.png` });
-  await page.locator('.tree-node[data-route="home"][data-stage="4"]').scrollIntoViewIfNeeded();
-  await page.screenshot({ path: `${out}/school-tree-future-desktop.png` });
-  for (const [name, count, file] of [
-    ["家庭生活", 4, "home"],
-    ["実家", 3, "grandparents"],
-    ["遊び・放課後", 3, "afterschool"],
-    ["仕事・家計", 3, "work"],
-  ] as const) {
-    await menu(name);
-    await expect(page.locator(".tree-route-lane:not(.is-common)")).toHaveCount(count);
-    await expect(page.locator(".tree-route-lane.is-common")).toHaveCount(1);
-    await expect(page.locator(".tree-stage-label")).toHaveCount(5);
-    await expect(page.locator(".tree-route-summary")).toContainText("別ルートへの転換");
-    await page.screenshot({ path: `${out}/${file}-tree-desktop.png` });
-    await page.setViewportSize({ width: 390, height: 844 });
-    await viewport();
-    await page.screenshot({ path: `${out}/${file}-tree-mobile.png` });
-    await page.setViewportSize({ width: 1280, height: 900 });
-  }
-  await page.getByRole("button", { name: "切替準備を見る ↓" }).click();
-  await expect
-    .poll(() => page.locator(".tree-scroll").evaluate((tree) => tree.scrollTop))
-    .toBeGreaterThan(500);
-  await menu("教育・進路");
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page
-    .getByRole("region", { name: "子どもの様子", exact: true })
-    .getByRole("button")
-    .first()
-    .click();
-  await expect(page.getByRole("dialog", { name: "子どもの様子", exact: true })).toContainText(
-    "ことばや数の遊び",
-  );
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("region", { name: "選択のつながり" })).toBeVisible();
-  await expect(page.getByRole("group", { name: "選択の地図" })).toHaveCount(0);
-  for (const [width, height] of [
-    [390, 844],
-    [320, 568],
-    [320, 480],
-    [1280, 720],
-  ]) {
-    await page.setViewportSize({ width, height });
-    await viewport();
-    if (height === 480) await page.screenshot({ path: out + "/category-320x480.png" });
-  }
-  await page.setViewportSize({ width: 390, height: 844 });
-  await node("小学校の進路：私立小学校").click();
-  await expect(confirm()).toBeDisabled();
-  await expect(detail).toContainText("年収 600万円以上");
-  await expect(detail.getByRole("img")).toHaveAttribute("src", /hero/);
-  await expect(detail.getByRole("heading", { name: "私立小学校" })).toBeVisible();
-  await page.screenshot({ path: out + "/dialog-mobile.png" });
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.screenshot({ path: out + "/dialog-desktop.png" });
-  await page.setViewportSize({ width: 390, height: 844 });
-  await cancel();
-  await expect(node("大学への挑戦：専門的な受験に挑む")).toHaveCount(1);
-  await backToMap();
-  await expect(page.getByRole("group", { name: "選択の地図" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "選択のつながり" })).toHaveCount(0);
-  await expect(
-    page.getByRole("group", { name: "選択の地図" }).getByRole("button", {
-      name: /教育・進路/,
-    }),
-  ).toBeFocused();
-  for (let t = 1; t <= 8; t++) await progress(t);
-  await dismiss();
-  await expect(crossroad).toContainText("4歳・春夏の岐路");
-  for (const [index, [title, option]] of [
-    ["園での学び方", "保育所に通う"],
-    ["家庭の大方針", "日常を整える"],
-    ["実家との大方針", "交流を続ける"],
-    ["遊びの大方針", "工作・科学を楽しむ"],
-    ["仕事の大方針", "家族時間を守る"],
-  ].entries()) {
-    await crossroad.getByRole("button", { name: `${title}へ →` }).click();
-    await page.getByRole("button", { name: `${title}：${option}`, exact: true }).click();
-    await page
-      .getByRole("dialog", { name: option, exact: true })
-      .getByRole("button", { name: "この選択を確定", exact: true })
-      .click();
-    await expect(crossroad).toHaveCount(0);
-    await backToMap();
-    if (index < 4) await expect(crossroad.getByRole("button")).toHaveCount(4 - index);
-  }
-  await expect(crossroad).toHaveCount(0);
-  await menu("教育・進路");
-  await node("園での学び方：保育所に通う").click();
-  await expect(detail).toContainText("保育所に通う");
-  await cancel();
-  await menu("遊び・放課後");
-  await expect(page.getByText("4〜7歳 · 興味を試す")).toBeInViewport();
-  await node("工作教室：工作教室に通う").click();
-  await expect(confirm()).toBeDisabled();
-  await cancel();
-  await node("工作教室の体験：体験教室に参加する").click();
-  await confirm().click();
-  await backToMap();
-  await expect(page.getByRole("region", { name: "今期の予定" })).toContainText(
-    "体験教室に参加する",
-  );
-  await page.setViewportSize({ width: 320, height: 480 });
-  await viewport();
-  await page.screenshot({ path: out + "/planned-320x480.png" });
-  await page.setViewportSize({ width: 390, height: 844 });
-  const forecast = await page.locator(".rpg-money-summary").innerText();
-  await page.reload();
-  await dismiss();
-  await expect(page.locator(".rpg-money-summary")).toHaveText(forecast, {
-    useInnerText: true,
-  });
-  await menu("遊び・放課後");
-  await node("工作教室の体験：体験教室に参加する").click();
-  await detail.getByRole("button", { name: "予定を取り消す" }).click();
-  await backToMap();
-  await expect(page.getByRole("region", { name: "今期の予定" })).toContainText("今期の予定 5件");
-  await expect(page.getByRole("region", { name: "今期の予定" })).not.toContainText(
-    "体験教室に参加する",
-  );
-  await menu("遊び・放課後");
-  await node("工作教室の体験：体験教室に参加する").click();
-  await confirm().click();
-  await progress(9);
-  await dismiss();
-  await menu("遊び・放課後");
-  await expect(node("工作教室：工作教室に通う")).toContainText("解放");
-  await node("工作教室：工作教室に通う").click();
-  await expect(confirm()).toBeEnabled();
-  await confirm().click();
-  await expect(page.locator(".rpg-save")).toHaveText("保存済み");
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await viewport();
-  await page.screenshot({ path: out + "/branch-desktop.png" });
-  await page.setViewportSize({ width: 390, height: 844 });
-  await viewport();
-  await page.screenshot({ path: out + "/branch-mobile.png" });
-  await progress(10);
-  await dismiss();
-  await menu("遊び・放課後");
-  await node("工作教室：工作教室に通う").click();
-  await expect(confirm()).toBeDisabled();
-  await cancel();
-  await node("工作教室：休会する").click();
-  await confirm().click();
-  await progress(11);
-  await dismiss();
-  await menu("遊び・放課後");
-  await node("工作教室：工作教室に通う").click();
-  await confirm().click();
-  await progress(12);
-  await dismiss();
-  await menu("教育・進路");
-  await expect
-    .poll(() => page.locator(".tree-scroll").evaluate((tree) => tree.scrollTop))
-    .toBeGreaterThan(100);
-  await page.screenshot({ path: `${out}/school-tree-primary-mobile.png` });
-  const routeFocus = await page.locator(".tree-scroll").evaluate((tree) => {
-    const lane = tree.querySelector<HTMLElement>(".tree-route-lane.is-current")!;
-    const treeBounds = tree.getBoundingClientRect();
-    const laneBounds = lane.getBoundingClientRect();
-    return Math.abs(
-      (laneBounds.left + laneBounds.right) / 2 - (treeBounds.left + treeBounds.right) / 2,
-    );
-  });
-  expect(routeFocus).toBeLessThan(4);
-  await node("小学校の進路：公立小学校").click();
-  await expect(detail).toContainText("公立小学校");
-  await cancel();
-  await menu("遊び・放課後");
-  await node("工作教室：通わずに過ごす").click();
-  await confirm().click();
-  await progress(13);
-  for (let t = 14; t <= 40; t++) await progress(t);
-  await expect(page.locator(".ending h1")).toBeVisible();
-  const ending = await page.locator(".ending h1").innerText();
-  await page.reload();
-  await expect(page.locator(".ending h1")).toHaveText(ending);
-  await page.getByRole("button", { name: "家族の記録", exact: true }).click();
-  await expect(page.locator(".timeline")).toContainText("最期を迎えた");
-  await page.getByRole("button", { name: "遊び方", exact: true }).click();
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "書き出し", exact: true }).click();
-  await (await downloadPromise).saveAs(out + "/save.json");
-  const fresh = await browser.newPage();
-  await fresh.goto(url);
-  await fresh.getByLabel("保存ファイルを取り込む").setInputFiles(out + "/save.json");
-  await expect(fresh.locator(".ending h1")).toHaveText(ending);
-  await page.goto(url);
-  await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
-  for (let t = 1; t <= 40; t++) {
     await dismiss();
-    if (await page.locator(".game-over").count()) break;
-    await fulfillVisibleCrossroad();
-    await menu("仕事・家計");
-    for (const name of ["今期だけの仕事", "母の今期だけの仕事"]) {
-      await node(name + "：臨時の仕事を引き受ける").click();
-      await confirm().click();
-    }
-    await next.click();
-    await expect(page.locator(".rpg-save")).toHaveText("保存済み");
-    if (await page.locator(".game-over").count()) break;
   }
-  await expect(page.locator(".game-over")).toContainText("離婚");
-  await page.reload();
-  await expect(page.locator(".game-over")).toContainText("離婚");
+  await expect(alert).toContainText("4歳");
+  await expect(next).toBeDisabled();
+  await alert.getByRole("button", { name: "教育・進路のルートへ →", exact: true }).click();
+  await page
+    .getByRole("region", { name: "私立ルート", exact: true })
+    .getByRole("button", { name: /このルートを確認/ })
+    .click();
+  await expect(detail).toContainText("80万円");
+  await expect(detail).toContainText("+3");
+  await detail.getByRole("button", { name: "このルートを確定", exact: true }).click();
+  await expect(page.locator(".stage-summary")).toContainText("現在のルート：私立");
+  await page.screenshot({ path: `${out}/route-change-mobile.png` });
+  await back.click();
+  await page.getByRole("button", { name: "遊び方", exact: true }).click();
+  await expect(page.getByText(/件数の上限はありません/)).toBeVisible();
+  await expect(page.getByText(/確定後の取消はできません/)).toBeVisible();
+  await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   expect(errors).toEqual([]);
-  await Bun.write(
-    out + "/result.json",
-    JSON.stringify(
-      {
-        mode: "public-ui",
-        url,
-        browser: "Chrome / Playwright",
-        reason: "Browser plugin not available",
-        viewports: [
-          "1440x900",
-          "1024x768",
-          "844x390",
-          "1600x760",
-          "1280x900",
-          "1280x720",
-          "1026x760",
-          "1024x600",
-          "789x760",
-          "641x600",
-          "390x844",
-          "360x640",
-          "320x568",
-          "320x480",
-        ],
-        turns: 40,
-        ending,
-        errors,
-        branching: true,
-        dlc: false,
-        cancel: true,
-        resume: true,
-        gameOver: true,
-      },
-      null,
-      2,
-    ),
+  console.log(
+    JSON.stringify({
+      ok: true,
+      url: page.url(),
+      viewports: 5,
+      checks: [
+        "identity",
+        "nonblank",
+        "no-overlay",
+        "console",
+        "crossroad",
+        "immediate-acquisition",
+        "same-turn-unlock",
+        "saved-reload",
+        "stage-boundary",
+        "switch-penalty",
+        "focus",
+        "responsive",
+      ],
+      artifacts: out,
+    }),
   );
-  console.log(JSON.stringify({ ok: true, artifacts: out }));
 } finally {
   await browser.close();
 }

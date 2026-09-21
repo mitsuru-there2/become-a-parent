@@ -74,6 +74,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
                       "rules-10",
                       "rules-11",
                       "rules-12",
+                      "rules-13",
                     ].includes(publicState.versions.rules)
                       ? 10
                       : 100
@@ -107,6 +108,7 @@ export function Family({ publicState }: { publicState: PublicState }) {
                     "rules-10",
                     "rules-11",
                     "rules-12",
+                    "rules-13",
                   ].includes(publicState.versions.rules)
                     ? 10
                     : 100
@@ -128,7 +130,9 @@ export function Family({ publicState }: { publicState: PublicState }) {
           id === "shared" ? publicState.grandparents : publicState.grandparents.members![id];
         const name =
           id === "shared"
-            ? ["rules-9", "rules-10", "rules-11", "rules-12"].includes(publicState.versions.rules)
+            ? ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(
+                publicState.versions.rules,
+              )
               ? "実家"
               : "祖父母（共通）"
             : grandparentNames[id];

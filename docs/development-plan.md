@@ -348,3 +348,20 @@ D-040、S-018 / AC-018-F〜H。本編を29判断・50選択肢・14イベント�
 検証：`bun run check`、17ファイル125件のテスト、`bun run build`が成功。未選択と一部選択では共通エンジンが進行を拒否し、画面の半年進行ボタンも無効、5分類すべての選択後だけ有効になることを確認した。Chrome / Playwrightの公開UIテストでは、警告から5分類への移動・フォーカス・確定、取消、0〜16歳の全岐路、40期・成人後・結末、保存再開・書き出し・再取込、320〜1600pxの表示、Reduced Motionの既知案内を除くconsole warning/error・実行時エラー0を確認した。証跡は`/tmp/parent-crossroad-guard-qa/`。Browser plugin not availableのためfrontend-testing-debuggingのPlaywright経路を使用した。画面チャンク約658KBの警告は継続する。
 
 未検証：実機Safari・Firefox、人による岐路の頻度・選択肢の読みやすさ・費用と効果の面白さ。公開デプロイは未実施。
+
+## 岐路のルート確定とステージ内取得（2026-09-21、D-068）
+
+[S-018 / AC-018-V〜Z](specs/selection-tree.md)を共通エンジン・CLI・UIへ実装。5カテゴリ・17ルート、82判断・125実行案を対象ステージとルートへ配置した。前期の切替準備と今期の予定枠を廃止し、ルート確定・取得時に費用・効果・履歴を反映する。数値、継続収支、イベント補正は取得時・ステージ中・恒久に分け、次の岐路でステージ効果を終了する。旧保存の移行は追加していない。
+
+検証済み：
+
+- `bun run check`：設定、生成スキーマ、型、lint、整形に成功。
+- `bun run test`：17ファイル116件成功。全岐路の必須確認、ルート固定、変更費用・ストレスの一度だけの適用、資金境界、後続の同一期取得、ステージ後半の取得、三種類の効果、期限終了、DLC、無効操作の状態不変、保存再開・再送・再生、40期・成人後を確認。旧方針の予定・取消を期待する現行ツリーのテストは新仕様の受け入れへ置換した。最後のCLI取消コマンド除外後は関連2ファイル17件を再確認した。
+- `bun run test:public /tmp/parent-stage-public-1 1`：公開情報のみの5経路で40期・成人後まで完走・再生一致。
+- `bun run test:stories /tmp/parent-stage-stories-1 1`：19経路、59実行案を公開CLIで取得し、全経路が完走・再生一致。
+- `bun run test:browser`：Chrome / Playwright、`http://127.0.0.1:5173`、1440×900・1024×768・390×844・320×568・844×390。初回の5カテゴリ確定、未確定時の進行不可、即時取得・同一期の後続解放・再取得不可、保存再読込、4歳の岐路と80万円のルート変更、将来ステージ、フォーカス復帰、44pxの操作、画面外へのページスクロールなし、エラーオーバーレイなしを確認。Reduced Motionの既知案内を除くconsole warning/error・実行時エラーは0。Browser plugin not availableのため既存Playwright経路を使用。目視で発見した文字色の競合を修正し、暗い既存テーマへ統一した。小さい画面は中央の選択一覧を内部スクロールする。
+- `bun run build`：SPA生成成功。既存と同様、画面チャンクが500KBを超える警告あり（約675KB）。
+
+画像：[PCのルートと選択](/tmp/parent-browser-stage/home-1440x900.png)、[モバイル](/tmp/parent-browser-stage/home-390x844.png)、[効果の詳細](/tmp/parent-browser-stage/effect-detail-mobile.png)、[変更後のルート](/tmp/parent-browser-stage/route-change-mobile.png)。公開プレイの実行ログと結果は上記`/tmp/parent-stage-*`、画面証跡は`/tmp/parent-browser-stage/`へ保存した。
+
+未検証：実機Safari・Firefox、人による変更ペナルティと恒久効果のバランス・操作量の評価（Q-022）。公開デプロイは未実施。

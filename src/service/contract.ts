@@ -99,6 +99,7 @@ export function selections(
   extraSelections: PublicState["extra_selections"] = [],
   decisions = false,
   life = false,
+  immediate = false,
 ) {
   const paths = ["A", "B"]
     .flatMap((parentId) =>
@@ -107,7 +108,9 @@ export function selections(
     .concat(["activity.domain", "activity.level", "activity.sponsor", "style", "help"]);
   return {
     commands: COMMANDS.filter(
-      (id) => !decisions || (id !== "plan" && (life || id !== "reset-plan")),
+      (id) =>
+        (!immediate || id !== "reset-plan") &&
+        (!decisions || (id !== "plan" && (life || id !== "reset-plan"))),
     ).map((id) => ({
       id,
       required_args: requiredArguments(id),

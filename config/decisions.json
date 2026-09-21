@@ -1,60 +1,60 @@
 {
   "schema_version": 1,
-  "max_selections": 2,
+  "max_selections": 0,
   "crossroads": [
     {
       "age_months": 0,
       "label": "0歳・春夏の岐路",
       "required_decisions": [
-        "base-learning",
-        "route-home",
-        "route-grandparents",
-        "route-afterschool",
-        "route-work"
+        "crossroad-school",
+        "crossroad-home",
+        "crossroad-grandparents",
+        "crossroad-afterschool",
+        "crossroad-work"
       ]
     },
     {
       "age_months": 48,
       "label": "4歳・春夏の岐路",
       "required_decisions": [
-        "base-school",
-        "route-home",
-        "route-grandparents",
-        "route-afterschool",
-        "route-work"
+        "crossroad-school",
+        "crossroad-home",
+        "crossroad-grandparents",
+        "crossroad-afterschool",
+        "crossroad-work"
       ]
     },
     {
       "age_months": 96,
       "label": "8歳・春夏の岐路",
       "required_decisions": [
-        "tree-primary",
-        "route-home",
-        "route-grandparents",
-        "route-afterschool",
-        "route-work"
+        "crossroad-school",
+        "crossroad-home",
+        "crossroad-grandparents",
+        "crossroad-afterschool",
+        "crossroad-work"
       ]
     },
     {
       "age_months": 144,
       "label": "12歳・春夏の岐路",
       "required_decisions": [
-        "tree-secondary",
-        "route-home",
-        "route-grandparents",
-        "route-afterschool",
-        "route-work"
+        "crossroad-school",
+        "crossroad-home",
+        "crossroad-grandparents",
+        "crossroad-afterschool",
+        "crossroad-work"
       ]
     },
     {
       "age_months": 192,
       "label": "16歳・春夏の岐路",
       "required_decisions": [
-        "tree-high",
-        "route-home",
-        "route-grandparents",
-        "route-afterschool",
-        "route-work"
+        "crossroad-school",
+        "crossroad-home",
+        "crossroad-grandparents",
+        "crossroad-afterschool",
+        "crossroad-work"
       ]
     }
   ],
@@ -114,59 +114,54 @@
       "menu": "education",
       "title": "学びへの関わり",
       "reason": "年齢に合った学び方を続けます。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 0,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "日々の遊びや学校で学ぶ",
-          "description": "普段の学びを見守ります。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "tree_route": "public"
-        },
         {
           "id": "together",
           "label": "一緒に学ぶ時間を作る",
           "description": "父が学びを支えます。毎期、疲労と費用がかかります。",
-          "cost": 5,
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 1
-            },
-            {
-              "path": "child.ability.study",
-              "delta": 2
-            }
-          ],
+          "effects": [],
           "skill": {
             "parent": "A",
             "ability": "learning",
             "target": "child.ability.study",
             "gain": 1
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ],
-          "tree_route": "private"
+          "routes": ["public", "private", "international", "home"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 1
+              },
+              {
+                "path": "child.ability.study",
+                "delta": 2
+              }
+            ],
+            "cost": 5,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         },
         {
           "id": "independent",
@@ -175,29 +170,35 @@
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ],
-          "tree_route": "home"
+          "effects": [],
+          "routes": ["public", "private", "international", "home"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 1
+              }
+            ],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         }
       ],
       "route_group": "school",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-school-visit",
@@ -205,8 +206,8 @@
       "title": "園・学校の見学",
       "reason": "通う場所を家族で考える時期です。",
       "kind": "selection",
-      "min_age_months": 24,
-      "max_age_months": 65,
+      "min_age_months": 0,
+      "max_age_months": 95,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -214,7 +215,7 @@
         {
           "id": "visit",
           "label": "見学する",
-          "description": "次期から見学先への通園を検討できます。",
+          "description": "取得後、条件を満たせば見学先への通園を検討できます。",
           "cost": 4,
           "income": 0,
           "setup_cost": 0,
@@ -224,63 +225,65 @@
               "delta": 1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          "routes": ["public", "private", "international", "home"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         }
       ],
       "route_group": "school",
       "route_stage": 0,
-      "tree_route": "private"
+      "stages": [0, 1]
     },
     {
       "id": "base-school",
       "menu": "education",
       "title": "園での学び方",
       "reason": "4歳から地域の保育所が既定。園の選択は小学校以降にもつながります。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 71,
-      "default_option": "standard",
-      "once": false,
+      "max_age_months": 95,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
         {
           "id": "standard",
           "label": "保育所に通う",
-          "description": "4歳になると自動で入所します。費用は基本生活費に含まれ、6歳で卒園します。",
+          "description": "保育所に通うを選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
           "effects": [],
-          "route": "public"
+          "routes": ["public"],
+          "stage_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0
+          }
         },
         {
           "id": "enrolled",
           "label": "私立幼稚園へ通う",
-          "description": "園での探究を続けます。費用と期待の負担もあります。",
-          "cost": 24,
+          "description": "私立幼稚園へ通うを選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 8,
           "income": 0,
-          "setup_cost": 8,
-          "effects": [
-            {
-              "path": "decisions.fatigue.B",
-              "delta": -1
-            },
-            {
-              "path": "child.ability.study",
-              "delta": 1
-            }
-          ],
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -290,38 +293,42 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ],
-          "route": "private"
+          "routes": ["private"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "decisions.fatigue.B",
+                "delta": -1
+              },
+              {
+                "path": "child.ability.study",
+                "delta": 1
+              }
+            ],
+            "cost": 24,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         },
         {
           "id": "international",
           "label": "インターナショナル園",
-          "description": "交流の機会が広がります。送迎と費用がかかります。",
-          "cost": 36,
+          "description": "インターナショナル園を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 18,
           "income": 0,
-          "setup_cost": 18,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 1
-            }
-          ],
-          "route": "international",
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -332,53 +339,74 @@
             ],
             "annual_income": 640
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          "routes": ["international"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 1
+              }
+            ],
+            "cost": 36,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         },
         {
           "id": "home",
           "label": "家庭で学ぶ",
-          "description": "家で学ぶ計画を作ります。親の時間を使い、地域との接点は別途作ります。",
-          "cost": 8,
+          "description": "家庭で学ぶを選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.trust.A",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 1
-            }
-          ],
-          "route": "home",
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          "effects": [],
+          "routes": ["home"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.trust.A",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 1
+              }
+            ],
+            "cost": 8,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         }
       ],
       "route_group": "school",
-      "route_stage": 0
+      "route_stage": 1,
+      "stages": [1]
     },
     {
       "id": "base-school-meeting",
@@ -386,11 +414,11 @@
       "title": "園の先生との面談",
       "reason": "通園している園の先生に相談できます。",
       "kind": "selection",
-      "min_age_months": 24,
-      "max_age_months": 71,
+      "min_age_months": 0,
+      "max_age_months": 95,
       "default_option": null,
-      "once": false,
-      "cooldown": 2,
+      "once": true,
+      "cooldown": 1,
       "options": [
         {
           "id": "talk",
@@ -409,31 +437,38 @@
               "delta": 3
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          "routes": ["public", "private", "international", "home"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         }
       ],
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "base-school",
-            "option": "enrolled"
+            "option": "enrolled",
+            "after": 0
           }
         ]
       },
       "route_group": "school",
       "route_stage": 0,
-      "tree_route": "private"
+      "stages": [0, 1]
     },
     {
       "id": "base-career-talk",
@@ -442,7 +477,7 @@
       "reason": "次の生活を考える時期になりました。",
       "kind": "selection",
       "min_age_months": 144,
-      "max_age_months": 215,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -450,7 +485,7 @@
         {
           "id": "talk",
           "label": "本人の希望を聞く",
-          "description": "次期から進路の見学を検討できます。",
+          "description": "取得後、条件を満たせば進路の見学を検討できます。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
@@ -464,23 +499,29 @@
               "delta": 3
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
+          "routes": ["public", "private", "international", "home"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         }
       ],
       "route_group": "school",
-      "route_stage": 2,
-      "tree_route": "public"
+      "route_stage": 3,
+      "stages": [3, 4]
     },
     {
       "id": "base-career-visit",
@@ -489,10 +530,10 @@
       "reason": "以前に本人の希望を聞いたため、候補を一緒に見に行けます。",
       "kind": "selection",
       "min_age_months": 144,
-      "max_age_months": 215,
+      "max_age_months": 239,
       "default_option": null,
-      "once": false,
-      "cooldown": 3,
+      "once": true,
+      "cooldown": 1,
       "options": [
         {
           "id": "visit",
@@ -511,18 +552,24 @@
               "delta": -3
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
+          "routes": ["public", "private", "international", "home"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         }
       ],
       "requires": {
@@ -535,59 +582,56 @@
         ]
       },
       "route_group": "school",
-      "route_stage": 2,
-      "tree_route": "public"
+      "route_stage": 3,
+      "stages": [3, 4]
     },
     {
       "id": "base-home",
       "menu": "home",
       "title": "家族の過ごし方",
       "reason": "日々の休息と交流を続けます。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 0,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "普段の分担で暮らす",
-          "description": "日常の休息と交流を続けます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "rest",
           "label": "休息を優先する",
           "description": "余暇に使えるお金を休息へ回します。",
-          "cost": 8,
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "decisions.fatigue.A",
-              "delta": -1
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": -1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "effects": [],
+          "routes": ["daily", "memory", "adventure", "independence"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "decisions.fatigue.A",
+                "delta": -1
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": -1
+              }
+            ],
+            "cost": 8,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         },
         {
           "id": "talk",
@@ -596,45 +640,52 @@
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "couple",
-              "delta": 1
-            },
-            {
-              "path": "child.trust.A",
-              "delta": 2
-            },
-            {
-              "path": "child.trust.B",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 1
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 1
-            }
-          ],
+          "effects": [],
           "repair": true,
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "routes": ["daily", "memory", "adventure", "independence"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "couple",
+                "delta": 1
+              },
+              {
+                "path": "child.trust.A",
+                "delta": 2
+              },
+              {
+                "path": "child.trust.B",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 1
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 1
+              }
+            ],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
       "route_group": "home",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-help-trial",
@@ -651,7 +702,7 @@
         {
           "id": "trial",
           "label": "一度頼んでみる",
-          "description": "次期から定期利用を選べます。",
+          "description": "取得後、条件を満たせば定期利用を選べます。",
           "cost": 20,
           "income": 0,
           "setup_cost": 0,
@@ -665,70 +716,50 @@
               "delta": -2
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "routes": ["daily"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
-      "route": "daily",
       "route_group": "home",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-help",
       "menu": "home",
       "title": "家事支援の利用",
       "reason": "一度試した家事支援の利用方針です。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 0,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "家族で分担する",
-          "description": "定期利用を停止し、自分たちの分担へ戻します。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "regular",
           "label": "定期的に頼む",
           "description": "毎期の費用を使い、父母の負担を軽減します。",
-          "cost": 32,
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "decisions.fatigue.A",
-              "delta": -1
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": -1
-            },
-            {
-              "path": "parents.A.stress",
-              "delta": -1
-            },
-            {
-              "path": "parents.B.stress",
-              "delta": -1
-            }
-          ],
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -738,18 +769,41 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "routes": ["daily"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "decisions.fatigue.A",
+                "delta": -1
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": -1
+              },
+              {
+                "path": "parents.A.stress",
+                "delta": -1
+              },
+              {
+                "path": "parents.B.stress",
+                "delta": -1
+              }
+            ],
+            "cost": 32,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
       "requires": {
@@ -761,9 +815,9 @@
           }
         ]
       },
-      "route": "daily",
       "route_group": "home",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-family-trip",
@@ -774,8 +828,8 @@
       "min_age_months": 0,
       "max_age_months": 239,
       "default_option": null,
-      "once": false,
-      "cooldown": 2,
+      "once": true,
+      "cooldown": 1,
       "options": [
         {
           "id": "trip",
@@ -806,78 +860,82 @@
               "delta": 1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "routes": ["memory"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
-      "route": "memory",
       "route_group": "home",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-grand-contact",
       "menu": "grandparents",
       "title": "実家との付き合い",
       "reason": "実家・実家それぞれとの関係を大切にします。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 0,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "時々連絡を取る",
-          "description": "普段の交流を続けます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "frequent",
           "label": "こまめに顔を見せる",
           "description": "父の手間と交通費を使い、実家との関係を深めます。",
-          "cost": 6,
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 1
-            },
-            {
-              "path": "grandparents.relation",
-              "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "effects": [],
+          "routes": ["visit", "care", "legacy"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 1
+              },
+              {
+                "path": "grandparents.relation",
+                "delta": 1
+              }
+            ],
+            "cost": 6,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
       "route_group": "grandparents",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-grand-consult",
@@ -894,7 +952,7 @@
         {
           "id": "talk",
           "label": "実家に相談する",
-          "description": "次期から、実家の体力と関係に余裕があれば預かりを頼めます。",
+          "description": "取得後、条件を満たせば、実家の体力と関係に余裕があれば預かりを頼めます。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
@@ -904,45 +962,42 @@
               "delta": 1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "routes": ["care"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
-      "route": "care",
       "route_group": "grandparents",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2]
     },
     {
       "id": "base-grand-care",
       "menu": "grandparents",
       "title": "実家の預かり支援",
       "reason": "以前に実家へ相談したため、支援を検討できます。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 0,
       "max_age_months": 143,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "預かりは頼まない",
-          "description": "実家の休息を優先します。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "supported",
           "label": "定期的に預かってもらう",
@@ -950,16 +1005,7 @@
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "decisions.fatigue.B",
-              "delta": -2
-            },
-            {
-              "path": "grandparents.health",
-              "delta": -1
-            }
-          ],
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -978,11 +1024,7 @@
                 "path": "grandparents.relation",
                 "op": "gte",
                 "value": 4
-              }
-            ]
-          },
-          "maintains": {
-            "stats": [
+              },
               {
                 "path": "grandparents.health",
                 "op": "gte",
@@ -995,18 +1037,33 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "routes": ["care"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "decisions.fatigue.B",
+                "delta": -2
+              },
+              {
+                "path": "grandparents.health",
+                "delta": -1
+              }
+            ],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
       "requires": {
@@ -1018,9 +1075,9 @@
           }
         ]
       },
-      "route": "care",
       "route_group": "grandparents",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2]
     },
     {
       "id": "base-grand-visit",
@@ -1031,8 +1088,8 @@
       "min_age_months": 0,
       "max_age_months": 239,
       "default_option": null,
-      "once": false,
-      "cooldown": 2,
+      "once": true,
+      "cooldown": 1,
       "options": [
         {
           "id": "visit",
@@ -1051,73 +1108,77 @@
               "delta": 1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "routes": ["visit", "care", "legacy"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
       "route_group": "grandparents",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-play",
       "menu": "afterschool",
       "title": "遊びの時間",
       "reason": "年齢に合った遊びを続けます。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 0,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "自由に遊ぶ",
-          "description": "身近な遊びを楽しみます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "creative",
           "label": "家で工作を楽しむ",
           "description": "材料費を使い、創作を楽しむ時間を作ります。",
-          "cost": 6,
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.ability.craft",
-              "delta": 1
-            },
-            {
-              "path": "child.interest.craft",
-              "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          "effects": [],
+          "routes": ["maker", "music", "sports"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.ability.craft",
+                "delta": 1
+              },
+              {
+                "path": "child.interest.craft",
+                "delta": 1
+              }
+            ],
+            "cost": 6,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         },
         {
           "id": "friends",
@@ -1126,32 +1187,39 @@
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 1
-            },
-            {
-              "path": "child.stress",
-              "delta": -1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "effects": [],
+          "routes": ["maker", "music", "sports"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 1
+              },
+              {
+                "path": "child.stress",
+                "delta": -1
+              }
+            ],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         }
       ],
       "route_group": "afterschool",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-craft-trial",
@@ -1160,7 +1228,7 @@
       "reason": "工作を楽しめる年齢になりました。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 203,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -1168,7 +1236,7 @@
         {
           "id": "try",
           "label": "体験教室に参加する",
-          "description": "次期から入会や別の活動を検討できます。",
+          "description": "取得後、条件を満たせば入会や別の活動を検討できます。",
           "cost": 8,
           "income": 0,
           "setup_cost": 0,
@@ -1186,62 +1254,50 @@
               "delta": 1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          "routes": ["maker"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         }
       ],
-      "route": "maker",
       "route_group": "afterschool",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "base-craft",
       "menu": "afterschool",
       "title": "工作教室",
       "reason": "以前に工作教室を体験したため、通い方を選べます。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 215,
-      "default_option": "standard",
-      "once": false,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "通わずに過ごす",
-          "description": "入会を見送る、または退会します。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "enrolled",
           "label": "工作教室に通う",
           "description": "毎期、自動で通います。参加費と送迎の負担がかかります。",
-          "cost": 24,
+          "cost": 4,
           "income": 0,
-          "setup_cost": 4,
-          "effects": [
-            {
-              "path": "child.ability.craft",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 1
-            }
-          ],
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -1257,33 +1313,30 @@
             "target": "child.ability.craft",
             "gain": 1
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
-        },
-        {
-          "id": "paused",
-          "label": "休会する",
-          "description": "費用と通う負担を止めます。後の期に再開できます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "requires": {
-            "history": [
+          "routes": ["maker"],
+          "stage_effect": {
+            "effects": [
               {
-                "decision": "base-craft",
-                "option": "enrolled",
-                "after": 0
+                "path": "child.ability.craft",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 1
+              }
+            ],
+            "cost": 24,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
               }
             ]
           }
@@ -1298,9 +1351,9 @@
           }
         ]
       },
-      "route": "maker",
       "route_group": "afterschool",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "base-craft-show",
@@ -1308,11 +1361,11 @@
       "title": "工作の発表会",
       "reason": "通っている教室で発表する機会があります。",
       "kind": "selection",
-      "min_age_months": 60,
-      "max_age_months": 215,
+      "min_age_months": 48,
+      "max_age_months": 239,
       "default_option": null,
-      "once": false,
-      "cooldown": 3,
+      "once": true,
+      "cooldown": 1,
       "options": [
         {
           "id": "support",
@@ -1337,38 +1390,43 @@
             "target": "child.trust.B",
             "gain": 2
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          "routes": ["maker"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         }
       ],
       "requires": {
-        "policies": [
-          {
-            "decision": "base-craft",
-            "option": "enrolled"
-          }
-        ],
         "history": [
           {
             "decision": "base-craft",
             "option": "enrolled",
             "after": 1
+          },
+          {
+            "decision": "base-craft",
+            "option": "enrolled",
+            "after": 0
           }
         ]
       },
-      "route": "maker",
       "route_group": "afterschool",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "base-other-trial",
@@ -1377,10 +1435,10 @@
       "reason": "工作教室を体験したことをきっかけに、別の興味も探せます。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 215,
+      "max_age_months": 239,
       "default_option": null,
-      "once": false,
-      "cooldown": 3,
+      "once": true,
+      "cooldown": 1,
       "options": [
         {
           "id": "try",
@@ -1399,18 +1457,24 @@
               "delta": 2
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          "routes": ["maker"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         }
       ],
       "requires": {
@@ -1422,126 +1486,126 @@
           }
         ]
       },
-      "route": "maker",
       "route_group": "afterschool",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "base-work",
       "menu": "work",
       "title": "父の働き方",
       "reason": "家計と家族の時間のバランスを選べます。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 0,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "今の働き方を続ける",
-          "description": "通常の収入で暮らします。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "reduced",
           "label": "仕事を減らして家族の時間を作る",
           "description": "収入の減少は半年ごとの家計負担として表示します。",
-          "cost": 30,
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.A.stress",
-              "delta": -1
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": -1
-            },
-            {
-              "path": "child.trust.A",
-              "delta": 1
-            }
-          ],
-          "income_reduction": 30,
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "effects": [],
+          "routes": ["balance", "career", "venture"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "parents.A.stress",
+                "delta": -1
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": -1
+              },
+              {
+                "path": "child.trust.A",
+                "delta": 1
+              }
+            ],
+            "cost": 30,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ],
+            "income_reduction": 30
+          }
         },
         {
           "id": "heavy",
           "label": "仕事を増やす",
-          "description": "事前の相談と預かり支援が必要です。支援が終われば通常勤務へ戻ります。",
+          "description": "事前の相談と預かり支援が必要です。このステージ中、仕事と支援を両立します。",
           "cost": 0,
-          "income": 40,
+          "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.A.stress",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 2
-            },
-            {
-              "path": "couple",
-              "delta": -1
-            }
-          ],
+          "effects": [],
           "requires": {
             "history": [
               {
                 "decision": "base-work-consult",
                 "option": "talk",
                 "after": 0
+              },
+              {
+                "decision": "base-grand-care",
+                "option": "supported",
+                "after": 0
+              },
+              {
+                "decision": "base-grand-care",
+                "option": "supported",
+                "after": 0
+              }
+            ]
+          },
+          "routes": ["balance", "career", "venture"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "parents.A.stress",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 2
+              },
+              {
+                "path": "couple",
+                "delta": -1
               }
             ],
-            "policies": [
+            "cost": 0,
+            "income": 40,
+            "event_modifiers": [
               {
-                "decision": "base-grand-care",
-                "option": "supported"
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
               }
             ]
-          },
-          "maintains": {
-            "policies": [
-              {
-                "decision": "base-grand-care",
-                "option": "supported"
-              }
-            ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          }
         }
       ],
       "route_group": "work",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-work-consult",
@@ -1558,7 +1622,7 @@
         {
           "id": "talk",
           "label": "相談する",
-          "description": "預かり支援がある期には、次期以降に仕事を増やす選択肢が開きます。",
+          "description": "相談の取得後、預かりの経験などの条件を満たすと仕事を増やす選択が開きます。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
@@ -1568,22 +1632,29 @@
               "delta": 1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          "routes": ["balance", "career", "venture"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         }
       ],
       "route_group": "work",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-extra-work",
@@ -1594,7 +1665,7 @@
       "min_age_months": 0,
       "max_age_months": 239,
       "default_option": null,
-      "once": false,
+      "once": true,
       "cooldown": 1,
       "options": [
         {
@@ -1618,139 +1689,146 @@
               "delta": -1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          "routes": ["balance", "career", "venture"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         }
       ],
       "route_group": "work",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-work-mother",
       "menu": "work",
       "title": "母の働き方",
       "reason": "家計と家族の時間のバランスを選べます。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 0,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "今の働き方を続ける",
-          "description": "通常の収入で暮らします。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "reduced",
           "label": "仕事を減らして家族の時間を作る",
           "description": "収入の減少は半年ごとの家計負担として表示します。",
-          "cost": 30,
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.B.stress",
-              "delta": -1
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": -1
-            },
-            {
-              "path": "child.trust.B",
-              "delta": 1
-            }
-          ],
-          "income_reduction": 30,
-          "event_modifiers": [
-            {
-              "label": "慎重な暮らし",
-              "kind": "good",
-              "percent": -5
-            },
-            {
-              "label": "備えの安心",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "effects": [],
+          "routes": ["balance", "career", "venture"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "parents.B.stress",
+                "delta": -1
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": -1
+              },
+              {
+                "path": "child.trust.B",
+                "delta": 1
+              }
+            ],
+            "cost": 30,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "慎重な暮らし",
+                "kind": "good",
+                "percent": -5
+              },
+              {
+                "label": "備えの安心",
+                "kind": "bad",
+                "percent": -10
+              }
+            ],
+            "income_reduction": 30
+          }
         },
         {
           "id": "heavy",
           "label": "仕事を増やす",
-          "description": "事前の相談と預かり支援が必要です。支援が終われば通常勤務へ戻ります。",
+          "description": "事前の相談と預かり支援が必要です。このステージ中、仕事と支援を両立します。",
           "cost": 0,
-          "income": 40,
+          "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.B.stress",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 2
-            },
-            {
-              "path": "couple",
-              "delta": -1
-            }
-          ],
+          "effects": [],
           "requires": {
             "history": [
               {
                 "decision": "base-work-consult",
                 "option": "talk",
                 "after": 0
+              },
+              {
+                "decision": "base-grand-care",
+                "option": "supported",
+                "after": 0
+              },
+              {
+                "decision": "base-grand-care",
+                "option": "supported",
+                "after": 0
+              }
+            ]
+          },
+          "routes": ["balance", "career", "venture"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "parents.B.stress",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 2
+              },
+              {
+                "path": "couple",
+                "delta": -1
               }
             ],
-            "policies": [
+            "cost": 0,
+            "income": 40,
+            "event_modifiers": [
               {
-                "decision": "base-grand-care",
-                "option": "supported"
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
               }
             ]
-          },
-          "maintains": {
-            "policies": [
-              {
-                "decision": "base-grand-care",
-                "option": "supported"
-              }
-            ]
-          },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          }
         }
       ],
       "route_group": "work",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "base-extra-work-mother",
@@ -1761,7 +1839,7 @@
       "min_age_months": 0,
       "max_age_months": 239,
       "default_option": null,
-      "once": false,
+      "once": true,
       "cooldown": 1,
       "options": [
         {
@@ -1785,62 +1863,65 @@
               "delta": -1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 10
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          "routes": ["balance", "career", "venture"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 10
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         }
       ],
       "route_group": "work",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1, 2, 3, 4]
     },
     {
       "id": "tree-primary",
       "title": "小学校の進路",
       "menu": "education",
       "reason": "6歳から公立が既定。見学・年収・成績などの条件を満たすと別の学校を選べます。",
-      "kind": "policy",
-      "min_age_months": 72,
+      "kind": "selection",
+      "min_age_months": 48,
       "max_age_months": 143,
-      "default_option": "public",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
         {
           "id": "public",
           "label": "公立小学校",
-          "description": "選ばなければ6歳から通います。費用は基本生活費に含まれます。",
+          "description": "公立小学校を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
           "effects": [],
-          "route": "public"
+          "routes": ["public"],
+          "stage_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0
+          }
         },
         {
           "id": "private",
           "label": "私立小学校",
-          "description": "学びの機会と期待の重さを引き受けます。12歳で終了。",
-          "cost": 48,
+          "description": "私立小学校を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 24,
           "income": 0,
-          "setup_cost": 24,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 2
-            },
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -1858,37 +1939,42 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ],
-          "route": "private"
+          "routes": ["private"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.ability.study",
+                "delta": 2
+              },
+              {
+                "path": "child.stress",
+                "delta": 2
+              }
+            ],
+            "cost": 48,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         },
         {
           "id": "international",
           "label": "インターナショナルスクール",
-          "description": "広い交流の機会と送迎の負担。12歳で終了。",
-          "cost": 72,
+          "description": "インターナショナルスクールを選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 36,
           "income": 0,
-          "setup_cost": 36,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 1
-            }
-          ],
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -1906,54 +1992,74 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ],
-          "route": "international"
+          "routes": ["international"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 1
+              }
+            ],
+            "cost": 72,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         },
         {
           "id": "home",
           "label": "自宅学習・小",
-          "description": "学習計画を自分たちで組み立てます。親の時間と地域交流が必要です。",
-          "cost": 12,
+          "description": "自宅学習・小を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 2
-            }
-          ],
-          "route": "home",
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          "effects": [],
+          "routes": ["home"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.ability.study",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 2
+              }
+            ],
+            "cost": 12,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         }
       ],
       "route_group": "school",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2]
     },
     {
       "id": "tree-exam",
@@ -1961,7 +2067,7 @@
       "menu": "education",
       "reason": "これまでの選択を次の進路につなげます。",
       "kind": "selection",
-      "min_age_months": 120,
+      "min_age_months": 96,
       "max_age_months": 143,
       "default_option": null,
       "once": true,
@@ -1984,18 +2090,24 @@
               "delta": 4
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
+          "routes": ["public", "private", "international", "home"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         }
       ],
       "requires": {
@@ -2020,48 +2132,44 @@
         ]
       },
       "route_group": "school",
-      "route_stage": 1,
-      "tree_route": "private"
+      "route_stage": 2,
+      "stages": [2]
     },
     {
       "id": "tree-secondary",
       "title": "中学校の進路",
       "menu": "education",
       "reason": "12歳からの学び方。続けてきた学校ルートを次の段階へつなげます。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 144,
-      "max_age_months": 179,
-      "default_option": "public",
-      "once": false,
+      "max_age_months": 191,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
         {
           "id": "public",
           "label": "公立中学校",
-          "description": "地域の中学校で学びます。",
+          "description": "公立中学校を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
           "effects": [],
-          "route": "public"
+          "routes": ["public"],
+          "stage_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0
+          }
         },
         {
           "id": "advanced",
           "label": "私立中学校",
-          "description": "校内の探究と進学準備。費用と競争の負担があります。",
-          "cost": 48,
+          "description": "私立中学校を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 24,
           "income": 0,
-          "setup_cost": 24,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 3
-            },
-            {
-              "path": "child.stress",
-              "delta": 3
-            }
-          ],
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "annual_income": 560,
             "stats": [
@@ -2072,38 +2180,42 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ],
-          "route": "private"
+          "routes": ["private"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.ability.study",
+                "delta": 3
+              },
+              {
+                "path": "child.stress",
+                "delta": 3
+              }
+            ],
+            "cost": 48,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         },
         {
           "id": "international",
           "label": "国際系中学校",
-          "description": "多様な人との学びを続けます。費用と通学負担が大きくなります。",
-          "cost": 60,
+          "description": "国際系中学校を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 30,
           "income": 0,
-          "setup_cost": 30,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 3
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 1
-            }
-          ],
-          "route": "international",
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "annual_income": 640,
             "stats": [
@@ -2114,64 +2226,85 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
+          "routes": ["international"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 3
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 1
+              }
+            ],
+            "cost": 60,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         },
         {
           "id": "home",
           "label": "自宅学習・中",
-          "description": "興味に合わせた学習を続けます。家族の段取りと外との接点を使います。",
-          "cost": 14,
+          "description": "自宅学習・中を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 2
-            }
-          ],
-          "route": "home",
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          "effects": [],
+          "routes": ["home"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.ability.study",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 2
+              }
+            ],
+            "cost": 14,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         }
       ],
       "route_group": "school",
-      "route_stage": 2
+      "route_stage": 3,
+      "stages": [3]
     },
     {
       "id": "tree-high",
       "title": "高校の進路",
       "menu": "education",
       "reason": "15歳からの学び方。積み重ねたルートを継続するか、準備して転換します。",
-      "kind": "policy",
-      "min_age_months": 180,
-      "max_age_months": 215,
-      "default_option": "public",
-      "once": false,
+      "kind": "selection",
+      "min_age_months": 144,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 3,
@@ -2179,31 +2312,26 @@
         {
           "id": "public",
           "label": "公立高校",
-          "description": "地域の高校で学びます。費用は基本生活費に含まれます。",
+          "description": "公立高校を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
           "effects": [],
-          "route": "public"
+          "routes": ["public"],
+          "stage_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0
+          }
         },
         {
           "id": "private",
           "label": "私立高校",
-          "description": "探究や受験準備を深めます。費用と期待の負担があります。",
-          "cost": 52,
+          "description": "私立高校を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 26,
           "income": 0,
-          "setup_cost": 26,
-          "effects": [
-            {
-              "path": "child.ability.study",
-              "delta": 3
-            },
-            {
-              "path": "child.stress",
-              "delta": 3
-            }
-          ],
-          "route": "private",
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "annual_income": 600,
             "stats": [
@@ -2214,37 +2342,42 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
+          "routes": ["private"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.ability.study",
+                "delta": 3
+              },
+              {
+                "path": "child.stress",
+                "delta": 3
+              }
+            ],
+            "cost": 52,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         },
         {
           "id": "international",
           "label": "国際系高校",
-          "description": "交流と共同制作の機会を広げます。費用と移動の負担があります。",
-          "cost": 70,
+          "description": "国際系高校を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 35,
           "income": 0,
-          "setup_cost": 35,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 3
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 2
-            }
-          ],
-          "route": "international",
+          "setup_cost": 0,
+          "effects": [],
           "requires": {
             "annual_income": 680,
             "stats": [
@@ -2255,126 +2388,72 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
+          "routes": ["international"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 3
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 2
+              }
+            ],
+            "cost": 70,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         },
         {
           "id": "home",
           "label": "自宅学習・高",
-          "description": "本人の計画を軸に学びます。進路の情報と外の仲間を自分で探します。",
-          "cost": 16,
+          "description": "自宅学習・高を選び、このステージの学びを支えます。次の岐路で継続効果が終了します。",
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 2
-            }
-          ],
-          "route": "home",
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
+          "effects": [],
+          "routes": ["home"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 2
+              }
+            ],
+            "cost": 16,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 20
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 20
+              }
+            ]
+          }
         }
-      ]
-    },
-    {
-      "id": "school-switch",
-      "title": "進路の切替準備",
-      "menu": "education",
-      "reason": "今の学校ルートから別のルートへ移るには、前期に準備が必要です。",
-      "kind": "selection",
-      "min_age_months": 48,
-      "max_age_months": 209,
-      "default_option": null,
-      "once": false,
-      "cooldown": 1,
-      "route_group": "school",
-      "options": [
-        {
-          "id": "public",
-          "label": "公立・地域への切替を準備",
-          "description": "今期は現在の学校を続け、次期だけ転換先を選べます。費用と子どもの負担が発生します。",
-          "cost": 80,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 3
-            }
-          ],
-          "switch_to": "public"
-        },
-        {
-          "id": "private",
-          "label": "私立への切替を準備",
-          "description": "今期は現在の学校を続け、次期だけ転換先を選べます。費用と子どもの負担が発生します。",
-          "cost": 80,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 3
-            }
-          ],
-          "switch_to": "private"
-        },
-        {
-          "id": "international",
-          "label": "インターナショナルへの切替を準備",
-          "description": "今期は現在の学校を続け、次期だけ転換先を選べます。費用と子どもの負担が発生します。",
-          "cost": 80,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 3
-            }
-          ],
-          "switch_to": "international"
-        },
-        {
-          "id": "home",
-          "label": "自宅学習への切替を準備",
-          "description": "今期は現在の学校を続け、次期だけ転換先を選べます。費用と子どもの負担が発生します。",
-          "cost": 80,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 3
-            }
-          ],
-          "switch_to": "home"
-        }
-      ]
+      ],
+      "stages": [3, 4]
     },
     {
       "id": "tree-university",
@@ -2383,7 +2462,7 @@
       "reason": "これまでの選択を次の進路につなげます。",
       "kind": "selection",
       "min_age_months": 192,
-      "max_age_months": 215,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -2405,18 +2484,24 @@
               "delta": 6
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 40
-            },
-            {
-              "label": "期待と負担",
-              "kind": "bad",
-              "percent": 40
-            }
-          ]
+          "routes": ["public", "private", "international", "home"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 40
+              },
+              {
+                "label": "期待と負担",
+                "kind": "bad",
+                "percent": 40
+              }
+            ]
+          }
         }
       ],
       "requires": {
@@ -2437,51 +2522,29 @@
         ]
       },
       "route_group": "school",
-      "route_stage": 3,
-      "tree_route": "private"
+      "route_stage": 4,
+      "stages": [4]
     },
     {
       "id": "tree-career",
       "title": "責任ある仕事への挑戦",
       "menu": "work",
       "reason": "働き方の相談と親の段取り能力を次の仕事につなげます。",
-      "kind": "policy",
-      "min_age_months": 72,
+      "kind": "selection",
+      "min_age_months": 48,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "今の役割を続ける",
-          "description": "追加の責任を引き受けず、今の収入を維持します。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "lead",
           "label": "父が責任者の仕事を引き受ける",
           "description": "父の年収が160万円増える一方、家族の時間と心身の余裕を使います。",
           "cost": 0,
-          "income": 80,
+          "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.A.stress",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 2
-            },
-            {
-              "path": "couple",
-              "delta": -1
-            }
-          ],
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -2498,40 +2561,46 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "責任の重さ",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
+          "routes": ["career"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "parents.A.stress",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 2
+              },
+              {
+                "path": "couple",
+                "delta": -1
+              }
+            ],
+            "cost": 0,
+            "income": 80,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "責任の重さ",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         },
         {
           "id": "lead-mother",
           "label": "母が責任者の仕事を引き受ける",
           "description": "母の年収が160万円増える一方、家族の時間と心身の余裕を使います。",
           "cost": 0,
-          "income": 80,
+          "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.B.stress",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 2
-            },
-            {
-              "path": "couple",
-              "delta": -1
-            }
-          ],
+          "effects": [],
           "requires": {
             "history": [
               {
@@ -2548,23 +2617,42 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "広がる機会",
-              "kind": "good",
-              "percent": 30
-            },
-            {
-              "label": "責任の重さ",
-              "kind": "bad",
-              "percent": 30
-            }
-          ]
+          "routes": ["career"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "parents.B.stress",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 2
+              },
+              {
+                "path": "couple",
+                "delta": -1
+              }
+            ],
+            "cost": 0,
+            "income": 80,
+            "event_modifiers": [
+              {
+                "label": "広がる機会",
+                "kind": "good",
+                "percent": 30
+              },
+              {
+                "label": "責任の重さ",
+                "kind": "bad",
+                "percent": 30
+              }
+            ]
+          }
         }
       ],
-      "route": "career",
       "route_group": "work",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "story-keepsake",
@@ -2573,7 +2661,7 @@
       "reason": "今しかない姿を、どんな形で残そう。選んだ宝物は18歳から振り返れます。",
       "kind": "selection",
       "min_age_months": 0,
-      "max_age_months": 35,
+      "max_age_months": 47,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -2594,7 +2682,8 @@
               "path": "parents.B.fulfillment",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["memory"]
         },
         {
           "id": "album",
@@ -2612,12 +2701,13 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["memory"]
         }
       ],
-      "route": "memory",
       "route_group": "home",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0]
     },
     {
       "id": "story-cardboard",
@@ -2625,8 +2715,8 @@
       "title": "リビングに段ボール王国",
       "reason": "箱を捨てるはずが、子どもが王国の建設を宣言しました。",
       "kind": "selection",
-      "min_age_months": 24,
-      "max_age_months": 65,
+      "min_age_months": 0,
+      "max_age_months": 95,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -2647,7 +2737,8 @@
               "path": "decisions.fatigue.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["maker"]
         },
         {
           "id": "theater",
@@ -2669,12 +2760,13 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["maker"]
         }
       ],
-      "route": "maker",
       "route_group": "afterschool",
-      "route_stage": 0
+      "route_stage": 0,
+      "stages": [0, 1]
     },
     {
       "id": "story-science-entry",
@@ -2683,7 +2775,7 @@
       "reason": "段ボール建築の経験を使って、小さな実験を始めます。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 119,
+      "max_age_months": 143,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -2704,7 +2796,8 @@
               "path": "child.interest.study",
               "delta": 6
             }
-          ]
+          ],
+          "routes": ["public", "private", "international", "home"]
         }
       ],
       "requires": {
@@ -2717,8 +2810,8 @@
         ]
       },
       "route_group": "school",
-      "route_stage": 0,
-      "tree_route": "home"
+      "route_stage": 1,
+      "stages": [1, 2]
     },
     {
       "id": "story-science-fair",
@@ -2726,8 +2819,8 @@
       "title": "町の発明フェア",
       "reason": "得意なものから挑戦できます。ロケットとロボットは違う後続につながります。",
       "kind": "selection",
-      "min_age_months": 72,
-      "max_age_months": 179,
+      "min_age_months": 48,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -2761,7 +2854,8 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "routes": ["public", "private", "international", "home"]
         },
         {
           "id": "robot",
@@ -2792,12 +2886,13 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "routes": ["public", "private", "international", "home"]
         }
       ],
       "route_group": "school",
       "route_stage": 1,
-      "tree_route": "home"
+      "stages": [1, 2, 3]
     },
     {
       "id": "story-invention",
@@ -2805,8 +2900,8 @@
       "title": "全国へ、わが家の発明",
       "reason": "町の挑戦を次の舞台へ。賞金イベントもありますが、受賞は保証されません。",
       "kind": "selection",
-      "min_age_months": 120,
-      "max_age_months": 215,
+      "min_age_months": 96,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -2841,18 +2936,24 @@
               }
             ]
           },
-          "event_modifiers": [
-            {
-              "label": "大舞台の機会",
-              "kind": "good",
-              "percent": 15
-            },
-            {
-              "label": "遠征の負担",
-              "kind": "bad",
-              "percent": 10
-            }
-          ]
+          "routes": ["public", "private", "international", "home"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "大舞台の機会",
+                "kind": "good",
+                "percent": 15
+              },
+              {
+                "label": "遠征の負担",
+                "kind": "bad",
+                "percent": 10
+              }
+            ]
+          }
         },
         {
           "id": "demo",
@@ -2883,12 +2984,13 @@
                 "after": 1
               }
             ]
-          }
+          },
+          "routes": ["public", "private", "international", "home"]
         }
       ],
       "route_group": "school",
-      "route_stage": 1,
-      "tree_route": "home"
+      "route_stage": 2,
+      "stages": [2, 3, 4]
     },
     {
       "id": "story-music-trial",
@@ -2897,7 +2999,7 @@
       "reason": "歌う、鳴らす、踊る。上手さよりも、続けたいかを試します。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 131,
+      "max_age_months": 143,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -2918,77 +3020,81 @@
               "path": "child.autonomy",
               "delta": 3
             }
-          ]
+          ],
+          "routes": ["music"]
         }
       ],
-      "route": "music",
       "route_group": "afterschool",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2]
     },
     {
       "id": "story-music",
       "menu": "afterschool",
       "title": "わが家の音楽活動",
       "reason": "体験をした後は、楽しむペースを選べます。18歳で定期活動を終了します。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 215,
-      "default_option": "standard",
-      "once": false,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "音楽の定期活動はしない",
-          "description": "費用をかけず普段の生活に戻ります。参加を再開するときは導入費がかかります。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "casual",
           "label": "家で気ままにセッション",
           "description": "毎期少額で創作を楽しむ。町のステージへ進めます。",
-          "cost": 6,
+          "cost": 4,
           "income": 0,
-          "setup_cost": 4,
-          "effects": [
-            {
-              "path": "child.ability.craft",
-              "delta": 2
-            },
-            {
-              "path": "child.stress",
-              "delta": -2
-            }
-          ]
+          "setup_cost": 0,
+          "effects": [],
+          "routes": ["music"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.ability.craft",
+                "delta": 2
+              },
+              {
+                "path": "child.stress",
+                "delta": -2
+              }
+            ],
+            "cost": 6,
+            "income": 0
+          }
         },
         {
           "id": "stage",
           "label": "バンドを組んで本番を目指す",
           "description": "毎期の練習費と疲れを引き受け、全国フェスを狙います。",
-          "cost": 18,
+          "cost": 12,
           "income": 0,
-          "setup_cost": 12,
-          "effects": [
-            {
-              "path": "child.ability.craft",
-              "delta": 4
-            },
-            {
-              "path": "child.autonomy",
-              "delta": 2
-            },
-            {
-              "path": "child.stress",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 1
-            }
-          ]
+          "setup_cost": 0,
+          "effects": [],
+          "routes": ["music"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.ability.craft",
+                "delta": 4
+              },
+              {
+                "path": "child.autonomy",
+                "delta": 2
+              },
+              {
+                "path": "child.stress",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 1
+              }
+            ],
+            "cost": 18,
+            "income": 0
+          }
         }
       ],
       "requires": {
@@ -3000,9 +3106,9 @@
           }
         ]
       },
-      "route": "music",
       "route_group": "afterschool",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "story-festival",
@@ -3011,7 +3117,7 @@
       "reason": "活動を続けた先の舞台。地元で楽しむか、全国へ挑むかを選べます。",
       "kind": "selection",
       "min_age_months": 96,
-      "max_age_months": 209,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3034,13 +3140,15 @@
             }
           ],
           "requires": {
-            "policies": [
+            "history": [
               {
                 "decision": "story-music",
-                "option": "casual"
+                "option": "casual",
+                "after": 0
               }
             ]
-          }
+          },
+          "routes": ["music"]
         },
         {
           "id": "national",
@@ -3064,25 +3172,25 @@
             }
           ],
           "requires": {
-            "policies": [
-              {
-                "decision": "story-music",
-                "option": "stage"
-              }
-            ],
             "history": [
               {
                 "decision": "story-music",
                 "option": "stage",
                 "after": 1
+              },
+              {
+                "decision": "story-music",
+                "option": "stage",
+                "after": 0
               }
             ]
-          }
+          },
+          "routes": ["music"]
         }
       ],
-      "route": "music",
       "route_group": "afterschool",
-      "route_stage": 2
+      "route_stage": 2,
+      "stages": [2, 3, 4]
     },
     {
       "id": "story-encore",
@@ -3090,8 +3198,8 @@
       "title": "あの舞台から、次の一曲",
       "reason": "全国へ出た経験を持って、本人が次の形を選びます。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 234,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3116,7 +3224,8 @@
               "path": "decisions.fatigue.A",
               "delta": 2
             }
-          ]
+          ],
+          "routes": ["music"]
         },
         {
           "id": "record",
@@ -3138,7 +3247,8 @@
               "path": "child.trust.B",
               "delta": 5
             }
-          ]
+          ],
+          "routes": ["music"]
         }
       ],
       "requires": {
@@ -3150,9 +3260,9 @@
           }
         ]
       },
-      "route": "music",
       "route_group": "afterschool",
-      "route_stage": 3
+      "route_stage": 3,
+      "stages": [3, 4]
     },
     {
       "id": "story-sports-trial",
@@ -3161,7 +3271,7 @@
       "reason": "走るより応援が好きでも大歓迎。体を動かす遊びの入口です。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 131,
+      "max_age_months": 143,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3169,7 +3279,7 @@
         {
           "id": "try",
           "label": "いろいろな種目を体験する",
-          "description": "次期からスポーツとの付き合い方を選べます。",
+          "description": "取得後、条件を満たせばスポーツとの付き合い方を選べます。",
           "cost": 4,
           "income": 0,
           "setup_cost": 0,
@@ -3186,73 +3296,77 @@
               "path": "decisions.fatigue.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["sports"]
         }
       ],
-      "route": "sports",
       "route_group": "afterschool",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2]
     },
     {
       "id": "story-team",
       "menu": "afterschool",
       "title": "スポーツとの付き合い方",
       "reason": "勝負を目指すか、遊びとして続けるか。18歳で定期活動を終了します。",
-      "kind": "policy",
+      "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 215,
-      "default_option": "standard",
-      "once": false,
+      "max_age_months": 239,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "定期チームには入らない",
-          "description": "費用をかけず普段の生活に戻ります。参加を再開するときは導入費がかかります。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "play",
           "label": "公園の仲間と気楽に遊ぶ",
           "description": "毎期の小さな費用で交流。町のリレーに参加できます。",
-          "cost": 4,
+          "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 2
-            },
-            {
-              "path": "child.stress",
-              "delta": -2
-            }
-          ]
+          "effects": [],
+          "routes": ["sports"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 2
+              },
+              {
+                "path": "child.stress",
+                "delta": -2
+              }
+            ],
+            "cost": 4,
+            "income": 0
+          }
         },
         {
           "id": "compete",
           "label": "チームで大会を目指す",
           "description": "練習費と送迎負担がかかります。全国大会への道が開きます。",
-          "cost": 16,
+          "cost": 10,
           "income": 0,
-          "setup_cost": 10,
-          "effects": [
-            {
-              "path": "child.autonomy",
-              "delta": 3
-            },
-            {
-              "path": "child.stress",
-              "delta": 2
-            },
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 1
-            }
-          ]
+          "setup_cost": 0,
+          "effects": [],
+          "routes": ["sports"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "child.autonomy",
+                "delta": 3
+              },
+              {
+                "path": "child.stress",
+                "delta": 2
+              },
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 1
+              }
+            ],
+            "cost": 16,
+            "income": 0
+          }
         }
       ],
       "requires": {
@@ -3264,9 +3378,9 @@
           }
         ]
       },
-      "route": "sports",
       "route_group": "afterschool",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "story-cup",
@@ -3274,8 +3388,8 @@
       "title": "最後の走者は、うちの子",
       "reason": "同じ運動の経験でも、町の大会と全国遠征では違う思い出になります。",
       "kind": "selection",
-      "min_age_months": 108,
-      "max_age_months": 203,
+      "min_age_months": 96,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3298,13 +3412,15 @@
             }
           ],
           "requires": {
-            "policies": [
+            "history": [
               {
                 "decision": "story-team",
-                "option": "play"
+                "option": "play",
+                "after": 0
               }
             ]
-          }
+          },
+          "routes": ["sports"]
         },
         {
           "id": "national",
@@ -3328,25 +3444,25 @@
             }
           ],
           "requires": {
-            "policies": [
-              {
-                "decision": "story-team",
-                "option": "compete"
-              }
-            ],
             "history": [
               {
                 "decision": "story-team",
                 "option": "compete",
                 "after": 1
+              },
+              {
+                "decision": "story-team",
+                "option": "compete",
+                "after": 0
               }
             ]
-          }
+          },
+          "routes": ["sports"]
         }
       ],
-      "route": "sports",
       "route_group": "afterschool",
-      "route_stage": 2
+      "route_stage": 2,
+      "stages": [2, 3, 4]
     },
     {
       "id": "story-coach",
@@ -3354,8 +3470,8 @@
       "title": "今度は小さな誰かのコーチ",
       "reason": "大会を経験した本人が、次の世代と関わります。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 234,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3385,7 +3501,8 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "routes": ["sports"]
         },
         {
           "id": "clinic",
@@ -3412,12 +3529,13 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "routes": ["sports"]
         }
       ],
-      "route": "sports",
       "route_group": "afterschool",
-      "route_stage": 3
+      "route_stage": 3,
+      "stages": [3, 4]
     },
     {
       "id": "story-camp",
@@ -3425,8 +3543,8 @@
       "title": "家族の冒険、第一歩",
       "reason": "寝袋ひとつで大事件。どちらを選ぶかで次の冒険が変わります。",
       "kind": "selection",
-      "min_age_months": 60,
-      "max_age_months": 137,
+      "min_age_months": 48,
+      "max_age_months": 143,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3455,7 +3573,8 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["adventure"]
         },
         {
           "id": "city",
@@ -3473,12 +3592,13 @@
               "path": "child.trust.B",
               "delta": 4
             }
-          ]
+          ],
+          "routes": ["adventure"]
         }
       ],
-      "route": "adventure",
       "route_group": "home",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2]
     },
     {
       "id": "story-expedition",
@@ -3486,8 +3606,8 @@
       "title": "冒険の地図を広げよう",
       "reason": "前の冒険を踏まえて、今度は本人も旅の作戦会議へ参加します。",
       "kind": "selection",
-      "min_age_months": 108,
-      "max_age_months": 185,
+      "min_age_months": 96,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3517,7 +3637,8 @@
                 "after": 1
               }
             ]
-          }
+          },
+          "routes": ["adventure"]
         },
         {
           "id": "rail",
@@ -3548,12 +3669,13 @@
                 "after": 1
               }
             ]
-          }
+          },
+          "routes": ["adventure"]
         }
       ],
-      "route": "adventure",
       "route_group": "home",
-      "route_stage": 2
+      "route_stage": 2,
+      "stages": [2, 3]
     },
     {
       "id": "story-exchange",
@@ -3561,8 +3683,8 @@
       "title": "世界へ出る夏",
       "reason": "家族の冒険や進路見学の経験が、外の世界への入口になります。",
       "kind": "selection",
-      "min_age_months": 156,
-      "max_age_months": 215,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3597,7 +3719,7 @@
               }
             ]
           },
-          "tree_route": "public"
+          "routes": ["public", "private", "international", "home"]
         },
         {
           "id": "study",
@@ -3629,7 +3751,7 @@
               }
             ]
           },
-          "tree_route": "international"
+          "routes": ["public", "private", "international", "home"]
         },
         {
           "id": "host",
@@ -3661,11 +3783,12 @@
               }
             ]
           },
-          "tree_route": "home"
+          "routes": ["public", "private", "international", "home"]
         }
       ],
       "route_group": "school",
-      "route_stage": 2
+      "route_stage": 3,
+      "stages": [3, 4]
     },
     {
       "id": "story-recipe",
@@ -3674,7 +3797,7 @@
       "reason": "実家を訪ねたら「昔は行列ができた」と秘伝のノートが出てきました。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 167,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3699,7 +3822,8 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["legacy"]
         }
       ],
       "requires": {
@@ -3711,9 +3835,9 @@
           }
         ]
       },
-      "route": "legacy",
       "route_group": "grandparents",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3]
     },
     {
       "id": "story-stall",
@@ -3721,8 +3845,8 @@
       "title": "一日だけの家族食堂",
       "reason": "伝説のレシピを誰に届けよう。大繁盛するかは開いてからのお楽しみです。",
       "kind": "selection",
-      "min_age_months": 84,
-      "max_age_months": 203,
+      "min_age_months": 48,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3756,7 +3880,8 @@
                 "value": 4
               }
             ]
-          }
+          },
+          "routes": ["legacy"]
         },
         {
           "id": "feast",
@@ -3778,7 +3903,8 @@
               "path": "grandparents.relation",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["legacy"]
         }
       ],
       "requires": {
@@ -3790,9 +3916,9 @@
           }
         ]
       },
-      "route": "legacy",
       "route_group": "grandparents",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "story-recipe-legacy",
@@ -3800,8 +3926,8 @@
       "title": "秘伝のノート、その次へ",
       "reason": "あのコロッケを、本人が自分の暮らしへ持っていく年代です。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 234,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3831,7 +3957,8 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "routes": ["legacy"]
         },
         {
           "id": "cook",
@@ -3862,12 +3989,13 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "routes": ["legacy"]
         }
       ],
-      "route": "legacy",
       "route_group": "grandparents",
-      "route_stage": 3
+      "route_stage": 3,
+      "stages": [3, 4]
     },
     {
       "id": "story-market",
@@ -3875,8 +4003,8 @@
       "title": "わが家のガレージマーケット",
       "reason": "押し入れの山が、一日だけのお店に変わります。",
       "kind": "selection",
-      "min_age_months": 72,
-      "max_age_months": 179,
+      "min_age_months": 48,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -3901,7 +4029,8 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["venture"]
         },
         {
           "id": "swap",
@@ -3923,85 +4052,89 @@
               "path": "child.stress",
               "delta": -3
             }
-          ]
+          ],
+          "routes": ["venture"]
         }
       ],
-      "route": "venture",
       "route_group": "work",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3]
     },
     {
       "id": "story-venture",
       "menu": "work",
       "title": "親の小さなお店、大きな夢",
-      "reason": "一日店長と働き方相談の経験から始める副業。いつでも休業できます。",
-      "kind": "policy",
-      "min_age_months": 84,
+      "reason": "一日店長と働き方相談の経験から始める副業。このステージが終わるまで費用と収入が継続します。",
+      "kind": "selection",
+      "min_age_months": 48,
       "max_age_months": 239,
-      "default_option": "standard",
-      "once": false,
+      "default_option": null,
+      "once": true,
       "cooldown": 1,
       "options": [
-        {
-          "id": "standard",
-          "label": "新しいお店は休業する",
-          "description": "費用をかけず普段の生活に戻ります。参加を再開するときは導入費がかかります。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": []
-        },
         {
           "id": "small",
           "label": "週末だけの小さなお店",
           "description": "毎期10万円の費用と25万円の収入。父が準備を引き受けます。",
-          "cost": 10,
-          "income": 25,
-          "setup_cost": 25,
-          "effects": [
-            {
-              "path": "decisions.fatigue.A",
-              "delta": 1
-            },
-            {
-              "path": "parents.A.fulfillment",
-              "delta": 1
-            }
-          ]
+          "cost": 25,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [],
+          "routes": ["venture"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "decisions.fatigue.A",
+                "delta": 1
+              },
+              {
+                "path": "parents.A.fulfillment",
+                "delta": 1
+              }
+            ],
+            "cost": 10,
+            "income": 25
+          }
         },
         {
           "id": "launch",
           "label": "母が工房を本格オープン",
           "description": "毎期35万円の費用と75万円の収入。大口注文にもトラブルにもつながります。",
-          "cost": 35,
-          "income": 75,
-          "setup_cost": 100,
-          "effects": [
-            {
-              "path": "decisions.fatigue.B",
-              "delta": 2
-            },
-            {
-              "path": "parents.B.stress",
-              "delta": 1
-            },
-            {
-              "path": "parents.B.fulfillment",
-              "delta": 1
-            }
-          ],
-          "event_modifiers": [
-            {
-              "label": "新事業の広がり",
-              "kind": "good",
-              "percent": 15
-            },
-            {
-              "label": "事業の責任",
-              "kind": "bad",
-              "percent": 15
-            }
-          ]
+          "cost": 100,
+          "income": 0,
+          "setup_cost": 0,
+          "effects": [],
+          "routes": ["venture"],
+          "stage_effect": {
+            "effects": [
+              {
+                "path": "decisions.fatigue.B",
+                "delta": 2
+              },
+              {
+                "path": "parents.B.stress",
+                "delta": 1
+              },
+              {
+                "path": "parents.B.fulfillment",
+                "delta": 1
+              }
+            ],
+            "cost": 35,
+            "income": 75,
+            "event_modifiers": [
+              {
+                "label": "新事業の広がり",
+                "kind": "good",
+                "percent": 15
+              },
+              {
+                "label": "事業の責任",
+                "kind": "bad",
+                "percent": 15
+              }
+            ]
+          }
         }
       ],
       "requires": {
@@ -4018,9 +4151,9 @@
           }
         ]
       },
-      "route": "venture",
       "route_group": "work",
-      "route_stage": 1
+      "route_stage": 1,
+      "stages": [1, 2, 3, 4]
     },
     {
       "id": "story-venture-pivot",
@@ -4029,7 +4162,7 @@
       "reason": "本格開業から半年以上。拡大するか、休める仕組みを作るかを考えます。",
       "kind": "selection",
       "min_age_months": 96,
-      "max_age_months": 234,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -4051,13 +4184,19 @@
               "delta": 1
             }
           ],
-          "event_modifiers": [
-            {
-              "label": "任せられる仲間",
-              "kind": "bad",
-              "percent": -10
-            }
-          ]
+          "routes": ["venture"],
+          "permanent_effect": {
+            "effects": [],
+            "cost": 0,
+            "income": 0,
+            "event_modifiers": [
+              {
+                "label": "任せられる仲間",
+                "kind": "bad",
+                "percent": -10
+              }
+            ]
+          }
         },
         {
           "id": "fair",
@@ -4075,27 +4214,27 @@
               "path": "decisions.fatigue.B",
               "delta": 2
             }
-          ]
+          ],
+          "routes": ["venture"]
         }
       ],
       "requires": {
-        "policies": [
-          {
-            "decision": "story-venture",
-            "option": "launch"
-          }
-        ],
         "history": [
           {
             "decision": "story-venture",
             "option": "launch",
             "after": 1
+          },
+          {
+            "decision": "story-venture",
+            "option": "launch",
+            "after": 0
           }
         ]
       },
-      "route": "venture",
       "route_group": "work",
-      "route_stage": 2
+      "route_stage": 2,
+      "stages": [2, 3, 4]
     },
     {
       "id": "story-home-project",
@@ -4104,7 +4243,7 @@
       "reason": "働き方を話した家族が、暮らす場所にも大きな一手。",
       "kind": "selection",
       "min_age_months": 96,
-      "max_age_months": 215,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -4129,7 +4268,8 @@
               "path": "decisions.fatigue.A",
               "delta": 2
             }
-          ]
+          ],
+          "routes": ["independence"]
         },
         {
           "id": "move",
@@ -4163,7 +4303,8 @@
               "path": "decisions.fatigue.B",
               "delta": 2
             }
-          ]
+          ],
+          "routes": ["independence"]
         }
       ],
       "requires": {
@@ -4175,9 +4316,9 @@
           }
         ]
       },
-      "route": "independence",
       "route_group": "home",
-      "route_stage": 2
+      "route_stage": 2,
+      "stages": [2, 3, 4]
     },
     {
       "id": "story-pathway",
@@ -4185,8 +4326,8 @@
       "title": "本人が選ぶ次の扉",
       "reason": "進路見学の後は、受験一本だけでなく、学ぶ・作る・働く道を選べます。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 215,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -4217,7 +4358,7 @@
               }
             ]
           },
-          "tree_route": "private"
+          "routes": ["public", "private", "international", "home"]
         },
         {
           "id": "apprentice",
@@ -4240,7 +4381,7 @@
               "delta": 3
             }
           ],
-          "tree_route": "home"
+          "routes": ["public", "private", "international", "home"]
         },
         {
           "id": "local",
@@ -4259,7 +4400,7 @@
               "delta": -3
             }
           ],
-          "tree_route": "public"
+          "routes": ["public", "private", "international", "home"]
         }
       ],
       "requires": {
@@ -4272,7 +4413,8 @@
         ]
       },
       "route_group": "school",
-      "route_stage": 3
+      "route_stage": 3,
+      "stages": [3, 4]
     },
     {
       "id": "story-independence",
@@ -4280,8 +4422,8 @@
       "title": "親が口を出さない練習",
       "reason": "自立の前に家事とお金を本人が試します。二つの巣立ち方につながります。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 221,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -4306,7 +4448,8 @@
               "path": "decisions.fatigue.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["independence"]
         },
         {
           "id": "shared",
@@ -4328,12 +4471,13 @@
               "path": "parents.B.stress",
               "delta": -1
             }
-          ]
+          ],
+          "routes": ["independence"]
         }
       ],
-      "route": "independence",
       "route_group": "home",
-      "route_stage": 3
+      "route_stage": 3,
+      "stages": [3, 4]
     },
     {
       "id": "story-departure",
@@ -4341,8 +4485,8 @@
       "title": "鍵を渡す日",
       "reason": "18歳からの節目。本人が選んだ暮らしを支えます。",
       "kind": "selection",
-      "min_age_months": 216,
-      "max_age_months": 234,
+      "min_age_months": 192,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -4380,7 +4524,8 @@
                 "after": 1
               }
             ]
-          }
+          },
+          "routes": ["independence"]
         },
         {
           "id": "share",
@@ -4411,21 +4556,22 @@
                 "after": 1
               }
             ]
-          }
+          },
+          "routes": ["independence"]
         }
       ],
-      "route": "independence",
       "route_group": "home",
-      "route_stage": 4
+      "route_stage": 4,
+      "stages": [4]
     },
     {
       "id": "story-reunion",
       "menu": "home",
       "title": "小さかったあなたからの手紙",
-      "reason": "幼い日の選択が、18年後の食卓に戻ってきます。",
+      "reason": "幼い日の選択が、最後のステージの食卓に戻ってきます。",
       "kind": "selection",
-      "min_age_months": 216,
-      "max_age_months": 234,
+      "min_age_months": 192,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
@@ -4463,7 +4609,8 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "routes": ["memory"]
         },
         {
           "id": "screen",
@@ -4498,12 +4645,13 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "routes": ["memory"]
         }
       ],
-      "route": "memory",
       "route_group": "home",
-      "route_stage": 4
+      "route_stage": 4,
+      "stages": [4]
     },
     {
       "id": "school-public-0",
@@ -4512,18 +4660,18 @@
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 71,
+      "max_age_months": 95,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
-      "route_stage": 0,
-      "route": "public",
+      "route_stage": 1,
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "base-school",
-            "option": "standard"
+            "option": "standard",
+            "after": 0
           }
         ]
       },
@@ -4544,9 +4692,11 @@
               "path": "child.autonomy",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["public"]
         }
-      ]
+      ],
+      "stages": [1]
     },
     {
       "id": "school-private-0",
@@ -4555,18 +4705,18 @@
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 71,
+      "max_age_months": 95,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
-      "route_stage": 0,
-      "route": "private",
+      "route_stage": 1,
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "base-school",
-            "option": "enrolled"
+            "option": "enrolled",
+            "after": 0
           }
         ]
       },
@@ -4587,9 +4737,11 @@
               "path": "child.stress",
               "delta": 2
             }
-          ]
+          ],
+          "routes": ["private"]
         }
-      ]
+      ],
+      "stages": [1]
     },
     {
       "id": "school-international-0",
@@ -4598,18 +4750,18 @@
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 71,
+      "max_age_months": 95,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
-      "route_stage": 0,
-      "route": "international",
+      "route_stage": 1,
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "base-school",
-            "option": "international"
+            "option": "international",
+            "after": 0
           }
         ]
       },
@@ -4630,9 +4782,11 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["international"]
         }
-      ]
+      ],
+      "stages": [1]
     },
     {
       "id": "school-home-0",
@@ -4641,18 +4795,18 @@
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
       "min_age_months": 48,
-      "max_age_months": 71,
+      "max_age_months": 95,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
-      "route_stage": 0,
-      "route": "home",
+      "route_stage": 1,
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "base-school",
-            "option": "home"
+            "option": "home",
+            "after": 0
           }
         ]
       },
@@ -4673,9 +4827,11 @@
               "path": "decisions.fatigue.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["home"]
         }
-      ]
+      ],
+      "stages": [1]
     },
     {
       "id": "school-public-1",
@@ -4683,19 +4839,19 @@
       "menu": "education",
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
-      "min_age_months": 72,
+      "min_age_months": 48,
       "max_age_months": 143,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 1,
-      "route": "public",
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-primary",
-            "option": "public"
+            "option": "public",
+            "after": 0
           }
         ]
       },
@@ -4716,9 +4872,11 @@
               "path": "child.autonomy",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["public"]
         }
-      ]
+      ],
+      "stages": [1, 2]
     },
     {
       "id": "school-private-1",
@@ -4726,19 +4884,19 @@
       "menu": "education",
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
-      "min_age_months": 72,
+      "min_age_months": 48,
       "max_age_months": 143,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 1,
-      "route": "private",
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-primary",
-            "option": "private"
+            "option": "private",
+            "after": 0
           }
         ]
       },
@@ -4759,9 +4917,11 @@
               "path": "child.stress",
               "delta": 2
             }
-          ]
+          ],
+          "routes": ["private"]
         }
-      ]
+      ],
+      "stages": [1, 2]
     },
     {
       "id": "school-international-1",
@@ -4769,19 +4929,19 @@
       "menu": "education",
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
-      "min_age_months": 72,
+      "min_age_months": 48,
       "max_age_months": 143,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 1,
-      "route": "international",
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-primary",
-            "option": "international"
+            "option": "international",
+            "after": 0
           }
         ]
       },
@@ -4802,9 +4962,11 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["international"]
         }
-      ]
+      ],
+      "stages": [1, 2]
     },
     {
       "id": "school-home-1",
@@ -4812,19 +4974,19 @@
       "menu": "education",
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
-      "min_age_months": 72,
+      "min_age_months": 48,
       "max_age_months": 143,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 1,
-      "route": "home",
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-primary",
-            "option": "home"
+            "option": "home",
+            "after": 0
           }
         ]
       },
@@ -4845,9 +5007,11 @@
               "path": "decisions.fatigue.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["home"]
         }
-      ]
+      ],
+      "stages": [1, 2]
     },
     {
       "id": "school-public-2",
@@ -4856,18 +5020,18 @@
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
       "min_age_months": 144,
-      "max_age_months": 179,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
-      "route_stage": 2,
-      "route": "public",
+      "route_stage": 3,
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-secondary",
-            "option": "public"
+            "option": "public",
+            "after": 0
           }
         ]
       },
@@ -4888,9 +5052,11 @@
               "path": "child.autonomy",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["public"]
         }
-      ]
+      ],
+      "stages": [3]
     },
     {
       "id": "school-private-2",
@@ -4899,18 +5065,18 @@
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
       "min_age_months": 144,
-      "max_age_months": 179,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
-      "route_stage": 2,
-      "route": "private",
+      "route_stage": 3,
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-secondary",
-            "option": "advanced"
+            "option": "advanced",
+            "after": 0
           }
         ]
       },
@@ -4931,9 +5097,11 @@
               "path": "child.stress",
               "delta": 2
             }
-          ]
+          ],
+          "routes": ["private"]
         }
-      ]
+      ],
+      "stages": [3]
     },
     {
       "id": "school-international-2",
@@ -4942,18 +5110,18 @@
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
       "min_age_months": 144,
-      "max_age_months": 179,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
-      "route_stage": 2,
-      "route": "international",
+      "route_stage": 3,
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-secondary",
-            "option": "international"
+            "option": "international",
+            "after": 0
           }
         ]
       },
@@ -4974,9 +5142,11 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["international"]
         }
-      ]
+      ],
+      "stages": [3]
     },
     {
       "id": "school-home-2",
@@ -4985,18 +5155,18 @@
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
       "min_age_months": 144,
-      "max_age_months": 179,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
-      "route_stage": 2,
-      "route": "home",
+      "route_stage": 3,
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-secondary",
-            "option": "home"
+            "option": "home",
+            "after": 0
           }
         ]
       },
@@ -5017,9 +5187,11 @@
               "path": "decisions.fatigue.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["home"]
         }
-      ]
+      ],
+      "stages": [3]
     },
     {
       "id": "school-public-3",
@@ -5027,19 +5199,19 @@
       "menu": "education",
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 215,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 3,
-      "route": "public",
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-high",
-            "option": "public"
+            "option": "public",
+            "after": 0
           }
         ]
       },
@@ -5060,9 +5232,11 @@
               "path": "child.autonomy",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["public"]
         }
-      ]
+      ],
+      "stages": [3, 4]
     },
     {
       "id": "school-private-3",
@@ -5070,19 +5244,19 @@
       "menu": "education",
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 215,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 3,
-      "route": "private",
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-high",
-            "option": "private"
+            "option": "private",
+            "after": 0
           }
         ]
       },
@@ -5103,9 +5277,11 @@
               "path": "child.stress",
               "delta": 2
             }
-          ]
+          ],
+          "routes": ["private"]
         }
-      ]
+      ],
+      "stages": [3, 4]
     },
     {
       "id": "school-international-3",
@@ -5113,19 +5289,19 @@
       "menu": "education",
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 215,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 3,
-      "route": "international",
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-high",
-            "option": "international"
+            "option": "international",
+            "after": 0
           }
         ]
       },
@@ -5146,9 +5322,11 @@
               "path": "decisions.fatigue.B",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["international"]
         }
-      ]
+      ],
+      "stages": [3, 4]
     },
     {
       "id": "school-home-3",
@@ -5156,19 +5334,19 @@
       "menu": "education",
       "reason": "選んだ学校ルートの中で、さらに経験を重ねます。",
       "kind": "selection",
-      "min_age_months": 180,
-      "max_age_months": 215,
+      "min_age_months": 144,
+      "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 3,
-      "route": "home",
       "requires": {
-        "policies": [
+        "history": [
           {
             "decision": "tree-high",
-            "option": "home"
+            "option": "home",
+            "after": 0
           }
         ]
       },
@@ -5189,9 +5367,11 @@
               "path": "decisions.fatigue.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["home"]
         }
-      ]
+      ],
+      "stages": [3, 4]
     },
     {
       "id": "school-future-public",
@@ -5199,14 +5379,13 @@
       "menu": "education",
       "reason": "これまでの学校ルートで得た経験を、本人の次の選択へつなぎます。",
       "kind": "selection",
-      "min_age_months": 216,
+      "min_age_months": 192,
       "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 4,
-      "route": "public",
       "requires": {
         "history": [
           {
@@ -5229,9 +5408,11 @@
               "path": "child.autonomy",
               "delta": 3
             }
-          ]
+          ],
+          "routes": ["public"]
         }
-      ]
+      ],
+      "stages": [4]
     },
     {
       "id": "school-future-private",
@@ -5239,14 +5420,13 @@
       "menu": "education",
       "reason": "これまでの学校ルートで得た経験を、本人の次の選択へつなぎます。",
       "kind": "selection",
-      "min_age_months": 216,
+      "min_age_months": 192,
       "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 4,
-      "route": "private",
       "requires": {
         "history": [
           {
@@ -5269,9 +5449,11 @@
               "path": "child.ability.study",
               "delta": 4
             }
-          ]
+          ],
+          "routes": ["private"]
         }
-      ]
+      ],
+      "stages": [4]
     },
     {
       "id": "school-future-international",
@@ -5279,14 +5461,13 @@
       "menu": "education",
       "reason": "これまでの学校ルートで得た経験を、本人の次の選択へつなぎます。",
       "kind": "selection",
-      "min_age_months": 216,
+      "min_age_months": 192,
       "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 4,
-      "route": "international",
       "requires": {
         "history": [
           {
@@ -5309,9 +5490,11 @@
               "path": "child.autonomy",
               "delta": 4
             }
-          ]
+          ],
+          "routes": ["international"]
         }
-      ]
+      ],
+      "stages": [4]
     },
     {
       "id": "school-future-home",
@@ -5319,14 +5502,13 @@
       "menu": "education",
       "reason": "これまでの学校ルートで得た経験を、本人の次の選択へつなぎます。",
       "kind": "selection",
-      "min_age_months": 216,
+      "min_age_months": 192,
       "max_age_months": 239,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "school",
       "route_stage": 4,
-      "route": "home",
       "requires": {
         "history": [
           {
@@ -5349,9 +5531,11 @@
               "path": "child.ability.study",
               "delta": 3
             }
-          ]
+          ],
+          "routes": ["home"]
         }
-      ]
+      ],
+      "stages": [4]
     },
     {
       "id": "route-grand-letter",
@@ -5366,7 +5550,6 @@
       "cooldown": 1,
       "route_group": "grandparents",
       "route_stage": 0,
-      "route": "visit",
       "options": [
         {
           "id": "take",
@@ -5384,9 +5567,11 @@
               "path": "child.trust.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["visit"]
         }
-      ]
+      ],
+      "stages": [0, 1, 2]
     },
     {
       "id": "route-grand-stories",
@@ -5401,7 +5586,6 @@
       "cooldown": 1,
       "route_group": "grandparents",
       "route_stage": 3,
-      "route": "visit",
       "options": [
         {
           "id": "take",
@@ -5419,9 +5603,11 @@
               "path": "child.autonomy",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["visit"]
         }
-      ]
+      ],
+      "stages": [3, 4]
     },
     {
       "id": "route-work-boundary",
@@ -5436,7 +5622,6 @@
       "cooldown": 1,
       "route_group": "work",
       "route_stage": 0,
-      "route": "balance",
       "options": [
         {
           "id": "take",
@@ -5454,9 +5639,11 @@
               "path": "parents.B.stress",
               "delta": -1
             }
-          ]
+          ],
+          "routes": ["balance"]
         }
-      ]
+      ],
+      "stages": [0, 1, 2]
     },
     {
       "id": "route-work-handoff",
@@ -5471,7 +5658,6 @@
       "cooldown": 1,
       "route_group": "work",
       "route_stage": 3,
-      "route": "balance",
       "options": [
         {
           "id": "take",
@@ -5489,9 +5675,11 @@
               "path": "parents.A.stress",
               "delta": -1
             }
-          ]
+          ],
+          "routes": ["balance"]
         }
-      ]
+      ],
+      "stages": [3, 4]
     },
     {
       "id": "route-work-training",
@@ -5499,14 +5687,13 @@
       "title": "次の仕事への学び直し",
       "reason": "責任ある仕事への準備を始めます。",
       "kind": "selection",
-      "min_age_months": 72,
-      "max_age_months": 179,
+      "min_age_months": 48,
+      "max_age_months": 191,
       "default_option": null,
       "once": true,
       "cooldown": 1,
       "route_group": "work",
       "route_stage": 1,
-      "route": "career",
       "options": [
         {
           "id": "take",
@@ -5524,458 +5711,11 @@
               "path": "decisions.fatigue.A",
               "delta": 1
             }
-          ]
+          ],
+          "routes": ["career"]
         }
-      ]
-    },
-    {
-      "id": "route-home",
-      "menu": "home",
-      "title": "家庭の大方針",
-      "reason": "この分野で長く続ける方針を選びます。別の方針へ移るには前期の準備が必要です。",
-      "kind": "policy",
-      "min_age_months": 0,
-      "max_age_months": 239,
-      "default_option": "daily",
-      "once": false,
-      "cooldown": 1,
-      "route_group": "home",
-      "route_stage": 0,
-      "options": [
-        {
-          "id": "daily",
-          "label": "日常を整える",
-          "description": "日常を整える方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "daily"
-        },
-        {
-          "id": "memory",
-          "label": "思い出を残す",
-          "description": "思い出を残す方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "memory"
-        },
-        {
-          "id": "adventure",
-          "label": "家族で冒険する",
-          "description": "家族で冒険する方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "adventure"
-        },
-        {
-          "id": "independence",
-          "label": "自立を支える",
-          "description": "自立を支える方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "independence"
-        }
-      ]
-    },
-    {
-      "id": "route-home-switch",
-      "menu": "home",
-      "title": "家庭の大方針の切替準備",
-      "reason": "別の大方針へ移るには、前期に時間と費用をかけて準備します。",
-      "kind": "selection",
-      "min_age_months": 0,
-      "max_age_months": 233,
-      "default_option": null,
-      "once": false,
-      "cooldown": 1,
-      "route_group": "home",
-      "options": [
-        {
-          "id": "daily",
-          "label": "日常を整えるへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 70,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "daily"
-        },
-        {
-          "id": "memory",
-          "label": "思い出を残すへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 70,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "memory"
-        },
-        {
-          "id": "adventure",
-          "label": "家族で冒険するへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 70,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "adventure"
-        },
-        {
-          "id": "independence",
-          "label": "自立を支えるへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 70,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "independence"
-        }
-      ]
-    },
-    {
-      "id": "route-grandparents",
-      "menu": "grandparents",
-      "title": "実家との大方針",
-      "reason": "この分野で長く続ける方針を選びます。別の方針へ移るには前期の準備が必要です。",
-      "kind": "policy",
-      "min_age_months": 0,
-      "max_age_months": 239,
-      "default_option": "visit",
-      "once": false,
-      "cooldown": 1,
-      "route_group": "grandparents",
-      "route_stage": 0,
-      "options": [
-        {
-          "id": "visit",
-          "label": "交流を続ける",
-          "description": "交流を続ける方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "visit"
-        },
-        {
-          "id": "care",
-          "label": "預かりを頼む",
-          "description": "預かりを頼む方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "care"
-        },
-        {
-          "id": "legacy",
-          "label": "料理と思い出を継ぐ",
-          "description": "料理と思い出を継ぐ方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "legacy"
-        }
-      ]
-    },
-    {
-      "id": "route-grandparents-switch",
-      "menu": "grandparents",
-      "title": "実家との大方針の切替準備",
-      "reason": "別の大方針へ移るには、前期に時間と費用をかけて準備します。",
-      "kind": "selection",
-      "min_age_months": 0,
-      "max_age_months": 233,
-      "default_option": null,
-      "once": false,
-      "cooldown": 1,
-      "route_group": "grandparents",
-      "options": [
-        {
-          "id": "visit",
-          "label": "交流を続けるへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 65,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "visit"
-        },
-        {
-          "id": "care",
-          "label": "預かりを頼むへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 65,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "care"
-        },
-        {
-          "id": "legacy",
-          "label": "料理と思い出を継ぐへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 65,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "legacy"
-        }
-      ]
-    },
-    {
-      "id": "route-afterschool",
-      "menu": "afterschool",
-      "title": "遊びの大方針",
-      "reason": "この分野で長く続ける方針を選びます。別の方針へ移るには前期の準備が必要です。",
-      "kind": "policy",
-      "min_age_months": 0,
-      "max_age_months": 239,
-      "default_option": "maker",
-      "once": false,
-      "cooldown": 1,
-      "route_group": "afterschool",
-      "route_stage": 0,
-      "options": [
-        {
-          "id": "maker",
-          "label": "工作・科学を楽しむ",
-          "description": "工作・科学を楽しむ方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "maker"
-        },
-        {
-          "id": "music",
-          "label": "音楽を育てる",
-          "description": "音楽を育てる方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "music"
-        },
-        {
-          "id": "sports",
-          "label": "スポーツに挑む",
-          "description": "スポーツに挑む方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "sports"
-        }
-      ]
-    },
-    {
-      "id": "route-afterschool-switch",
-      "menu": "afterschool",
-      "title": "遊びの大方針の切替準備",
-      "reason": "別の大方針へ移るには、前期に時間と費用をかけて準備します。",
-      "kind": "selection",
-      "min_age_months": 0,
-      "max_age_months": 233,
-      "default_option": null,
-      "once": false,
-      "cooldown": 1,
-      "route_group": "afterschool",
-      "options": [
-        {
-          "id": "maker",
-          "label": "工作・科学を楽しむへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 70,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "maker"
-        },
-        {
-          "id": "music",
-          "label": "音楽を育てるへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 70,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "music"
-        },
-        {
-          "id": "sports",
-          "label": "スポーツに挑むへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 70,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "child.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "sports"
-        }
-      ]
-    },
-    {
-      "id": "route-work",
-      "menu": "work",
-      "title": "仕事の大方針",
-      "reason": "この分野で長く続ける方針を選びます。別の方針へ移るには前期の準備が必要です。",
-      "kind": "policy",
-      "min_age_months": 0,
-      "max_age_months": 239,
-      "default_option": "balance",
-      "once": false,
-      "cooldown": 1,
-      "route_group": "work",
-      "route_stage": 0,
-      "options": [
-        {
-          "id": "balance",
-          "label": "家族時間を守る",
-          "description": "家族時間を守る方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "balance"
-        },
-        {
-          "id": "career",
-          "label": "仕事で責任を担う",
-          "description": "仕事で責任を担う方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "career"
-        },
-        {
-          "id": "venture",
-          "label": "自分たちの店を育てる",
-          "description": "自分たちの店を育てる方針を続けます。専用の行動が開きます。",
-          "cost": 0,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [],
-          "route": "venture"
-        }
-      ]
-    },
-    {
-      "id": "route-work-switch",
-      "menu": "work",
-      "title": "仕事の大方針の切替準備",
-      "reason": "別の大方針へ移るには、前期に時間と費用をかけて準備します。",
-      "kind": "selection",
-      "min_age_months": 0,
-      "max_age_months": 233,
-      "default_option": null,
-      "once": false,
-      "cooldown": 1,
-      "route_group": "work",
-      "options": [
-        {
-          "id": "balance",
-          "label": "家族時間を守るへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 80,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.A.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "balance"
-        },
-        {
-          "id": "career",
-          "label": "仕事で責任を担うへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 80,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.A.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "career"
-        },
-        {
-          "id": "venture",
-          "label": "自分たちの店を育てるへの切替を準備",
-          "description": "今期は今の方針を続け、次期だけ新しい方針を選べます。",
-          "cost": 80,
-          "income": 0,
-          "setup_cost": 0,
-          "effects": [
-            {
-              "path": "parents.A.stress",
-              "delta": 2
-            }
-          ],
-          "switch_to": "venture"
-        }
-      ]
+      ],
+      "stages": [1, 2, 3]
     }
   ],
   "selection_tree": true,
@@ -5990,14 +5730,7 @@
       "id": "school",
       "label": "学校",
       "menu": "education",
-      "switch_decision": "school-switch",
-      "stage_labels": [
-        "0〜5歳 · 学びと園の準備",
-        "6〜11歳 · 小学校の進路",
-        "12〜14歳 · 中学校の進路",
-        "15〜17歳 · 高校の進路",
-        "18〜19歳 · その先の進路"
-      ],
+      "stage_labels": ["0〜3歳", "4〜7歳", "8〜11歳", "12〜15歳", "16〜19歳"],
       "routes": [
         {
           "id": "public",
@@ -6015,21 +5748,22 @@
           "id": "home",
           "label": "自宅学習"
         }
-      ]
+      ],
+      "switch_cost": 80,
+      "switch_effects": [
+        {
+          "path": "child.stress",
+          "delta": 3
+        }
+      ],
+      "layout": "branches"
     },
     {
       "id": "home",
       "label": "家庭の大方針",
       "menu": "home",
-      "switch_decision": "route-home-switch",
       "layout": "branches",
-      "stage_labels": [
-        "0〜3歳 · 方針の入口",
-        "4〜7歳 · 興味を試す",
-        "8〜11歳 · 続けて深める",
-        "12〜15歳 · 広げる",
-        "16〜19歳 · 次につなぐ"
-      ],
+      "stage_labels": ["0〜3歳", "4〜7歳", "8〜11歳", "12〜15歳", "16〜19歳"],
       "routes": [
         {
           "id": "daily",
@@ -6047,21 +5781,21 @@
           "id": "independence",
           "label": "自立を支える"
         }
+      ],
+      "switch_cost": 70,
+      "switch_effects": [
+        {
+          "path": "child.stress",
+          "delta": 2
+        }
       ]
     },
     {
       "id": "grandparents",
       "label": "実家との大方針",
       "menu": "grandparents",
-      "switch_decision": "route-grandparents-switch",
       "layout": "branches",
-      "stage_labels": [
-        "0〜3歳 · 方針の入口",
-        "4〜7歳 · 興味を試す",
-        "8〜11歳 · 続けて深める",
-        "12〜15歳 · 広げる",
-        "16〜19歳 · 次につなぐ"
-      ],
+      "stage_labels": ["0〜3歳", "4〜7歳", "8〜11歳", "12〜15歳", "16〜19歳"],
       "routes": [
         {
           "id": "visit",
@@ -6075,21 +5809,21 @@
           "id": "legacy",
           "label": "料理と思い出を継ぐ"
         }
+      ],
+      "switch_cost": 65,
+      "switch_effects": [
+        {
+          "path": "child.stress",
+          "delta": 2
+        }
       ]
     },
     {
       "id": "afterschool",
       "label": "遊びの大方針",
       "menu": "afterschool",
-      "switch_decision": "route-afterschool-switch",
       "layout": "branches",
-      "stage_labels": [
-        "0〜3歳 · 方針の入口",
-        "4〜7歳 · 興味を試す",
-        "8〜11歳 · 続けて深める",
-        "12〜15歳 · 広げる",
-        "16〜19歳 · 次につなぐ"
-      ],
+      "stage_labels": ["0〜3歳", "4〜7歳", "8〜11歳", "12〜15歳", "16〜19歳"],
       "routes": [
         {
           "id": "maker",
@@ -6103,21 +5837,21 @@
           "id": "sports",
           "label": "スポーツに挑む"
         }
+      ],
+      "switch_cost": 70,
+      "switch_effects": [
+        {
+          "path": "child.stress",
+          "delta": 2
+        }
       ]
     },
     {
       "id": "work",
       "label": "仕事の大方針",
       "menu": "work",
-      "switch_decision": "route-work-switch",
       "layout": "branches",
-      "stage_labels": [
-        "0〜3歳 · 方針の入口",
-        "4〜7歳 · 興味を試す",
-        "8〜11歳 · 続けて深める",
-        "12〜15歳 · 広げる",
-        "16〜19歳 · 次につなぐ"
-      ],
+      "stage_labels": ["0〜3歳", "4〜7歳", "8〜11歳", "12〜15歳", "16〜19歳"],
       "routes": [
         {
           "id": "balance",
@@ -6131,7 +5865,15 @@
           "id": "venture",
           "label": "自分たちの店を育てる"
         }
+      ],
+      "switch_cost": 80,
+      "switch_effects": [
+        {
+          "path": "parents.A.stress",
+          "delta": 2
+        }
       ]
     }
-  ]
+  ],
+  "stage_model": true
 }

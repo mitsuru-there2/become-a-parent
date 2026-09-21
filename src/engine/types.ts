@@ -169,6 +169,7 @@ export interface GameOver {
   turn: number;
 }
 export interface LifeState {
+  stage_routes?: Record<string, string>;
   policies: Record<string, string>;
   history: Record<string, { first_turn: number; last_turn: number; count: number }>;
   route_stage_resolved?: Record<string, number>;
@@ -207,6 +208,9 @@ export interface State extends NumericState {
 }
 export interface PublicState {
   life?: {
+    stage_model?: boolean;
+    stage?: { index: number; label: string; start_age_months: number; end_age_months: number };
+    stages?: { index: number; label: string }[];
     selection_tree?: boolean;
     annual_income?: number;
     study_score?: number;
@@ -218,6 +222,9 @@ export interface PublicState {
       stage_labels?: string[];
       routes: { id: string; label: string }[];
       current: string | null;
+      menu?: string;
+      previous?: string | null;
+      chosen_stages?: Record<string, string>;
     }[];
     menus: { id: string; label: string; description: string }[];
     policies: {
@@ -285,6 +292,8 @@ export interface PublicState {
   forecast: Forecast | null;
 }
 export interface Choice {
+  route_choice?: boolean;
+  stages?: number[];
   tree?: {
     parents: { id: string; label: string }[];
     min_age_months: number;
@@ -318,6 +327,8 @@ export interface Choice {
     switch_to?: string;
     visual?: Visual;
     parents?: { option_id: string; label: string }[];
+    routes?: string[];
+    effect_details?: { duration: "instant" | "stage" | "permanent"; description: string }[];
     acquired?: boolean;
     requirements?: string[];
     event_modifiers?: { label: string; kind: "good" | "bad"; percent: number }[];

@@ -154,9 +154,16 @@ export function DecisionPlay({ response }: { response: Response }) {
   const crossroadBlocked = !!state.life?.crossroad?.missing.length;
   const eventTurn = `${response.run_id}:${state.time.next_turn}`;
   const automaticResult =
-    ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(
-      state.versions.rules,
-    ) &&
+    [
+      "rules-6",
+      "rules-7",
+      "rules-8",
+      "rules-9",
+      "rules-10",
+      "rules-11",
+      "rules-12",
+      "rules-13",
+    ].includes(state.versions.rules) &&
     turn.event_result.length > 0 &&
     turn.answered === 0 &&
     readEventTurn !== eventTurn;
@@ -299,27 +306,34 @@ export function DecisionPlay({ response }: { response: Response }) {
                         "rules-10",
                         "rules-11",
                         "rules-12",
+                        "rules-13",
                       ].includes(state.versions.rules)
                         ? "出来事は自動で発生し、資金や家族の状態に反映されます。"
                         : "特殊イベントへの対応を選びます。その場で確定します。"}
                     </li>
                     <li>
                       {life
-                        ? state.life?.selection_tree
-                          ? "地図のカテゴリーを開き、ツリーの選択を詳細から確定します。岐路では、表示された方針をすべて選ぶと進めます。"
-                          : "生活メニューから継続する方針や今期だけの行動を選べます。何も選ばなくても進められます。"
+                        ? state.life?.stage_model
+                          ? "岐路では、5つの判断カテゴリでルートを確定します。変更するとペナルティが発生し、次の岐路までルートは固定されます。"
+                          : state.life?.selection_tree
+                            ? "地図のカテゴリーを開き、ツリーの選択を詳細から確定します。岐路では、表示された方針をすべて選ぶと進めます。"
+                            : "生活メニューから継続する方針や今期だけの行動を選べます。何も選ばなくても進められます。"
                         : "3つの判断に、ひとつずつ回答します。「何もしない」も回答です。"}
                     </li>
                     <li>
-                      {life
-                        ? `選択を確定すると、次期から新しい機会が現れます。今期だけの選択は全分類合計${state.life!.max_selections}件までです。`
-                        : "最後に選択と家計を確認し、「半年を進める」を押します。"}
+                      {state.life?.stage_model
+                        ? "ルートを選んだら、条件を満たす選択をステージ中いつでも取得できます。取得は即時で、一度限り。件数の上限はありません。"
+                        : life
+                          ? `選択を確定すると、次期から新しい機会が現れます。今期だけの選択は全分類合計${state.life!.max_selections}件までです。`
+                          : "最後に選択と家計を確認し、「半年を進める」を押します。"}
                     </li>
                   </ol>
                   <p>
-                    {life
-                      ? "方針は変更するまで継続し、単発の選択は繰り返しません。半年を進める前は予定を取り消せます。費用と家族の負担を確認して進めましょう。"
-                      : "下の「判断1〜3」から、半年を進める前なら選び直せます。家族の様子では父母の能力・疲労と子どもの観察、前の半年の結果を確認できます。"}
+                    {state.life?.stage_model
+                      ? "効果は取得時のみ・このステージ中・恒久の3種類です。ステージ効果は次の岐路で終了します。詳細の費用と持続期間を確認して取得してください。確定後の取消はできません。"
+                      : life
+                        ? "方針は変更するまで継続し、単発の選択は繰り返しません。半年を進める前は予定を取り消せます。費用と家族の負担を確認して進めましょう。"
+                        : "下の「判断1〜3」から、半年を進める前なら選び直せます。家族の様子では父母の能力・疲労と子どもの観察、前の半年の結果を確認できます。"}
                   </p>
                   <p>
                     20歳までの40期と、その後の人生をたどります。家族の危機は修復できますが、離婚・一家離散が起きるとゲームオーバーです。
@@ -523,7 +537,7 @@ export function DecisionPlay({ response }: { response: Response }) {
               aria-label={life ? "この暮らしで半年進める →" : "半年を進める →"}
               disabled={busy || ended || crossroadBlocked}
               data-blocked={advanceBlocked || undefined}
-              title={crossroadBlocked ? "マップで残りの方針を選んでください" : undefined}
+              title={crossroadBlocked ? "マップで残りのルートを選んでください" : undefined}
               aria-haspopup={advanceBlocked && !crossroadBlocked ? "dialog" : undefined}
               aria-describedby={advanceBlocked && !ended ? "advance-blocked-hint" : undefined}
               onClick={() => {
@@ -540,7 +554,7 @@ export function DecisionPlay({ response }: { response: Response }) {
           {advanceBlocked && !ended && (
             <span id="advance-blocked-hint" className="sr-only">
               {crossroadBlocked
-                ? "いまは進行できません。マップで残りの方針を選んでください。"
+                ? "いまは進行できません。マップで残りのルートを選んでください。"
                 : "いまは進行できません。押すと理由を確認できます。"}
             </span>
           )}

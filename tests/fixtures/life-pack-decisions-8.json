@@ -6,10 +6,10 @@
     "reason": "工作教室を体験したことをきっかけに、地域でも作れます。",
     "kind": "selection",
     "min_age_months": 48,
-    "max_age_months": 239,
+    "max_age_months": 215,
     "default_option": null,
-    "once": true,
-    "cooldown": 1,
+    "once": false,
+    "cooldown": 2,
     "options": [
       {
         "id": "join",
@@ -28,24 +28,18 @@
             "delta": 2
           }
         ],
-        "routes": ["maker", "music", "sports"],
-        "permanent_effect": {
-          "effects": [],
-          "cost": 0,
-          "income": 0,
-          "event_modifiers": [
-            {
-              "label": "地域の刺激",
-              "kind": "good",
-              "percent": 20
-            },
-            {
-              "label": "交流の忙しさ",
-              "kind": "bad",
-              "percent": 20
-            }
-          ]
-        }
+        "event_modifiers": [
+          {
+            "label": "地域の刺激",
+            "kind": "good",
+            "percent": 20
+          },
+          {
+            "label": "交流の忙しさ",
+            "kind": "bad",
+            "percent": 20
+          }
+        ]
       }
     ],
     "requires": {
@@ -56,9 +50,6 @@
           "after": 0
         }
       ]
-    },
-    "stages": [1, 2, 3, 4],
-    "route_group": "afterschool",
-    "route_stage": 1
+    }
   }
 ]

@@ -1,3 +1,4 @@
+import { stageModel, activeStageEffects } from "./stage_state";
 import type { State } from "./types";
 import type { LifeRequirement } from "../content/life_requirements_schema";
 import { matches } from "./events";
@@ -5,6 +6,16 @@ import { contentFor } from "../content/catalog";
 export function annualIncome(state: State): number {
   const game = contentFor(state).life_game;
   if (!game || !state.life) return 0;
+  if (stageModel(state))
+    return Math.max(
+      0,
+      (game.income +
+        activeStageEffects(state).reduce(
+          (sum, { effect }) => sum + effect.income - (effect.income_reduction ?? 0),
+          0,
+        )) *
+        2,
+    );
   let income = game.income;
   for (const node of game.decisions) {
     if (
@@ -24,9 +35,18 @@ export function meetsLifeRequirement(state: State, requirement?: LifeRequirement
     (requirement.annual_income === undefined || annualIncome(state) >= requirement.annual_income) &&
     (requirement.history ?? []).every((r) => {
       const history = state.life?.history[`${r.decision}:${r.option}`];
-      return history !== undefined && state.n - history.first_turn >= r.after;
+      return (
+        history !== undefined &&
+        state.n + (stageModel(state) ? 1 : 0) - history.first_turn >= r.after
+      );
     }) &&
-    (requirement.policies ?? []).every((r) => state.life?.policies[r.decision] === r.option) &&
+    (requirement.policies ?? []).every((r) =>
+      stageModel(state)
+        ? activeStageEffects(state).some(
+            ({ node, option }) => node.id === r.decision && option.id === r.option,
+          )
+        : state.life?.policies[r.decision] === r.option,
+    ) &&
     (requirement.stats ?? []).every((r) => matches(state, r))
   );
 }

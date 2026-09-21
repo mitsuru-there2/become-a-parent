@@ -1,3 +1,4 @@
+import { validateStageContent } from "./stage_validation";
 import type { Content } from "./types";
 import type { LifeRequirement } from "./life_schema";
 
@@ -7,6 +8,10 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
     content.automatic_events?.flatMap((e) => (e.requires ? [e.requires] : [])) ?? [];
   if (!game) {
     ensure(eventRequirements.length === 0, "automatic_events.requires: life_gameが必要です");
+    return;
+  }
+  if (game.stage_model) {
+    validateStageContent(content, ensure);
     return;
   }
   if (game.selection_tree) {
@@ -62,7 +67,7 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
     ensure(menus.has(group.menu), `${group.id}.menu`);
     const routeIds = new Set(group.routes.map((route) => route.id));
     ensure(routeIds.size === group.routes.length, `${group.id}.routes: ID重複`);
-    const switchNode = nodes.get(group.switch_decision);
+    const switchNode = nodes.get(group.switch_decision ?? "");
     ensure(
       switchNode?.kind === "selection" &&
         switchNode.route_group === group.id &&

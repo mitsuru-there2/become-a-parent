@@ -1,3 +1,11 @@
+import { stageModel } from "./stage_state";
+import {
+  stageForecast,
+  stageChoices,
+  stageView,
+  chooseStageLife,
+  applyStageLife,
+} from "./stage_life";
 import { contentFor, difficultyFor } from "../content/catalog";
 import type { LifeDecision, LifeOption, LifeRequirement } from "../content/life_schema";
 import type { Choice, Forecast, State, PublicState } from "./types";
@@ -215,6 +223,10 @@ function resolvedPolicies(s: State, planned: boolean) {
   return { policies, notices, resolvedStages };
 }
 export function initializeLife(s: State) {
+  if (stageModel(s)) {
+    s.life = { stage_routes: {}, policies: {}, history: {}, visible: [], fresh: [], notices: [] };
+    return;
+  }
   s.life = {
     policies: Object.fromEntries(
       config(s)
@@ -229,6 +241,7 @@ export function initializeLife(s: State) {
   };
 }
 export function normalizeLife(s: State) {
+  if (stageModel(s)) return;
   const resolved = resolvedPolicies(s, false);
   s.life!.policies = resolved.policies;
   if (s.life!.route_stage_resolved)
@@ -237,6 +250,7 @@ export function normalizeLife(s: State) {
     if (!s.life!.notices.includes(notice)) s.life!.notices.push(notice);
 }
 export function openLife(s: State) {
+  if (stageModel(s)) return;
   normalizeLife(s);
   if (treeEnabled(s)) {
     for (const node of config(s).decisions.filter(
@@ -347,6 +361,7 @@ function selectionReasons(s: State, node: LifeDecision, option: LifeOption) {
       ];
 }
 export function lifeForecast(s: State): Forecast {
+  if (stageModel(s)) return stageForecast(s);
   const game = config(s);
   const reasons: Forecast["reasons"] = [];
   const resolved = resolvedPolicies(s, true);
@@ -451,6 +466,7 @@ function describe(option: LifeOption, policy: boolean, familyHome = false) {
   ].join(" ／ ");
 }
 export function lifeChoices(s: State): Choice[] {
+  if (stageModel(s)) return stageChoices(s);
   if (s.phase !== "childhood") return [];
   return config(s)
     .decisions.filter((d) => treeEnabled(s) || offered(s, d))
@@ -568,6 +584,7 @@ export function lifeChoices(s: State): Choice[] {
     });
 }
 export function lifeView(s: State): NonNullable<PublicState["life"]> {
+  if (stageModel(s)) return stageView(s);
   const resolved = resolvedPolicies(s, true);
   const crossroad = currentCrossroad(s);
   const missing = crossroadMissing(s);
@@ -621,6 +638,7 @@ export function lifeView(s: State): NonNullable<PublicState["life"]> {
   };
 }
 export function chooseLife(s: State, eventInstance: string, optionId: string) {
+  if (stageModel(s)) return chooseStageLife(s, eventInstance, optionId);
   const choice = lifeChoices(s).find((c) => c.instance_id === eventInstance);
   if (!choice?.options.some((o) => o.option_id === optionId && o.available))
     throw new Error("現在の選択肢ではありません");
@@ -641,6 +659,7 @@ function applyEffects(s: State, effects: LifeOption["effects"], lines: string[])
   }
 }
 export function applyLife(s: State, lines: string[]) {
+  if (stageModel(s)) return applyStageLife(s, lines);
   const resolved = resolvedPolicies(s, true);
   const before = clone(s);
   s.life!.policies = resolved.policies;
