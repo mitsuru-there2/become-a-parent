@@ -108,14 +108,12 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
               ← マップに戻る
             </button>
             <div>
-              <span className="tree-eyebrow">ACTION CATEGORY</span>
               <h2 ref={categoryHeading} tabIndex={-1}>
                 <MenuIcon id={selectedMenu.id} />
                 {selectedMenu.label}
               </h2>
               <p>{selectedMenu.description}</p>
             </div>
-            <span className="tree-category-count">{nodes.length} アクション</span>
           </div>
           <p className="tree-legend">
             ○ 選択可能　✓ 取得済み　◇ 条件待ち{" "}

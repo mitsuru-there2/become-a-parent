@@ -2419,12 +2419,6 @@ meter::-moz-meter-bar {
 .tree-back:hover {
   background: #34382b;
 }
-.tree-category-count {
-  margin-bottom: 3px;
-  color: #c8c5b0;
-  white-space: nowrap;
-  font-size: 10px;
-}
 @keyframes map-arrive {
   from {
     opacity: 0;
@@ -2698,9 +2692,6 @@ meter::-moz-meter-bar {
   .tree-category-heading p {
     font-size: 10px;
   }
-  .tree-category-count {
-    display: none;
-  }
   .tree-scroll {
     max-height: 245px;
   }
@@ -2809,7 +2800,6 @@ meter::-moz-meter-bar {
     align-items: center;
     padding-bottom: 6px;
   }
-  .tree-category-heading .tree-eyebrow,
   .tree-category-heading p,
   .tree-legend span {
     display: none;
