@@ -5,10 +5,12 @@ export function StatusDetail({
   title,
   onClose,
   children,
+  variant = "dialog",
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  variant?: "dialog" | "sheet";
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -24,7 +26,7 @@ export function StatusDetail({
   return (
     <dialog
       ref={dialog}
-      className="status-detail"
+      className={`status-detail${variant === "sheet" ? " member-sheet" : ""}`}
       aria-label={title}
       onCancel={(event) => {
         event.preventDefault();

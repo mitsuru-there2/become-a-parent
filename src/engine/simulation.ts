@@ -103,6 +103,19 @@ export function draw(state: State, phase: string, index: number, slot: string) {
 }
 export function observeChild(state: State, includeShort = false): Observation[] {
   const child = state.child;
+  const band = (value: number, low: number, high: number): Observation["band"] =>
+    value < low ? "low" : value < high ? "middle" : "high";
+  // These are exactly the existing text buckets; no extra precision is exposed.
+  const bands: Record<string, Observation["band"]> = {
+    energy: band(child.stress, 40, 70),
+    "relationship.A": band(child.trust.A, 30, 60),
+    "relationship.B": band(child.trust.B, 30, 60),
+    agency: band(child.autonomy, 30, 60),
+    "interest.study": band(child.interest.study, 40, 60),
+    "interest.craft": band(child.interest.craft, 40, 60),
+    "progress.study": band(child.ability.study, 30, 60),
+    "progress.craft": band(child.ability.craft, 30, 60),
+  };
   const observations: Observation[] = [];
   const isBaby = stage(Math.min(state.n, 39), state).id === "baby";
   const copy = contentFor(state).text;
@@ -112,6 +125,7 @@ export function observeChild(state: State, includeShort = false): Observation[] 
       subject,
       text,
       ...(includeShort && short ? { short_text: short } : {}),
+      ...(includeShort && bands[code] ? { band: bands[code] } : {}),
     });
   addObservation(
     "energy",
@@ -425,12 +439,16 @@ export function publicView(state: State): { public: PublicState; choices: Choice
     parents: state.parents,
     couple: state.couple,
     grandparents: state.grandparents,
-    // 短文は公開応答だけに付与し、旧保存・履歴・再生ハッシュを変更しない。
+    // 表示用の区分・短文は公開応答だけに付与し、保存・再生ハッシュを変更しない。
     observations: state.observations.map((observation) => {
       const current = summaries.find(
         (item) => item.code === observation.code && item.text === observation.text,
       );
-      return current?.short_text ? { ...observation, short_text: current.short_text } : observation;
+      return {
+        ...observation,
+        ...(current?.short_text ? { short_text: current.short_text } : {}),
+        ...(current?.band ? { band: current.band } : {}),
+      };
     }),
     plan: finished ? null : state.plan,
     answers: finished ? [] : answerList(state.answers),

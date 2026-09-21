@@ -15,8 +15,8 @@ export function markerPosition(id: string): CSSProperties {
 }
 export function SelectionMap({ children }: { children: ReactNode }) {
   return (
-    <div className="map-viewport" tabIndex={0} role="region" aria-label="地図の表示領域">
-      <div className="selection-map" role="group" aria-label="選択の地図">
+    <div className="map-viewport" tabIndex={0} role="region" aria-label="ホームの表示領域">
+      <div className="selection-map" role="group" aria-label="ホームの選択">
         <img src={selectionMap} alt="" aria-hidden="true" />
         <svg
           className="map-roads"

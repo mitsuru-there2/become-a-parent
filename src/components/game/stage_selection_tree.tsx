@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
 import { $busy, update } from "../../stores/game";
+import { MenuIcon } from "./menu_icon";
 import { ContentImage } from "./content_image";
 import { SelectionMap, markerPosition } from "./selection_map";
 
@@ -67,7 +68,7 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
   return (
     <section
       className={`life-content selection-tree-content stage-tree ${menu ? "is-category" : "is-map"}`}
-      aria-label={menu ? "選択ツリー" : "選択マップ"}
+      aria-label={menu ? "選択ツリー" : "ホーム"}
     >
       {missing.length > 0 && (
         <aside className="crossroad-alert" role="alert" aria-label="岐路の必須選択">
@@ -111,7 +112,7 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                 requestAnimationFrame(() => mapButtons.current[selectedMenu.id]?.focus());
               }}
             >
-              ← マップに戻る
+              ← ホームに戻る
             </button>
             <div>
               <h2 ref={heading} tabIndex={-1}>
@@ -273,19 +274,9 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                   onClick={() => openMenu(item.id)}
                 >
                   <span className="map-marker-icon" aria-hidden="true">
-                    {
-                      (
-                        {
-                          education: "学",
-                          home: "家",
-                          grandparents: "縁",
-                          afterschool: "遊",
-                          work: "働",
-                        } as Record<string, string>
-                      )[item.id]
-                    }
+                    <MenuIcon id={item.id} />
                   </span>
-                  <strong>{item.label}</strong>
+                  <strong>{item.id === "grandparents" ? "実家との関わり" : item.label}</strong>
                   <small>
                     {route.routes.find((r) => r.id === route.current)?.label ?? "ルート未選択"}
                   </small>

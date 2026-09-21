@@ -9,7 +9,8 @@ import type { Response } from "../../service/service";
 import { $busy, $error, $notice, $extra, update, readExtra, downloadSave } from "../../stores/game";
 import { Family } from "./family";
 import { PartyStatus } from "./party_status";
-import { ChildStatus } from "./child_status";
+import { StatMeter } from "./status_visual";
+import { tenPoint } from "../../engine/stat_scale";
 import { StatusDetail } from "./status_detail";
 import { Timeline } from "./timeline";
 import { Ending } from "./ending";
@@ -172,6 +173,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   const stageKey = life
     ? `${tab}:${state.time.next_turn}:${response.phase}`
     : `${tab}:${state.time.next_turn}:${ended ? response.phase : showingResult ? "result" : (choice?.instance_id ?? "review")}`;
+  const [familyDetail, setFamilyDetail] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const eventHeading = useRef<HTMLHeadingElement>(null);
   const changeTab = (next: typeof tab) => {
@@ -218,12 +220,16 @@ export function DecisionPlay({ response }: { response: Response }) {
           <div
             className={`rpg-hud-right${life && !ended && projection ? " has-money-summary" : ""}`}
           >
-            <div
+            <button
+              onClick={() => setFamilyDetail(true)}
+              aria-haspopup="dialog"
               className="rpg-family-status"
-              aria-label={`家族の状態 ${state.family_status?.label}`}
+              aria-label={`家族全体の状態を開く：${state.family_status?.label ?? "家族の状態"}`}
             >
-              <strong>{state.family_status?.label}</strong>
-            </div>
+              <strong>
+                {state.family_status?.label} <span aria-hidden="true">↗</span>
+              </strong>
+            </button>
             {life && !ended && projection ? (
               <CashForecast cash={state.cash!} forecast={projection} />
             ) : (
@@ -236,7 +242,6 @@ export function DecisionPlay({ response }: { response: Response }) {
             )}
           </div>
         </div>
-        <ChildStatus state={state} />
         <div className="rpg-stage">
           {!state.life?.selection_tree && (
             <div className="rpg-scenery" aria-hidden="true">
@@ -257,15 +262,10 @@ export function DecisionPlay({ response }: { response: Response }) {
               {tab === "family" ? (
                 <>
                   <h2 ref={heading} tabIndex={-1}>
-                    いまの家族
+                    いまの暮らし
                   </h2>
-                  <Family publicState={state} />
+                  <Family publicState={state} compact />
                   <section className="rpg-observations">
-                    <h3>子どもの様子</h3>
-                    <p>{state.scene?.text}</p>
-                    {state.observations.map((item) => (
-                      <p key={item.code}>{item.text}</p>
-                    ))}
                     {turn.previous_result && (
                       <>
                         <h3>前の半年の振り返り</h3>
@@ -316,7 +316,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                         ? state.life?.stage_model
                           ? "最初の岐路では、5つの判断カテゴリでルートを確定します。以降は現在のルートを引き継ぐため、選び直さず進められます。岐路で任意に変更するとペナルティが発生し、次の岐路までルートは固定されます。"
                           : state.life?.selection_tree
-                            ? "地図のカテゴリーを開き、ツリーの選択を詳細から確定します。岐路では、表示された方針をすべて選ぶと進めます。"
+                            ? "ホームのカテゴリーを開き、ツリーの選択を詳細から確定します。岐路では、表示された方針をすべて選ぶと進めます。"
                             : "生活メニューから継続する方針や今期だけの行動を選べます。何も選ばなくても進められます。"
                         : "3つの判断に、ひとつずつ回答します。「何もしない」も回答です。"}
                     </li>
@@ -333,7 +333,7 @@ export function DecisionPlay({ response }: { response: Response }) {
                       ? "効果は取得時のみ・このステージ中・恒久の3種類です。ステージ効果は次の岐路で終了します。詳細の費用と持続期間を確認して取得してください。確定後の取消はできません。"
                       : life
                         ? "方針は変更するまで継続し、単発の選択は繰り返しません。半年を進める前は予定を取り消せます。費用と家族の負担を確認して進めましょう。"
-                        : "下の「判断1〜3」から、半年を進める前なら選び直せます。家族の様子では父母の能力・疲労と子どもの観察、前の半年の結果を確認できます。"}
+                        : "下の「判断1〜3」から、半年を進める前なら選び直せます。下部の家族をタップすると能力や様子、暮らし画面では前の半年の結果を確認できます。"}
                   </p>
                   <p>
                     20歳までの40期と、その後の人生をたどります。家族の危機は修復できますが、離婚・一家離散が起きるとゲームオーバーです。
@@ -495,9 +495,9 @@ export function DecisionPlay({ response }: { response: Response }) {
                   item === "play"
                     ? ended
                       ? "人生の結末"
-                      : "いまの暮らし"
+                      : "ホーム"
                     : item === "family"
-                      ? "家族の様子"
+                      ? "暮らしと取得効果"
                       : item === "history"
                         ? "家族の記録"
                         : "遊び方"
@@ -511,10 +511,10 @@ export function DecisionPlay({ response }: { response: Response }) {
                     ? ended
                       ? "結末"
                       : state.life?.selection_tree
-                        ? "マップ"
+                        ? "ホーム"
                         : "暮らし"
                     : item === "family"
-                      ? "家族"
+                      ? "暮らし"
                       : item === "history"
                         ? "記録"
                         : "ヘルプ"}
@@ -537,7 +537,7 @@ export function DecisionPlay({ response }: { response: Response }) {
               aria-label={life ? "この暮らしで半年進める →" : "半年を進める →"}
               disabled={busy || ended || crossroadBlocked}
               data-blocked={advanceBlocked || undefined}
-              title={crossroadBlocked ? "マップで残りのルートを選んでください" : undefined}
+              title={crossroadBlocked ? "ホームで残りのルートを選んでください" : undefined}
               aria-haspopup={advanceBlocked && !crossroadBlocked ? "dialog" : undefined}
               aria-describedby={advanceBlocked && !ended ? "advance-blocked-hint" : undefined}
               onClick={() => {
@@ -554,12 +554,24 @@ export function DecisionPlay({ response }: { response: Response }) {
           {advanceBlocked && !ended && (
             <span id="advance-blocked-hint" className="sr-only">
               {crossroadBlocked
-                ? "いまは進行できません。マップで残りのルートを選んでください。"
+                ? "いまは進行できません。ホームで残りのルートを選んでください。"
                 : "いまは進行できません。押すと理由を確認できます。"}
             </span>
           )}
         </div>
       </footer>
+      {familyDetail && (
+        <StatusDetail title="家族全体の状態" onClose={() => setFamilyDetail(false)} variant="sheet">
+          <section className="status-section">
+            <h3>{state.family_status?.label ?? "家族の状態"}</h3>
+            <p>{state.family_status?.description}</p>
+            <StatMeter label="夫婦の関係" value={state.couple} max={tenPoint(state) ? 10 : 100} />
+            <p className="muted">
+              夫婦の関係：{state.couple} / {tenPoint(state) ? 10 : 100}
+            </p>
+          </section>
+        </StatusDetail>
+      )}
       {showAdvanceReason && (
         <StatusDetail title="半年を進める前に" onClose={() => setShowAdvanceReason(false)}>
           {special && <p>今期の出来事への対応を選んでください。</p>}

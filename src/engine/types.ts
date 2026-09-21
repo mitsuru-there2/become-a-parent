@@ -35,6 +35,8 @@ export interface Child {
   adaptation: number;
 }
 export interface Observation {
+  /** Existing observation bucket, attached only to public responses. Never a raw child value. */
+  band?: "low" | "middle" | "high";
   short_text?: string;
   code: string;
   subject: string;

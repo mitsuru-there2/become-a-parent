@@ -3003,12 +3003,7 @@ meter::-moz-meter-bar {
     font-size: 9px;
   }
 }
-@media (max-width: 640px) and (max-height: 520px) {
-}
-@media (max-width: 640px) and (max-height: 600px) {
-}
-@media (max-width: 640px) and (max-height: 520px) {
-}
+
 @media (min-width: 641px) and (max-width: 1023px) and (max-height: 700px) {
   .tree-shell .map-marker {
     width: 96px;
@@ -3078,56 +3073,7 @@ meter::-moz-meter-bar {
   flex: 0 1 48px;
   min-height: 0;
 }
-.child-status {
-  border-block: 1px solid #3c4437;
-  padding: 6px 0;
-  min-width: 0;
-}
-.child-status-heading {
-  color: #d3bd89;
-  font-size: 11px;
-  margin: 0 8px 3px;
-}
-.child-status-heading > span {
-  color: #9a9d8f;
-  font-size: 10px;
-  margin-left: 10px;
-}
-.child-status-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1.4fr;
-}
-.child-status-grid > button {
-  min-width: 0;
-  min-height: 44px;
-  padding: 3px 10px;
-  text-align: left;
-  border-left: 1px solid #383e33;
-  display: grid;
-  grid-template-columns: auto;
-  align-content: start;
-  gap: 3px;
-}
-.child-status-grid > button:first-child {
-  border-left: 0;
-}
-.child-status-grid > button > span {
-  font-size: 10px;
-  color: #a7ae9c;
-}
-.child-status-grid strong {
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-.child-status-grid strong > span {
-  display: block;
-}
-.child-status-grid button:hover,
-.party-compact:hover {
-  background: #252d22;
-}
+
 .status-shell button:focus-visible,
 .map-viewport:focus-visible {
   outline: 2px solid #e2c887;
@@ -3158,72 +3104,7 @@ meter::-moz-meter-bar {
   padding: 0 12px 0 0;
   min-width: 0;
 }
-.party-desktop h2 {
-  margin: 0;
-}
-.party-desktop h2 button {
-  min-height: 44px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  font-size: 15px;
-  text-align: left;
-}
-.party-desktop h2 button span {
-  font-size: 10px;
-  font-weight: 400;
-  color: #a8ab9f;
-}
-.party-full-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 12px;
-  margin: 0 0 6px;
-}
-.party-full-stats > div {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  font-size: 11px;
-}
-.party-full-stats dt {
-  color: #b6bbae;
-  white-space: nowrap;
-}
-.party-full-stats dd {
-  margin: 0 0 0 auto;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.party-full-stats meter {
-  flex: 1;
-  min-width: 12px;
-  height: 5px;
-  appearance: none;
-  border: 0;
-  background: #383d32;
-}
-.party-full-stats meter::-webkit-meter-bar {
-  height: 5px;
-  border: 0;
-  border-radius: 0;
-  background: #383d32;
-}
-.party-full-stats meter::-webkit-meter-optimum-value {
-  background: #b6c1a3;
-}
-.party-full-stats meter::-moz-meter-bar {
-  background: #b6c1a3;
-}
-.party-member:last-of-type .party-full-stats {
-  grid-template-columns: 1fr;
-}
-.party-compact {
-  display: none;
-}
+
 .status-shell .rpg-dock {
   position: static;
   width: auto;
@@ -3330,13 +3211,7 @@ meter::-moz-meter-bar {
   font-size: 14px;
   line-height: 1.7;
 }
-.status-detail-body .party-full-stats {
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-.status-detail-body .party-full-stats > div {
-  font-size: 14px;
-}
+
 .status-detail > footer {
   padding: 8px 16px max(12px, env(safe-area-inset-bottom));
   text-align: right;
@@ -3432,12 +3307,6 @@ meter::-moz-meter-bar {
   .status-shell .party-member {
     padding-right: 8px;
   }
-  .party-full-stats {
-    gap: 3px 8px;
-  }
-  .party-full-stats meter {
-    display: none;
-  }
 }
 @media (max-width: 1023px) {
   .status-shell {
@@ -3469,46 +3338,7 @@ meter::-moz-meter-bar {
     border-right: 0;
     padding-right: 0;
   }
-  .party-desktop {
-    display: none;
-  }
-  .party-compact {
-    display: block;
-    width: 100%;
-    min-height: 44px;
-    padding: 0 4px;
-    text-align: left;
-  }
-  .party-compact-name {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.6;
-  }
-  .party-compact-name > span {
-    color: #cdb981;
-  }
-  .party-compact-stats {
-    margin: 2px 0;
-    display: grid;
-    gap: 2px;
-  }
-  .party-compact-stats > div {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 2px;
-    font-size: 11px;
-    line-height: 1.5;
-  }
-  .party-compact-stats dt {
-    color: #aeb5a2;
-  }
-  .party-compact-stats dd {
-    margin: 0;
-    font-variant-numeric: tabular-nums;
-  }
+
   .status-shell .rpg-dock-controls {
     display: flex;
     gap: 0;
@@ -3572,30 +3402,7 @@ meter::-moz-meter-bar {
   .status-shell .rpg-caption {
     padding-block: 2px 4px;
   }
-  .child-status {
-    padding: 3px 0;
-  }
-  .child-status-heading {
-    margin-bottom: 2px;
-    font-size: 10px;
-  }
-  .child-status-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .child-status-grid > button {
-    padding: 2px 6px;
-    gap: 1px;
-  }
-  .child-status-grid > button:nth-child(3) {
-    border-left: 0;
-  }
-  .child-status-grid strong {
-    font-size: 11px;
-    line-height: 1.4;
-  }
-  .child-status-grid > button > span {
-    font-size: 10px;
-  }
+
   .status-shell .selection-tree-content.is-map .selection-map {
     width: min(100cqw, 78.947cqh);
     min-width: 280px;
@@ -3607,9 +3414,6 @@ meter::-moz-meter-bar {
   }
   .status-shell .rpg-party[data-members="4"] {
     gap: 4px;
-  }
-  .status-shell .rpg-party[data-members="4"] .party-compact-stats > div {
-    flex-wrap: wrap;
   }
 }
 @media (max-width: 640px) and (max-height: 600px) {
@@ -3665,32 +3469,7 @@ meter::-moz-meter-bar {
   .status-shell .rpg-family-status strong {
     font-size: 11px;
   }
-  .child-status {
-    padding: 0;
-  }
-  .child-status-heading {
-    line-height: 14px;
-    font-size: 10px;
-    margin-bottom: 0;
-  }
-  .child-status-grid > button {
-    padding-block: 0;
-    gap: 0;
-  }
-  .child-status-grid > button > span {
-    line-height: 12px;
-  }
-  .child-status-grid strong {
-    font-size: 11px;
-    line-height: 14px;
-  }
-  .party-compact-name {
-    line-height: 18px;
-  }
-  .party-compact-stats > div {
-    font-size: 10px;
-    line-height: 13px;
-  }
+
   .rpg-bottom {
     gap: 2px;
   }
@@ -3702,33 +3481,11 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-width: 640px) {
-  .child-status-heading {
-    line-height: 14px;
-  }
-  .child-status-grid > button {
-    gap: 0;
-  }
-  .child-status-grid > button > span {
-    line-height: 12px;
-  }
-  .child-status-grid strong {
-    line-height: 14px;
-  }
   .status-shell .rpg-party {
     gap: 6px;
   }
   .status-shell .party-member {
     padding-right: 6px;
-  }
-  .party-compact {
-    padding-inline: 2px;
-  }
-  .party-compact-stats dt {
-    font-size: 10px;
-    white-space: nowrap;
-  }
-  .party-compact-stats dd {
-    white-space: nowrap;
   }
 }
 @media (max-height: 600px) {
@@ -3988,5 +3745,502 @@ meter::-moz-meter-bar {
   }
   .stage-tree .stage-lanes {
     min-height: 64px;
+  }
+}
+
+/* D-072: one family strip; observation graphics use public buckets only. */
+.status-shell {
+  --status-sage: #acc2a3;
+  --status-gold: #dfc58b;
+  --status-burden: #d7a077;
+  --status-track: #343e32;
+}
+.status-shell .rpg-main {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.status-shell .rpg-family-status {
+  min-height: 44px;
+  text-align: right;
+}
+.status-shell .rpg-family-status span {
+  color: var(--status-gold);
+}
+.status-shell .rpg-bottom {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.status-shell .rpg-party,
+.status-shell .rpg-party[data-members="4"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+}
+.status-shell .rpg-party[data-members="5"] {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.status-shell .party-member {
+  padding: 0;
+  border-right: 1px solid #3c4437;
+}
+.status-shell .party-member:last-of-type {
+  border-right: 0;
+}
+.family-member-button {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  min-height: 44px;
+  height: 100%;
+  text-align: left;
+  padding: 5px 16px 8px;
+  transition: background 140ms ease;
+}
+.family-member-button:hover {
+  background: #252d22;
+}
+.family-member-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.family-member-heading > span:not(.family-open) {
+  display: grid;
+  gap: 2px;
+}
+.family-member-heading strong {
+  font-size: 14px;
+  color: #ede8d9;
+}
+.family-member-heading small {
+  font-size: 10px;
+  color: #a9b2a0;
+}
+.family-open {
+  margin-left: auto;
+  color: var(--status-gold);
+  font-size: 13px;
+}
+.family-portrait {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border: 1px solid #58624b;
+  border-radius: 50%;
+  background: #2b3528;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 30px;
+  line-height: 1;
+}
+.family-compact-stats,
+.child-compact-observations {
+  display: grid;
+  gap: 5px;
+}
+.status-meter,
+.status-money {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 15px;
+}
+.status-meter > span,
+.status-money > span {
+  color: #bcc4b3;
+  font-size: 11px;
+  min-width: 4.5em;
+}
+.status-money strong {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+.status-meter meter,
+.member-full-stats meter,
+.study-score meter {
+  appearance: none;
+  display: block;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 6px;
+  border: 0;
+  background: var(--status-track, #343e32);
+}
+.status-meter meter::-webkit-meter-bar,
+.member-full-stats meter::-webkit-meter-bar,
+.study-score meter::-webkit-meter-bar {
+  height: 6px;
+  border: 0;
+  border-radius: 2px;
+  background: #343e32;
+}
+.status-meter meter::-webkit-meter-optimum-value,
+.member-full-stats meter::-webkit-meter-optimum-value,
+.study-score meter::-webkit-meter-optimum-value {
+  background: #acc2a3;
+}
+.status-meter meter::-moz-meter-bar,
+.member-full-stats meter::-moz-meter-bar,
+.study-score meter::-moz-meter-bar {
+  background: #acc2a3;
+}
+[data-burden] meter::-webkit-meter-optimum-value {
+  background: #d7a077;
+}
+[data-burden] meter::-moz-meter-bar {
+  background: #d7a077;
+}
+.observation-mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #dfc58b;
+}
+.observation-label {
+  color: #c9cfbd;
+  font-size: 12px;
+}
+.observation-mark svg {
+  flex-shrink: 0;
+  width: 54px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.observation-mark .relation-line {
+  stroke: #72745a;
+}
+.observation-mark circle {
+  fill: #222b21;
+}
+.observation-mark circle.is-current {
+  fill: #dfc58b;
+  stroke: #dfc58b;
+}
+.observation-mark[data-energy][data-band="high"] {
+  color: #d7a077;
+}
+.observation-mark:not([data-band]) svg > :not(.unknown-mark) {
+  opacity: 0.15;
+}
+.observation-mark.is-compact {
+  justify-content: space-between;
+  min-height: 15px;
+  height: 15px;
+}
+.observation-mark.is-compact .observation-label {
+  font-size: 11px;
+}
+.observation-mark.is-compact svg {
+  width: 54px;
+  height: 16px;
+}
+.status-shell .rpg-dock-controls {
+  display: flex;
+  height: 48px;
+  gap: 4px;
+}
+.status-shell .rpg-dock-controls button {
+  flex: 1;
+  flex-direction: row;
+  gap: 7px;
+}
+.status-shell .rpg-dock-controls .rpg-dock-advance {
+  flex: 1.65;
+  min-width: 80px;
+}
+.status-shell .rpg-dock-controls .dock-label {
+  font-size: 11px;
+}
+.member-sheet {
+  width: min(480px, calc(100vw - 24px));
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0 0 0 auto;
+  border-block: 0;
+  overscroll-behavior: contain;
+}
+.member-sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+.member-sheet > header {
+  flex-shrink: 0;
+  z-index: 1;
+}
+.member-sheet .status-detail-body {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 24px;
+}
+.member-sheet > footer {
+  border-top: 1px solid #48513d;
+  flex-shrink: 0;
+}
+.member-detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.member-detail-heading .family-portrait {
+  width: 76px;
+  height: 76px;
+  font-size: 48px;
+}
+.member-detail-heading strong {
+  font-size: 21px;
+}
+.member-detail-heading p {
+  margin: 3px 0 0;
+  color: #b5bfaa;
+  font-size: 13px;
+}
+.status-section {
+  border-top: 1px solid #43503b;
+  padding-block: 18px;
+}
+.status-section h3 {
+  font-size: 15px;
+  color: #dfc58b;
+  margin: 0 0 12px;
+}
+.status-section .muted {
+  font-size: 12px;
+}
+.child-observation-row {
+  margin-block: 12px;
+}
+.child-observation-row .observation-mark {
+  justify-content: space-between;
+}
+.child-observation-row p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  color: #c4ccba;
+  line-height: 1.7;
+}
+.child-domain {
+  padding: 12px 14px;
+  margin-top: 14px;
+  background: #222c20;
+  border-left: 2px solid #788655;
+}
+.child-domain h4 {
+  font-size: 14px;
+  margin: 0;
+}
+.child-domain h4 > span {
+  color: #dfc58b;
+}
+.study-score {
+  display: grid;
+  grid-template-columns: auto minmax(30px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 12px;
+}
+.study-score strong small {
+  color: #a9b2a0;
+  font-weight: 400;
+}
+.study-score p {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.child-relationship {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.child-relationship .child-observation-row {
+  flex: 1;
+}
+.status-footnote {
+  font-size: 11px;
+  color: #aeb8a1;
+}
+.member-full-stats {
+  display: grid;
+  margin: 0;
+}
+.member-full-stats > div {
+  padding-block: 13px;
+  border-top: 1px solid #43503b;
+}
+.member-full-stats dt {
+  font-size: 13px;
+  color: #c5cfb9;
+  display: flex;
+  justify-content: space-between;
+}
+.member-full-stats dt small {
+  font-size: 10px;
+  color: #c6a88a;
+}
+.member-full-stats dd {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 5px 0 0;
+}
+.member-full-stats dd strong {
+  min-width: 64px;
+  text-align: right;
+  font-size: 16px;
+}
+.member-full-stats dd small {
+  font-size: 11px;
+  font-weight: 400;
+  color: #aeb8a1;
+}
+@media (max-width: 640px) {
+  .family-member-button {
+    padding: 4px 6px 6px;
+    gap: 5px;
+  }
+  .family-member-heading {
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+  .family-member-heading .family-portrait {
+    width: 32px;
+    height: 32px;
+    font-size: 22px;
+  }
+  .family-member-heading strong {
+    font-size: 12px;
+  }
+  .family-member-heading small {
+    display: none;
+  }
+  .family-open {
+    display: none;
+  }
+  .family-compact-stats,
+  .child-compact-observations {
+    gap: 5px;
+  }
+  .status-meter,
+  .status-money {
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+  .status-meter > span,
+  .status-money > span {
+    min-width: 0;
+    font-size: 9px;
+  }
+  .status-meter meter {
+    flex: 1 1 20px;
+  }
+  .status-money strong {
+    font-size: 10px;
+  }
+  .observation-mark.is-compact .observation-label {
+    font-size: 9px;
+  }
+  .observation-mark.is-compact {
+    gap: 2px;
+  }
+  .observation-mark.is-compact svg {
+    width: 34px;
+  }
+  .status-shell .rpg-dock-controls {
+    gap: 0;
+  }
+  .status-shell .rpg-dock-controls button {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .status-shell .rpg-dock-controls .dock-label {
+    font-size: 9px;
+  }
+  .member-sheet {
+    width: 100%;
+    max-width: none;
+    height: min(88dvh, 760px);
+    max-height: calc(100dvh - 16px);
+    margin: auto 0 0;
+    border-top: 1px solid #b7a06b;
+  }
+  .member-sheet .status-detail-body {
+    padding: 16px;
+  }
+  .status-shell .rpg-party[data-members="5"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 340px) {
+  .family-member-button {
+    padding-inline: 4px;
+  }
+  .family-member-heading .family-portrait {
+    width: 28px;
+    height: 28px;
+    font-size: 19px;
+  }
+  .status-money {
+    gap: 0;
+  }
+}
+@media (max-height: 500px) and (min-width: 641px) {
+  .family-member-button {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+  }
+  .family-member-heading {
+    gap: 4px;
+  }
+  .family-member-heading .family-portrait {
+    width: 32px;
+    height: 32px;
+    font-size: 22px;
+  }
+  .family-member-heading small,
+  .family-open {
+    display: none;
+  }
+  .family-compact-stats,
+  .child-compact-observations {
+    flex: 1;
+  }
+  .status-meter > span {
+    min-width: 0;
+    font-size: 9px;
+  }
+  .observation-mark.is-compact .observation-label {
+    font-size: 9px;
+  }
+  .observation-mark.is-compact svg {
+    width: 30px;
+  }
+}
+@media (max-width: 20rem) {
+  .status-shell .rpg-party,
+  .status-shell .rpg-party[data-members="4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .family-member-button {
+    flex-direction: row;
+    align-items: center;
+  }
+  .family-compact-stats,
+  .child-compact-observations {
+    flex: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .family-member-button {
+    transition: none;
   }
 }

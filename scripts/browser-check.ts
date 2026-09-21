@@ -43,7 +43,7 @@ try {
   };
   const next = page.getByRole("button", { name: "この暮らしで半年進める →", exact: true });
   const alert = page.getByRole("alert", { name: "岐路の必須選択" });
-  const back = page.getByRole("button", { name: "← マップに戻る" });
+  const back = page.getByRole("button", { name: "← ホームに戻る" });
   const detail = page.getByRole("dialog").filter({ has: page.locator("#stage-detail-title") });
   const viewport = async () => {
     const problems = await page.evaluate(() => {

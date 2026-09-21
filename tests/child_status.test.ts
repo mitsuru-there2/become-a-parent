@@ -22,6 +22,10 @@ describe("子どもの公開観察の短文（D-058）", () => {
         expect(view.observations.find((item) => item.code === "energy")?.short_text).toBe(energy);
         expect(JSON.stringify(state)).toBe(before);
         expect(state.observations.every((item) => item.short_text === undefined)).toBe(true);
+        expect(state.observations.every((item) => item.band === undefined)).toBe(true);
+        expect(view.observations.find((item) => item.code === "energy")?.band).toBe(
+          value < 40 ? "low" : value < 70 ? "middle" : "high",
+        );
         for (const hidden of [
           "child",
           "aptitude",
@@ -83,4 +87,58 @@ describe("子どもの公開観察の短文（D-058）", () => {
     state.observations[0].text = "過去の観察";
     expect(publicView(state).public.observations[0]).toEqual(state.observations[0]);
   });
+  it("関係・興味・能力・自律性の図は既存の区分だけを公開する", () => {
+    const state = start("home-01", 0, new Catalog().resolve("normal"));
+    state.n = 12;
+    for (const value of [0, 29, 30, 39, 40, 59, 60, 100]) {
+      state.child.trust = { A: value, B: value };
+      state.child.interest = { study: value, craft: value };
+      state.child.ability = { study: value, craft: value };
+      state.child.autonomy = value;
+      state.observations = observeChild(state);
+      for (const item of publicView(state).public.observations) {
+        if (item.code === "energy") continue;
+        const low = item.code.startsWith("interest.") ? 40 : 30;
+        expect(item.band).toBe(value < low ? "low" : value < 60 ? "middle" : "high");
+      }
+    }
+    const before = publicView(state).public.observations;
+    state.child.aptitude = { study: 1, craft: 2 };
+    state.child.adaptation = 99;
+    state.observations = observeChild(state);
+    expect(publicView(state).public.observations).toEqual(before);
+    state.child.trust.A = 65;
+    state.child.trust.B = 75;
+    state.observations = observeChild(state);
+    expect(publicView(state).public.observations).toEqual(before);
+  });
+});
+
+it("公開履歴は隠し値の実数を観察へ置き換え、保存の記録と公開成績を保つ", async () => {
+  const { publicHistory, publicStateHistory } = await import("../src/engine/public_history");
+  const state = startDecisions("home-01", 0, new Catalog().resolve("normal"));
+  const entry = {
+    ...state.history[0],
+    kind: "turn" as const,
+    observations: observeChild(state),
+    text: [
+      "子ども・ストレス 28→27",
+      "子ども・信頼・父 67→70",
+      "子ども・能力・創作 10→20",
+      "子ども・能力・学び 40→43",
+      "疲労・父 6→5",
+    ],
+  };
+  const before = JSON.stringify(entry);
+  const projected = publicHistory(entry, true);
+  expect(projected.text).toContain("子ども・能力・学び 40→43");
+  expect(projected.text).toContain("疲労・父 6→5");
+  expect(projected.text.some((line) => /子ども・(?:ストレス|信頼|能力・創作).*\d/.test(line))).toBe(
+    false,
+  );
+  expect(JSON.stringify(entry)).toBe(before);
+  expect(publicHistory(entry, false).text.some((line) => /子ども・.*\d/.test(line))).toBe(false);
+  const view = publicView(state).public;
+  view.decision_turn!.previous_result = entry;
+  expect(publicStateHistory(view).decision_turn!.previous_result!.text).toEqual(projected.text);
 });

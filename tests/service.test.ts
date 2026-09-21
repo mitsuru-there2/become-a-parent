@@ -236,3 +236,60 @@ describe("保存と共通操作", () => {
     repo.db.close();
   });
 });
+
+it("通常の履歴・取得応答・再送から子どもの隠し実数を出さず、内部記録は再生できる", async () => {
+  const repo = new IndexedRepository(new GameDatabase("public-history-" + crypto.randomUUID()));
+  const service = new Service(repo);
+  let response = await service.execute(initial);
+  let index = 0;
+  while (response.public!.life!.crossroad!.missing.length) {
+    const required = response.public!.life!.crossroad!.missing[0];
+    const choice = response.choices.find((item) => item.event_id === required.decision_id)!;
+    response = await service.execute({
+      command: "choose",
+      run: "test",
+      revision: response.revision!,
+      request_id: `route${index++}`,
+      input: { event_instance: choice.instance_id, option_id: choice.options[0].option_id },
+    });
+    expect(response.ok).toBe(true);
+  }
+  const choice = response.choices.find(
+    (item) =>
+      !item.route_choice &&
+      item.options.some(
+        (option) =>
+          option.available &&
+          option.cost === 0 &&
+          option.effect_details?.some((effect) => effect.description.includes("子ども・ストレス")),
+      ),
+  )!;
+  const option = choice.options.find(
+    (item) =>
+      item.available &&
+      item.cost === 0 &&
+      item.effect_details?.some((effect) => effect.description.includes("子ども・ストレス")),
+  )!;
+  const request: Request = {
+    command: "choose",
+    run: "test",
+    revision: response.revision!,
+    request_id: "child-change",
+    input: { event_instance: choice.instance_id, option_id: option.option_id },
+  };
+  response = await service.execute(request);
+  expect(response.ok).toBe(true);
+  const raw = /子ども・(?:ストレス|信頼・[父母]|能力・創作|主体性|興味・(?:学び|創作)) -?\d+→/;
+  expect(raw.test(JSON.stringify(response))).toBe(false);
+  const saved = (await repo.read("test"))!;
+  expect(raw.test(JSON.stringify(saved.state.history))).toBe(true);
+  const history = await service.execute({ command: "history", run: "test" });
+  expect(history.ok).toBe(true);
+  expect(raw.test(JSON.stringify(history))).toBe(false);
+  const duplicate = await service.execute(request);
+  expect(duplicate.payload!.receipt!.duplicate).toBe(true);
+  expect(raw.test(JSON.stringify(duplicate))).toBe(false);
+  expect(await repo.read("test")).toEqual(saved);
+  expect((await service.execute({ command: "replay", run: "test" })).payload!.matched).toBe(true);
+  repo.db.close();
+});

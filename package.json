@@ -14,6 +14,8 @@
     "cli": "bun scripts/cli.ts",
     "deploy": "bun run build && wrangler deploy",
     "deploy:check": "bun run build && wrangler deploy --dry-run",
+    "deploy:login": "wrangler login",
+    "deploy:whoami": "wrangler whoami",
     "test:browser": "bun scripts/browser-check.ts",
     "test:public": "bun scripts/public-play.ts",
     "test:stories": "bun scripts/story-play.ts",

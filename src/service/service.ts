@@ -1,3 +1,4 @@
+import { publicHistory, publicStateHistory } from "../engine/public_history";
 import { stageModel } from "../engine/stage_state";
 import { validateLifeState } from "../engine/life_save";
 import * as v from "valibot";
@@ -199,6 +200,19 @@ export function validateRun(run: Run) {
   )
     throw new Failure("CORRUPT_SAVE", "保存の整合性を確認できません。");
 }
+function publicPayload(payload: Payload | null, state: PublicState | null): Payload | null {
+  if (!payload) return payload;
+  const studyPublic = state?.life?.study_score !== undefined;
+  return {
+    ...payload,
+    ...(payload.items
+      ? { items: payload.items.map((entry) => publicHistory(entry, studyPublic)) }
+      : {}),
+    ...(payload.history_added
+      ? { history_added: payload.history_added.map((entry) => publicHistory(entry, studyPublic)) }
+      : {}),
+  };
+}
 function envelope(
   command: string,
   run?: Run,
@@ -215,7 +229,7 @@ function envelope(
     phase: run?.state.phase ?? null,
     public: view?.public ?? null,
     choices: view?.choices ?? [],
-    payload: error ? null : payload,
+    payload: error ? null : publicPayload(payload, view?.public ?? null),
     error,
   };
 }
@@ -314,6 +328,8 @@ export class Service {
             if (receipt.request !== normalized)
               throw new Failure("REQUEST_ID_CONFLICT", "同じIDが別の入力に使用されています。");
             const response = clone(receipt.response);
+            if (response.public) response.public = publicStateHistory(response.public);
+            response.payload = publicPayload(response.payload, response.public);
             response.payload!.receipt!.duplicate = true;
             return { run: existing!, value: response };
           }

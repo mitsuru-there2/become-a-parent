@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import "fake-indexeddb/auto";
 import { createElement, type ReactNode } from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, afterAll, expect, it, vi } from "vite-plus/test";
 import { ChildStatus } from "../src/components/game/child_status";
+import { PartyStatus } from "../src/components/game/party_status";
 import { publicView, start } from "../src/engine/simulation";
 
 vi.mock("@tanstack/react-router", () => ({
@@ -45,9 +46,13 @@ afterEach(() => {
 });
 it("短文がない旧保存でも両親と両分野の観察本文を表示する", () => {
   const state = publicView(start("home-01", 0)).public;
-  for (const item of state.observations) delete item.short_text;
+  for (const item of state.observations) {
+    delete item.short_text;
+    delete item.band;
+  }
   render(createElement(ChildStatus, { state }));
-  expect(screen.getAllByRole("button")).toHaveLength(4);
+  fireEvent.click(screen.getByRole("button", { name: "子どもの詳細を開く" }));
+  expect(screen.getByRole("dialog", { name: "子どもの様子" })).toBeTruthy();
   for (const code of [
     "energy",
     "relationship.A",
@@ -58,6 +63,38 @@ it("短文がない旧保存でも両親と両分野の観察本文を表示す�
     const text = state.observations.find((item) => item.code === code)!.text;
     expect(screen.getAllByText(text).length).toBeGreaterThan(0);
   }
+});
+
+it("家族4枠から詳細を開き、成績は学齢期に公開値だけを表示する", async () => {
+  const { Catalog } = await import("../src/content/catalog");
+  const { startDecisions } = await import("../src/engine/decisions");
+  const state = publicView(startDecisions("home-01", 0, new Catalog().resolve("normal"))).public;
+  const { rerender } = render(createElement(PartyStatus, { state }));
+  expect(screen.getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
+    "子どもの詳細を開く",
+    "父の詳細を開く",
+    "母の詳細を開く",
+    "実家の詳細を開く",
+  ]);
+  expect(screen.queryByText("対話")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "子どもの詳細を開く" }));
+  expect(screen.queryByRole("meter", { name: "成績" })).toBeNull();
+  expect(screen.queryByText("自分で選ぶ様子")).toBeNull();
+  expect(screen.getByText("好きなことと、できること。それぞれの育ちを見守ります。")).toBeTruthy();
+  rerender(
+    createElement(PartyStatus, {
+      state: {
+        ...state,
+        time: { ...state.time, child_months: 72 },
+        life: { ...state.life!, study_score: 64 },
+      },
+    }),
+  );
+  expect(screen.getByRole("meter", { name: "成績" }).getAttribute("value")).toBe("64");
+  fireEvent.click(screen.getAllByRole("button", { name: "閉じる" })[0]);
+  fireEvent.click(screen.getByRole("button", { name: "父の詳細を開く" }));
+  expect(screen.getByRole("dialog", { name: "父の状態" })).toBeTruthy();
+  expect(screen.getByText("対話")).toBeTruthy();
 });
 
 it("進行不可時は理由を表示し、advanceを送信しない", async () => {
@@ -115,7 +152,7 @@ it("岐路の必須選択が残る間は半年進行ボタンを無効にする"
   render(createElement(DecisionPlay, { response }));
   const advance = screen.getByRole("button", { name: "この暮らしで半年進める →" });
   expect((advance as HTMLButtonElement).disabled).toBe(true);
-  expect(advance.getAttribute("title")).toBe("マップで残りのルートを選んでください");
+  expect(advance.getAttribute("title")).toBe("ホームで残りのルートを選んでください");
   fireEvent.click(advance);
   expect(update).not.toHaveBeenCalled();
 });

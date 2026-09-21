@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
 import { $busy, update } from "../../stores/game";
+import { MenuIcon } from "./menu_icon";
 import { ContentImage } from "./content_image";
 import { SelectionMap, markerPosition } from "./selection_map";
 
@@ -11,30 +12,6 @@ type SelectionNode = {
 };
 type PositionedNode = SelectionNode & { x: number; y: number };
 type RouteGroup = NonNullable<NonNullable<PublicState["life"]>["route_groups"]>[number];
-
-function MenuIcon({ id }: { id: string }) {
-  const paths: Record<string, string> = {
-    education: "M3 5h7l2 2 2-2h7v15h-7l-2 2-2-2H3z M12 7v15",
-    home: "M2 11 12 3l10 8 M5 9v12h14V9 M9 21v-7h6v7",
-    grandparents: "M12 3 4 12h4l-5 6h7v4h4v-4h7l-5-6h4z",
-    afterschool:
-      "M12 3a9 9 0 1 0 0 18h2a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h4a4 4 0 0 0 4-4c0-4-5-6-9-6 M7 9h.1 M10 6h.1 M16 7h.1 M6 14h.1",
-    work: "M3 7h18v14H3z M8 7V3h8v4 M3 12l9 3 9-3 M12 12v5",
-  };
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d={paths[id] ?? paths.home} />
-    </svg>
-  );
-}
 
 function graphPositions(selections: SelectionNode[]) {
   const map = new Map(selections.map((selection) => [selection.option.option_id, selection]));
@@ -296,7 +273,7 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
   return (
     <section
       className={`life-content selection-tree-content ${selectedMenu ? "is-category" : "is-map"}`}
-      aria-label={selectedMenu ? "選択ツリー" : "選択マップ"}
+      aria-label={selectedMenu ? "選択ツリー" : "ホーム"}
     >
       {life.crossroad && crossroadMissing.length > 0 && (
         <aside className="crossroad-alert" role="alert" aria-label="岐路の必須選択">
@@ -330,7 +307,7 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
                 setMenu(null);
               }}
             >
-              ← マップに戻る
+              ← ホームに戻る
             </button>
             <div>
               <h2 ref={categoryHeading} tabIndex={-1}>
@@ -529,7 +506,7 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
                 <span className="map-marker-icon">
                   <MenuIcon id={item.id} />
                 </span>
-                <strong>{item.label}</strong>
+                <strong>{item.id === "grandparents" ? "実家との関わり" : item.label}</strong>
                 {choices.some((choice) => choice.menu === item.id && choice.selected_option) && (
                   <small>予定中</small>
                 )}

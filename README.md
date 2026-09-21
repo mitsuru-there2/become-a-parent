@@ -42,14 +42,25 @@ JSONの検査対象は[エディタの関連付け](.vscode/settings.json)に従
 
 `bun run build`はStartのSPAシェルを`dist/client/index.html`へ生成します。`bun run preview`で確認できます。ビルド時のシェル生成にはローカルポートの待受が必要です。Cloudflareへは`dist/client`のみを配信します。
 
-Cloudflare Workers Static Assetsの設定は `wrangler.jsonc`。公開先は `become-a-parent` です。認証後にデプロイできます。
+Cloudflare Workers Static Assetsの設定は[`wrangler.jsonc`](wrangler.jsonc)。Worker名は`become-a-parent`、公開先は[https://become-a-parent-beta-8kua.therethere.studio](https://become-a-parent-beta-8kua.therethere.studio)です。`workers.dev`とプレビューURLは無効にしています。
+
+初回または認証期限切れの場合、`therethere.studio`を管理するCloudflareアカウントでログインします。
 
 ```sh
-bunx wrangler login
+bun run deploy:login
+bun run deploy:whoami
+```
+
+公開前検査とデプロイは次のコマンドで実行します。どちらも最新のソースからビルドします。
+
+```sh
+bun run deploy:check
 bun run deploy
 ```
 
-2026-09-15の作業ではdry-runまで確認済み。Cloudflareの既存認証が期限切れのため、公開URLは未作成です。
+`therethere.studio`が同じアカウントで有効なCloudflareゾーンになっている必要があります。デプロイ時にCustom DomainのDNSレコードと証明書が作成されます。設定方式は[Cloudflare公式のCustom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/)を参照してください。複数アカウントを使う場合は`CLOUDFLARE_ACCOUNT_ID`で対象を指定できます。CIでは`CLOUDFLARE_API_TOKEN`と`CLOUDFLARE_ACCOUNT_ID`をシークレットとして渡します。
+
+公開・検証状況は[開発計画](docs/development-plan.md#cloudflareの指定ドメインへの静的配信2026-09-21d-071)を参照してください。ローカルや別ドメインの保存を移す場合は、書き出し／取り込みを使用します。
 
 CLIは `bun run cli --help`。[操作例](docs/cli-guide.md)、[ゲーム画面の使い方](docs/gui-guide.md)、[構成](docs/architecture.md)、[移植の検証記録](docs/playtests/2026-09-15-web.md)、[仕様](docs/SPEC.md)を参照してください。
 

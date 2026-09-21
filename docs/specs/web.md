@@ -14,6 +14,8 @@
 
 ## 受け入れ条件
 
+2026-09-21（D-071）：Cloudflareの公開先を`https://become-a-parent-beta-8kua.therethere.studio`に固定する。Worker名は`become-a-parent`を継続し、WranglerのCustom Domainで指定する。`workers.dev`とバージョンプレビューURLは無効化し、`dist/client`だけを静的配信する。`bun run deploy`はビルドから公開まで、`bun run deploy:check`はビルドと公開なしのdry-run、`bun run deploy:login`と`bun run deploy:whoami`は認証と認証先確認を行う。
+
 2026-09-16：ChatGPT Sitesにも同じ`dist/client`を静的配信する。設定は`.openai/hosting.json`で管理し、SPAの直リンクは`index.html`へ解決する。初回は本人限定のアクセスで配置する。保存は引き続きブラウザのIndexedDBを使用し、別オリジンの保存は書き出し／取り込みで移す。
 
 - AC-014-A：既存5パターン200期と成人後の値が参照データに一致する。5結末、遅延、資源境界、公開情報の隔離を検証する。
@@ -21,6 +23,7 @@
 - AC-014-C：IndexedDB再開・同一再送・古いrevision・保存失敗・破損／未知版拒否を検証する。失敗は状態を確定しない。
 - AC-014-D：ブラウザで開始・選択・方針編集・確定・再読込・履歴・結果まで操作でき、狭い画面とキーボードに対応する。
 - AC-014-E：VitePlusの静的検査・テスト・ビルドとWranglerのdry-runを通す。公開デプロイは認証先を確認できた場合に実施し、未実施なら明記する。
+- AC-014-G：指定Custom Domainを含む設定でdry-runが成功する。公開時は指定HTTPS URLのホーム、JavaScript・CSS・画像、プレイURLへの直接アクセスと再読込を確認する。公開できない場合は認証・ドメインなど未確認の前提を検証記録へ残す。
 
 ## StartのSPAモード（D-027、2026-09-15）
 

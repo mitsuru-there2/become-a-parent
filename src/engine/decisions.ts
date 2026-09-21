@@ -1,3 +1,4 @@
+import { publicStateHistory } from "./public_history";
 import {
   initializeLife,
   normalizeLife,
@@ -426,7 +427,7 @@ export function decisionView(state: State) {
   if (state.life) base.public.life = lifeView(state);
   base.public.family_status = familyStatus(state);
   if (state.game_over) base.public.game_over = clone(state.game_over);
-  return { public: base.public, choices: decisionChoices(state) };
+  return { public: publicStateHistory(base.public), choices: decisionChoices(state) };
 }
 function applyOption(
   state: State,

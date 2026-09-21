@@ -18,7 +18,12 @@ Use Bun 1.3.14+ and Node.js 22.12+.
 - `bun run format`: apply VitePlus formatting.
 - `bun run test`: run Vitest tests.
 - `bun run cli --help`: inspect CLI operations.
+- `bun run deploy:login`: authenticate with Cloudflare in the browser; the user performs login.
+- `bun run deploy:whoami`: verify the authenticated Cloudflare account.
 - `bun run deploy:check`: build and validate deployment without publishing.
+- `bun run deploy`: build and publish to Cloudflare Workers Static Assets.
+
+Deployment uses the project's Wrangler devDependency and `wrangler.jsonc`. The Worker is `become-a-parent`, serving only `dist/client` at <https://become-a-parent-beta-8kua.therethere.studio>. Before publishing, verify the There There Studio account with `bun run deploy:whoami` and run `bun run deploy:check`. For initial login or expired credentials, the user runs `bun run deploy:login`. See [README](README.md#検証とデプロイ) for details.
 
 ## Coding Style & Naming
 
