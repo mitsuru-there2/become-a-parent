@@ -39,7 +39,10 @@ afterAll(() => {
   });
   vi.restoreAllMocks();
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 it("短文がない旧保存でも両親と両分野の観察本文を表示する", () => {
   const state = publicView(start("home-01", 0)).public;
   for (const item of state.observations) delete item.short_text;
@@ -65,6 +68,7 @@ it("進行不可時は理由を表示し、advanceを送信しない", async () 
   const { update } = await import("../src/stores/game");
   const view = publicView(startDecisions("home-01", 0, new Catalog().resolve("normal")));
   view.public.decision_turn!.event_result = [];
+  view.public.life!.crossroad = null;
   view.public.forecast!.can_advance = false;
   view.public.forecast!.reasons = [
     { code: "RESOURCE_LIMIT", path: "cash", message: "資金が足りません" },
@@ -86,5 +90,32 @@ it("進行不可時は理由を表示し、advanceを送信しない", async () 
     expect(screen.getByRole("dialog", { name: "半年を進める前に" })).toBeTruthy(),
   );
   expect(screen.getByText("資金が足りません")).toBeTruthy();
+  expect(update).not.toHaveBeenCalled();
+});
+
+it("岐路の必須選択が残る間は半年進行ボタンを無効にする", async () => {
+  const { fireEvent } = await import("@testing-library/react");
+  const { Catalog } = await import("../src/content/catalog");
+  const { startDecisions } = await import("../src/engine/decisions");
+  const { DecisionPlay } = await import("../src/components/game/decision_play");
+  const { update } = await import("../src/stores/game");
+  const view = publicView(startDecisions("home-01", 0, new Catalog().resolve("normal")));
+  view.public.decision_turn!.event_result = [];
+  const response = {
+    api_version: "cli-2",
+    ok: true,
+    command: "observe",
+    run_id: "crossroad-blocked",
+    revision: 1,
+    phase: "childhood",
+    ...view,
+    payload: null,
+    error: null,
+  } as const;
+  render(createElement(DecisionPlay, { response }));
+  const advance = screen.getByRole("button", { name: "この暮らしで半年進める →" });
+  expect((advance as HTMLButtonElement).disabled).toBe(true);
+  expect(advance.getAttribute("title")).toBe("マップで残りの方針を選んでください");
+  fireEvent.click(advance);
   expect(update).not.toHaveBeenCalled();
 });

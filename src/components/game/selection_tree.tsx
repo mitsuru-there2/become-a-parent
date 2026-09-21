@@ -220,6 +220,8 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
     nodes.find((node) => node.option.switch_to);
   const selected = nodes.find((node) => node.option.option_id === selectedId);
   const scheduled = choices.filter((c) => c.selected_option);
+  const crossroadMissing =
+    life.crossroad?.missing.filter((item) => !selectedMenu || item.menu === selectedMenu.id) ?? [];
   const width = Math.max(routeLayout?.canvasMinWidth ?? 240, ...nodes.map((n) => n.x + 220));
   const height = Math.max(140, ...nodes.map((n) => n.y + 112));
   const routeStages =
@@ -297,14 +299,14 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
       className={`life-content selection-tree-content ${selectedMenu ? "is-category" : "is-map"}`}
       aria-label={selectedMenu ? "選択ツリー" : "選択マップ"}
     >
-      {life.crossroad && life.crossroad.missing.length > 0 && (
+      {life.crossroad && crossroadMissing.length > 0 && (
         <aside className="crossroad-alert" role="alert" aria-label="岐路の必須選択">
           <div>
             <strong>{life.crossroad.label}</strong>
             <span>方針を選ぶまで半年を進められません。</span>
           </div>
           <nav aria-label="未実施の必須選択">
-            {life.crossroad.missing.map((item) => (
+            {crossroadMissing.map((item) => (
               <button
                 key={item.decision_id}
                 type="button"

@@ -46,8 +46,8 @@ try {
   const fulfillVisibleCrossroad = async () => {
     const alert = page.getByRole("alert", { name: "岐路の必須選択" });
     if (!(await alert.isVisible())) return;
-    const missing = alert.getByRole("navigation", { name: "未実施の必須選択" });
-    while ((await missing.getByRole("button").count()) > 0) {
+    while (await alert.isVisible()) {
+      const missing = alert.getByRole("navigation", { name: "未実施の必須選択" });
       const count = await missing.getByRole("button").count();
       await missing.getByRole("button").first().click();
       const target = page.locator(".tree-node:focus");
@@ -57,10 +57,13 @@ try {
         .locator(".tree-detail")
         .getByRole("button", { name: "この選択を確定", exact: true })
         .click();
-      await expect(missing.getByRole("button")).toHaveCount(count - 1);
+      await expect(alert).toHaveCount(0);
+      await page.getByRole("button", { name: "← マップに戻る" }).click();
+      if (count > 1)
+        await expect(
+          alert.getByRole("navigation", { name: "未実施の必須選択" }).getByRole("button"),
+        ).toHaveCount(count - 1);
     }
-    const back = page.getByRole("button", { name: "← マップに戻る" });
-    if (await back.count()) await back.click();
   };
   const next = page.getByRole("button", { name: "この暮らしで半年進める →", exact: true });
   const progress = async (turn: number) => {
@@ -224,22 +227,20 @@ try {
   await expect(crossroad).toContainText("0歳・春夏の岐路");
   await expect(crossroad).toContainText("方針を選ぶまで半年を進められません。");
   await expect(next).toHaveAttribute("data-blocked", "true");
-  await next.click();
-  const blocked = page.getByRole("dialog", { name: "半年を進める前に" });
-  await expect(blocked).toContainText("岐路の必須選択「学びへの関わり」を選んでください。");
-  await blocked.getByRole("button", { name: "閉じる" }).last().click();
+  await expect(next).toBeDisabled();
+  await expect(next).toHaveAttribute("title", "マップで残りの方針を選んでください");
   await page.screenshot({ path: `${out}/crossroad-alert-desktop.png` });
   await page.setViewportSize({ width: 390, height: 844 });
   await viewport();
   await page.screenshot({ path: `${out}/crossroad-alert-mobile.png` });
   await page.setViewportSize({ width: 1280, height: 900 });
-  for (const [title, option] of [
+  for (const [index, [title, option]] of [
     ["学びへの関わり", "日々の遊びや学校で学ぶ"],
     ["家庭の大方針", "日常を整える"],
     ["実家との大方針", "交流を続ける"],
     ["遊びの大方針", "工作・科学を楽しむ"],
     ["仕事の大方針", "家族時間を守る"],
-  ] as const) {
+  ].entries()) {
     await crossroad.getByRole("button", { name: `${title}へ →` }).click();
     const target = page.getByRole("button", { name: `${title}：${option}`, exact: true });
     await expect(target).toBeFocused();
@@ -247,10 +248,20 @@ try {
     const selection = page.getByRole("dialog", { name: option, exact: true });
     await expect(selection).toContainText("岐路では、この方針を明示的に選ぶ必要があります。");
     await selection.getByRole("button", { name: "この選択を確定", exact: true }).click();
+    await expect(crossroad).toHaveCount(0);
+    if (index < 4) await expect(next).toBeDisabled();
+    if (index === 0)
+      await page.screenshot({ path: `${out}/crossroad-category-cleared-desktop.png` });
+    await backToMap();
+    if (index < 4) {
+      await expect(crossroad.getByRole("button")).toHaveCount(4 - index);
+      await expect(crossroad.getByRole("button", { name: `${title}へ →` })).toHaveCount(0);
+      if (index === 0)
+        await page.screenshot({ path: `${out}/crossroad-map-remaining-desktop.png` });
+    }
   }
   await expect(crossroad).toHaveCount(0);
   await expect(next).toBeEnabled();
-  await backToMap();
   await expect(page.locator(".tree-map-heading")).toHaveCount(0);
   await expect(page.getByRole("group", { name: "選択の地図" })).toBeVisible();
   await expect(page.locator(".rpg-window-bar, .rpg-family-status > span")).toHaveCount(0);
@@ -476,19 +487,22 @@ try {
   for (let t = 1; t <= 8; t++) await progress(t);
   await dismiss();
   await expect(crossroad).toContainText("4歳・春夏の岐路");
-  for (const [title, option] of [
+  for (const [index, [title, option]] of [
     ["園での学び方", "保育所に通う"],
     ["家庭の大方針", "日常を整える"],
     ["実家との大方針", "交流を続ける"],
     ["遊びの大方針", "工作・科学を楽しむ"],
     ["仕事の大方針", "家族時間を守る"],
-  ] as const) {
+  ].entries()) {
     await crossroad.getByRole("button", { name: `${title}へ →` }).click();
     await page.getByRole("button", { name: `${title}：${option}`, exact: true }).click();
     await page
       .getByRole("dialog", { name: option, exact: true })
       .getByRole("button", { name: "この選択を確定", exact: true })
       .click();
+    await expect(crossroad).toHaveCount(0);
+    await backToMap();
+    if (index < 4) await expect(crossroad.getByRole("button")).toHaveCount(4 - index);
   }
   await expect(crossroad).toHaveCount(0);
   await menu("教育・進路");

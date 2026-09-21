@@ -151,6 +151,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   const ended = response.phase !== "childhood";
   const advanceBlocked =
     !!special || !projection?.can_advance || (!state.life && turn.answered < 3);
+  const crossroadBlocked = !!state.life?.crossroad?.missing.length;
   const eventTurn = `${response.run_id}:${state.time.next_turn}`;
   const automaticResult =
     ["rules-6", "rules-7", "rules-8", "rules-9", "rules-10", "rules-11", "rules-12"].includes(
@@ -520,9 +521,10 @@ export function DecisionPlay({ response }: { response: Response }) {
             <button
               className="rpg-dock-advance"
               aria-label={life ? "この暮らしで半年進める →" : "半年を進める →"}
-              disabled={busy || ended}
+              disabled={busy || ended || crossroadBlocked}
               data-blocked={advanceBlocked || undefined}
-              aria-haspopup={advanceBlocked ? "dialog" : undefined}
+              title={crossroadBlocked ? "マップで残りの方針を選んでください" : undefined}
+              aria-haspopup={advanceBlocked && !crossroadBlocked ? "dialog" : undefined}
               aria-describedby={advanceBlocked && !ended ? "advance-blocked-hint" : undefined}
               onClick={() => {
                 if (advanceBlocked) setShowAdvanceReason(true);
@@ -537,7 +539,9 @@ export function DecisionPlay({ response }: { response: Response }) {
           </nav>
           {advanceBlocked && !ended && (
             <span id="advance-blocked-hint" className="sr-only">
-              いまは進行できません。押すと理由を確認できます。
+              {crossroadBlocked
+                ? "いまは進行できません。マップで残りの方針を選んでください。"
+                : "いまは進行できません。押すと理由を確認できます。"}
             </span>
           )}
         </div>

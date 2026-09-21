@@ -345,6 +345,6 @@ D-040、S-018 / AC-018-F〜H。本編を29判断・50選択肢・14イベント�
 
 0・4・8・12・16歳の春〜夏を設定駆動の「岐路」とし、各期で教育・家庭生活・実家・遊び・放課後・仕事・家計の5方針を明示的に選ぶまで共通予測が進行を拒否する。同じ方針の継続も選択として記録し、取消時は未実施へ戻す。公開状態の未実施一覧を使い、画面上部の警告から対象分類・ノードへ移動してフォーカスする。
 
-検証：`bun run check`、17ファイル124件のテスト、`bun run build`が成功。Chrome / Playwrightの公開UIテストでは、初回の進行不可理由、警告から5分類への移動・フォーカス・確定、取消、0〜16歳の全岐路、40期・成人後・結末、保存再開・書き出し・再取込、320〜1600pxの表示、Reduced Motionの既知案内を除くconsole warning/error・実行時エラー0を確認した。証跡は`/tmp/parent-crossroad-qa/`、警告画像は`crossroad-alert-desktop.png`と`crossroad-alert-mobile.png`。Browser plugin not availableのためfrontend-testing-debuggingのPlaywright経路を使用した。画面チャンク約658KBの警告は継続する。
+検証：`bun run check`、17ファイル125件のテスト、`bun run build`が成功。未選択と一部選択では共通エンジンが進行を拒否し、画面の半年進行ボタンも無効、5分類すべての選択後だけ有効になることを確認した。Chrome / Playwrightの公開UIテストでは、警告から5分類への移動・フォーカス・確定、取消、0〜16歳の全岐路、40期・成人後・結末、保存再開・書き出し・再取込、320〜1600pxの表示、Reduced Motionの既知案内を除くconsole warning/error・実行時エラー0を確認した。証跡は`/tmp/parent-crossroad-guard-qa/`。Browser plugin not availableのためfrontend-testing-debuggingのPlaywright経路を使用した。画面チャンク約658KBの警告は継続する。
 
 未検証：実機Safari・Firefox、人による岐路の頻度・選択肢の読みやすさ・費用と効果の面白さ。公開デプロイは未実施。

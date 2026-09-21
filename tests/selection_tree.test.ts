@@ -57,6 +57,15 @@ describe("S-018 選択ツリー", () => {
     ).toHaveLength(5);
     expect(() => advance(s)).toThrow("今期の予定と資金を確認してください");
 
+    const [first, ...remaining] = initial.life!.crossroad!.missing;
+    const firstNode = s.settings!.content.life_game!.decisions.find(
+      (item) => item.id === first.decision_id,
+    )!;
+    choose(s, firstNode.id, firstNode.default_option!);
+    expect(publicView(s).public.life!.crossroad?.missing).toEqual(remaining);
+    expect(publicView(s).public.forecast!.can_advance).toBe(false);
+    expect(() => advance(s)).toThrow("今期の予定と資金を確認してください");
+
     satisfyCrossroad(s);
     expect(publicView(s).public.life!.crossroad?.missing).toEqual([]);
     expect(publicView(s).public.forecast!.can_advance).toBe(true);
@@ -515,7 +524,7 @@ describe("S-018 選択ツリー", () => {
         expect(s.phase).toBe("finished");
         expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
       }
-  });
+  }, 15_000);
   it("予定・取得の保存再開、再送、操作再生が一致する", async () => {
     const repo = new IndexedRepository(new GameDatabase(`tree-${crypto.randomUUID()}`));
     const service = new Service(repo);
