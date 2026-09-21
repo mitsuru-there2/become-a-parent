@@ -1,4 +1,4 @@
-import { stageModel } from "./stage_state";
+import { stageModel, inheritStageRoutes } from "./stage_state";
 import {
   stageForecast,
   stageChoices,
@@ -241,7 +241,7 @@ export function initializeLife(s: State) {
   };
 }
 export function normalizeLife(s: State) {
-  if (stageModel(s)) return;
+  if (stageModel(s)) return inheritStageRoutes(s);
   const resolved = resolvedPolicies(s, false);
   s.life!.policies = resolved.policies;
   if (s.life!.route_stage_resolved)

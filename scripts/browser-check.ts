@@ -70,6 +70,17 @@ try {
   await dismiss();
   await expect(alert).toBeVisible();
   await expect(next).toBeDisabled();
+  for (const width of [1231, 390]) {
+    await page.setViewportSize({ width, height: width === 1231 ? 1498 : 844 });
+    for (const label of ["家庭生活", "実家", "遊び・放課後", "仕事・家計", "教育・進路"]) {
+      await alert.getByRole("button", { name: `${label}のルートへ →`, exact: true }).click();
+      await expect(page.locator(".tree-category-heading h2")).toHaveText(label);
+      await expect(alert.getByRole("button")).toHaveCount(5);
+      await viewport();
+    }
+    await page.screenshot({ path: `${out}/unselected-routes-${width}.png` });
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
   for (let remaining = 5; remaining > 0; remaining--) {
     await expect(alert.getByRole("button")).toHaveCount(remaining);
     await alert.getByRole("button").first().click();
@@ -79,10 +90,11 @@ try {
     await expect(detail).toContainText("次の岐路まで変更できません");
     await detail.getByRole("button", { name: "このルートを確定", exact: true }).click();
     await expect(detail).toHaveCount(0);
-    await expect(alert).toHaveCount(0);
+    if (remaining > 1) await expect(alert.getByRole("button")).toHaveCount(remaining - 1);
+    else await expect(alert).toHaveCount(0);
     await expect(page.locator(".stage-route.is-current")).toHaveCount(1);
-    await back.click();
   }
+  await back.click();
   await expect(next).toBeEnabled();
   await page.screenshot({ path: `${out}/map-desktop.png` });
   for (const [width, height] of [
@@ -134,9 +146,23 @@ try {
     await next.click();
     await dismiss();
   }
-  await expect(alert).toContainText("4歳");
-  await expect(next).toBeDisabled();
-  await alert.getByRole("button", { name: "教育・進路のルートへ →", exact: true }).click();
+  const changeAlert = page.getByRole("alert", { name: "岐路のルート変更", exact: true });
+  await expect(alert).toHaveCount(0);
+  await expect(changeAlert).toContainText("4歳");
+  await expect(changeAlert).toContainText("ルートを変更できます");
+  await expect(next).toBeEnabled();
+  await page.reload();
+  await dismiss();
+  await expect(next).toBeEnabled();
+  for (const width of [1231, 390]) {
+    await page.setViewportSize({ width, height: width === 1231 ? 1498 : 844 });
+    await expect(changeAlert.getByRole("button")).toHaveCount(5);
+    await changeAlert.getByRole("button", { name: "教育・進路のルートへ →", exact: true }).click();
+    await expect(page.locator(".stage-summary")).toContainText("現在のルート：公立・地域");
+    await expect(changeAlert.getByRole("button")).toHaveCount(5);
+    await viewport();
+    await page.screenshot({ path: `${out}/inherited-routes-${width}.png` });
+  }
   await page
     .getByRole("region", { name: "私立ルート", exact: true })
     .getByRole("button", { name: /このルートを確認/ })
@@ -145,8 +171,13 @@ try {
   await expect(detail).toContainText("+3");
   await detail.getByRole("button", { name: "このルートを確定", exact: true }).click();
   await expect(page.locator(".stage-summary")).toContainText("現在のルート：私立");
+  await expect(changeAlert.getByRole("button")).toHaveCount(4);
+  await expect(next).toBeEnabled();
   await page.screenshot({ path: `${out}/route-change-mobile.png` });
   await back.click();
+  await next.click();
+  await dismiss();
+  await expect(changeAlert).toHaveCount(0);
   await page.getByRole("button", { name: "遊び方", exact: true }).click();
   await expect(page.getByText(/件数の上限はありません/)).toBeVisible();
   await expect(page.getByText(/確定後の取消はできません/)).toBeVisible();
@@ -167,6 +198,8 @@ try {
         "same-turn-unlock",
         "saved-reload",
         "stage-boundary",
+        "automatic-route-inheritance",
+        "optional-route-change-alert",
         "switch-penalty",
         "focus",
         "responsive",

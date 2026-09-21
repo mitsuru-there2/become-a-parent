@@ -220,8 +220,7 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
     nodes.find((node) => node.option.switch_to);
   const selected = nodes.find((node) => node.option.option_id === selectedId);
   const scheduled = choices.filter((c) => c.selected_option);
-  const crossroadMissing =
-    life.crossroad?.missing.filter((item) => !selectedMenu || item.menu === selectedMenu.id) ?? [];
+  const crossroadMissing = life.crossroad?.missing ?? [];
   const width = Math.max(routeLayout?.canvasMinWidth ?? 240, ...nodes.map((n) => n.x + 220));
   const height = Math.max(140, ...nodes.map((n) => n.y + 112));
   const routeStages =

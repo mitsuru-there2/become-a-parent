@@ -29,22 +29,31 @@ import {
 } from "./fixtures/stage_helpers";
 
 describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
-  it("全岐路で全カテゴリの明示確定が必要、未確定と途中確定では進行しない", () => {
+  it("初回だけ全カテゴリの確定が必要で、後続の全岐路は無料で自動継承する", () => {
     const s = startStage();
     expect(s.versions).toEqual({ rules: "rules-13", data: "data-13", save: "save-14" });
-    for (let index = 0; index < 5; index++) {
-      expect(s.n).toBe(index * 8);
-      expect(publicView(s).public.life!.crossroad!.missing).toHaveLength(5);
-      const before = clone(s);
-      expect(() => advance(s)).toThrow();
-      expect(s).toEqual(before);
-      chooseStage(s, "crossroad-school", "public");
-      expect(publicView(s).public.life!.crossroad!.missing).toHaveLength(4);
-      expect(publicView(s).public.forecast!.can_advance).toBe(false);
-      satisfyStage(s);
-      expect(publicView(s).public.forecast!.can_advance).toBe(true);
-      until(s, (index + 1) * 8);
+    expect(publicView(s).public.life!.crossroad!.missing).toHaveLength(5);
+    const before = clone(s);
+    expect(() => advance(s)).toThrow();
+    expect(s).toEqual(before);
+    chooseStage(s, "crossroad-school", "public");
+    expect(publicView(s).public.life!.crossroad!.missing).toHaveLength(4);
+    expect(publicView(s).public.forecast!.can_advance).toBe(false);
+    satisfyStage(s);
+    for (let n = 1; n <= 40; n++) {
+      const forecast = publicView(s).public.forecast!;
+      expect(forecast.can_advance).toBe(true);
+      advance(s);
+      if (n < 40 && n % 8 === 0) {
+        const life = publicView(s).public.life!;
+        expect(life.crossroad!.missing).toEqual([]);
+        expect(life.crossroad!.changeable).toHaveLength(5);
+        for (const group of life.route_groups!) expect(group.current).toBe(group.previous);
+        expect(s.cash).toBe(forecast.projected_cash);
+        expect(() => validateLifeState(s)).not.toThrow();
+      }
     }
+    expect(s.history.filter((h) => h.kind === "special")).toHaveLength(5);
     expect(s.phase).toBe("finished");
     expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
   });
@@ -75,12 +84,16 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
     chooseStage(s, "crossroad-school", "private");
     expect(s.cash).toBe(0);
     expect(s.child.stress).toBe(Math.min(100, stress + 3));
+    expect(publicView(s).public.life!.crossroad!.changeable).toHaveLength(4);
+    for (const route of ["public", "private", "international"])
+      expect(() => chooseStage(s, "crossroad-school", route)).toThrow();
     satisfyStage(s);
     const forecast = publicView(s).public.forecast!;
     expect(forecast.cash_flow!.reduce((n, item) => n + (item.cost ?? 0), 0)).toBe(forecast.cost);
     advance(s);
     expect(s.cash).toBe(forecast.projected_cash);
     until(s, 16);
+    expect(s.life!.stage_routes!["2:school"]).toBe("private");
     const cash = s.cash;
     satisfyStage(s);
     expect(s.cash).toBe(cash);
@@ -324,7 +337,48 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       request_id: "advance",
     });
     expect(r.ok).toBe(true);
+    for (let n = 1; n < 8; n++) {
+      r = await service.execute({
+        command: "advance",
+        run: "stage",
+        revision: r.revision!,
+        request_id: `advance-${n}`,
+      });
+      expect(r.ok).toBe(true);
+    }
+    expect(r.public!.life!.crossroad!.missing).toEqual([]);
+    expect(r.public!.life!.crossroad!.changeable).toHaveLength(5);
+    const inherited = (await repo.read("stage"))!;
+    expect(importRun(exportRun(inherited))).toEqual(inherited);
+    expect(replayRun(inherited)).toEqual(inherited.state);
+    const acquisition = r.choices.find(
+      (c) =>
+        !c.route_choice &&
+        c.menu === "education" &&
+        c.options.some((o) => o.available && o.routes?.length === 1),
+    );
+    expect(acquisition).toBeDefined();
+    const acquired = acquisition!.options.find((o) => o.available && o.routes?.length === 1)!;
+    r = await service.execute({
+      command: "choose",
+      run: "stage",
+      revision: r.revision!,
+      request_id: "before-switch",
+      input: { event_instance: acquisition!.instance_id, option_id: acquired.option_id },
+    });
+    expect(r.ok).toBe(true);
+    r = await service.execute({
+      command: "choose",
+      run: "stage",
+      revision: r.revision!,
+      request_id: "switch",
+      input: { event_instance: "t09:crossroad-school", option_id: "crossroad-school:private" },
+    });
+    expect(r.ok).toBe(true);
+    expect(r.public!.life!.crossroad!.changeable).toHaveLength(4);
     const advanced = (await repo.read("stage"))!;
+    expect(importRun(exportRun(advanced))).toEqual(advanced);
+    expect(advanced.state.life!.history[acquired.option_id]).toBeDefined();
     expect(replayRun(advanced)).toEqual(advanced.state);
     repo.db.close();
   });

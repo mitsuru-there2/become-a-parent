@@ -365,3 +365,15 @@ D-040、S-018 / AC-018-F〜H。本編を29判断・50選択肢・14イベント�
 画像：[PCのルートと選択](/tmp/parent-browser-stage/home-1440x900.png)、[モバイル](/tmp/parent-browser-stage/home-390x844.png)、[効果の詳細](/tmp/parent-browser-stage/effect-detail-mobile.png)、[変更後のルート](/tmp/parent-browser-stage/route-change-mobile.png)。公開プレイの実行ログと結果は上記`/tmp/parent-stage-*`、画面証跡は`/tmp/parent-browser-stage/`へ保存した。
 
 未検証：実機Safari・Firefox、人による変更ペナルティと恒久効果のバランス・操作量の評価（Q-022）。公開デプロイは未実施。
+
+### 未選択ルート一覧を全カテゴリで共有（2026-09-21、D-068追記）
+
+未選択ルート一覧から表示カテゴリによる絞り込みを削除した。どのカテゴリでも全ての未選択項目を表示し、確定した項目だけを除く。同じカテゴリのリンクを押した場合も見出しへフォーカスする。
+
+`bun run check`と公開UIの`bun run test:browser`が成功。1231×1498・390×844で全5カテゴリを直接行き来しても5件を維持すること、マップへ戻らず連続確定して5→4→3→2→1→非表示になることを確認した。既存5サイズの表示・取得・保存再開・岐路変更も成功。証跡は`/tmp/parent-browser-stage/unselected-routes-1231.png`と`unselected-routes-390.png`。
+
+## 後続の岐路でルートを自動継承（2026-09-21、D-069）
+
+[S-018 / AC-018-V〜Z](specs/selection-tree.md)を更新。初回のみ全カテゴリの選択を必須とし、後続の4岐路では前ステージのルートを無料で引き継ぐ。任意変更の案内と全カテゴリ共通の変更先リンクを表示し、変更後は該当カテゴリを案内から除く。ルート変更前の取得も、取得時の所属で保存検査する。
+
+検証：`bun run check`、`bun run test`（17ファイル116件）が成功。全岐路で再選択なしの進行、変更ペナルティ、変更後の再変更拒否、効果の期限、保存再開・書き出し・再取込・再生一致を確認。`bun run test:public /tmp/parent-public-inherit-0921 1`は公開CLIの5経路で40期・成人後まで完走。`bun run test:browser`も成功し、4歳到達時と再読込後の自動継承・進行可能、PCとモバイルの変更案内、任意変更後の残り4カテゴリ、次ターンで案内が消えることを確認。既存の初回5カテゴリ必須・全カテゴリ一覧・各サイズの操作検証も成功。画面証跡は`/tmp/parent-browser-stage/inherited-routes-1231.png`と`inherited-routes-390.png`。小さい画面の案内は既存どおり内部スクロールする。

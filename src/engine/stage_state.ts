@@ -7,6 +7,21 @@ export const stageIndex = (s: State) =>
 export const stageRouteId = (group: string) => `crossroad-${group}`;
 export const routeAtStage = (s: State, group: string, stage = stageIndex(s)) =>
   s.life?.stage_routes?.[`${stage}:${group}`];
+export function inheritStageRoutes(s: State) {
+  const index = stageIndex(s);
+  if (!index || s.phase !== "childhood") return;
+  for (const group of contentFor(s).life_game!.route_groups!) {
+    const previous = routeAtStage(s, group.id, index - 1);
+    if (previous) s.life!.stage_routes![`${index}:${group.id}`] ??= previous;
+  }
+}
+export const canChangeStageRoute = (s: State, group: string) =>
+  s.phase === "childhood" &&
+  s.n % 8 === 0 &&
+  stageIndex(s) > 0 &&
+  !!routeAtStage(s, group) &&
+  routeAtStage(s, group) === routeAtStage(s, group, stageIndex(s) - 1);
+
 export function activeStageEffects(s: State) {
   if (!s.life || s.phase !== "childhood") return [];
   return contentFor(s).life_game!.decisions.flatMap((node) =>

@@ -5,7 +5,13 @@ import { clone } from "./shared";
 import { applyStat, statLabel } from "./automatic_events";
 import { observeChild, stage } from "./simulation";
 import { annualIncome, meetsLifeRequirement } from "./life_requirements";
-import { activeStageEffects, routeAtStage, stageIndex, stageRouteId } from "./stage_state";
+import {
+  activeStageEffects,
+  canChangeStageRoute,
+  routeAtStage,
+  stageIndex,
+  stageRouteId,
+} from "./stage_state";
 
 const config = (s: State) => contentFor(s).life_game!;
 const instance = (s: State, id: string) => `t${String(s.n + 1).padStart(2, "0")}:${id}`;
@@ -156,7 +162,12 @@ export function stageChoices(s: State): Choice[] {
         const cost = changed ? group.switch_cost! : 0;
         const details = [
           { label: "岐路でのみ確定できます", met: isCrossroad(s) },
-          { label: "このステージのルートは未確定です", met: !current },
+          {
+            label: index
+              ? "引き継いだルートから一度だけ変更できます"
+              : "このステージのルートは未確定です",
+            met: index ? canChangeStageRoute(s, group.id) && current !== route.id : !current,
+          },
           { label: `変更費用 ${cost}万円（現在${s.cash}万円）`, met: s.cash >= cost },
           {
             label: "変更後も今期の継続費を支払えます",
@@ -301,6 +312,13 @@ export function stageView(s: State): NonNullable<PublicState["life"]> {
       ? {
           label: game.crossroads![index].label,
           age_months: index * 48,
+          changeable: game
+            .route_groups!.filter((g) => canChangeStageRoute(s, g.id))
+            .map((g) => ({
+              decision_id: stageRouteId(g.id),
+              menu: g.menu,
+              title: `${game.menus.find((m) => m.id === g.menu)!.label}のルート`,
+            })),
           missing: missingGroups(s).map((g) => ({
             decision_id: stageRouteId(g.id),
             menu: g.menu,

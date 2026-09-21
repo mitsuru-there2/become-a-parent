@@ -32,7 +32,9 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
   );
   const selectedChoice = choices.find((c) => c.event_id === selected?.choiceId);
   const selectedOption = selectedChoice?.options.find((o) => o.option_id === selected?.optionId);
-  const missing = life.crossroad?.missing.filter((m) => !menu || m.menu === menu) ?? [];
+  const missing = life.crossroad?.missing ?? [];
+  const changeable = life.crossroad?.changeable ?? [];
+  const canChangeRoute = changeable.some((item) => item.menu === menu);
   useEffect(() => {
     if (menu) heading.current?.focus();
   }, [menu]);
@@ -60,6 +62,7 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
   function openMenu(id: string) {
     setMenu(id);
     setViewStage(currentStage.index);
+    if (id === menu) heading.current?.focus();
   }
   return (
     <section
@@ -74,6 +77,23 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
           </div>
           <nav aria-label="未実施の必須選択">
             {missing.map((item) => (
+              <button key={item.decision_id} onClick={() => openMenu(item.menu)}>
+                {item.title}へ →
+              </button>
+            ))}
+          </nav>
+        </aside>
+      )}
+      {changeable.length > 0 && (
+        <aside className="crossroad-alert" role="alert" aria-label="岐路のルート変更">
+          <div>
+            <strong>{life.crossroad!.label} · ルートを変更できます</strong>
+            <span>
+              現在のルートを引き継いでいます。変更せず、そのまま半年を進められます。変更するとペナルティが発生します。
+            </span>
+          </div>
+          <nav aria-label="変更できるルート">
+            {changeable.map((item) => (
               <button key={item.decision_id} onClick={() => openMenu(item.menu)}>
                 {item.title}へ →
               </button>
@@ -147,13 +167,15 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                     <header className="stage-route-heading">
                       <span>
                         {chosen
-                          ? "✓ 確定したルート"
+                          ? canChangeRoute && currentView
+                            ? "✓ 引き継いだルート"
+                            : "✓ 確定したルート"
                           : currentView && group.previous === route.id
                             ? "前のステージのルート"
                             : "ルート"}
                       </span>
                       <h3>{route.label}</h3>
-                      {currentView && !group.current ? (
+                      {currentView && (!group.current || (canChangeRoute && !chosen)) ? (
                         <button
                           className="stage-route-select"
                           onClick={(event) =>
@@ -166,7 +188,9 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                       ) : (
                         <p>
                           {chosen
-                            ? "次の岐路まで変更できません"
+                            ? canChangeRoute && currentView
+                              ? "変更しなければ、このルートを継続します"
+                              : "次の岐路まで変更できません"
                             : currentView
                               ? "次の岐路で変更できます"
                               : "岐路で選べるルート"}

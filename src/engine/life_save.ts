@@ -1,4 +1,4 @@
-import { stageModel, stageIndex } from "./stage_state";
+import { stageModel, stageIndex, stageRouteId } from "./stage_state";
 import * as v from "valibot";
 import { dictionary, integer, contentIdSchema } from "../validation/primitives";
 import type { State } from "./types";
@@ -47,7 +47,12 @@ export function validateLifeState(state: State) {
         throw new Error("ルート記録が不正です");
     }
     for (let index = 0; index <= stageIndex(state); index++)
-      if (index < stageIndex(state) || state.n % 8 !== 0 || state.phase !== "childhood")
+      if (
+        index > 0 ||
+        index < stageIndex(state) ||
+        state.n % 8 !== 0 ||
+        state.phase !== "childhood"
+      )
         for (const group of groups)
           if (!life.stage_routes[`${index}:${group.id}`])
             throw new Error("確定済みルートがありません");
@@ -55,10 +60,28 @@ export function validateLifeState(state: State) {
       const node = nodes.find((n) => n.options.some((o) => `${n.id}:${o.id}` === id));
       const option = node?.options.find((o) => `${node.id}:${o.id}` === id);
       const index = Math.floor((acquired.first_turn - 1) / 8);
-      const route = life.stage_routes[`${index}:${node?.route_group}`];
+      // A choice may be acquired on the inherited route before an optional switch.
+      // Validate its route at acquisition, not the final route of the stage.
+      let route = index ? life.stage_routes[`${index - 1}:${node?.route_group}`] : undefined;
+      let recorded = false;
+      for (const entry of state.history) {
+        if (
+          entry.kind !== "special" ||
+          entry.turn === null ||
+          Math.floor((entry.turn - 1) / 8) !== index
+        )
+          continue;
+        for (const event of entry.events) {
+          if (event.event_id === stageRouteId(node?.route_group ?? ""))
+            route = event.option_id?.split(":")[1];
+          if (event.option_id === id && entry.turn === acquired.first_turn) recorded = true;
+        }
+        if (recorded) break;
+      }
       if (
         !node ||
         !option ||
+        !recorded ||
         acquired.count !== 1 ||
         acquired.first_turn !== acquired.last_turn ||
         acquired.first_turn > Math.min(40, state.n + (state.phase === "childhood" ? 1 : 0)) ||

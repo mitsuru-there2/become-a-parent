@@ -241,6 +241,7 @@ export interface PublicState {
       label: string;
       age_months: number;
       missing: { decision_id: string; menu: string; title: string }[];
+      changeable?: { decision_id: string; menu: string; title: string }[];
     } | null;
     notices: string[];
   };
