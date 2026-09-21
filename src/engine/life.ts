@@ -445,6 +445,7 @@ export function lifeChoices(s: State): Choice[] {
               ...(node.route_group ? { route_group: node.route_group } : {}),
               ...(node.route_stage !== undefined ? { route_stage: node.route_stage } : {}),
               ...(node.route ? { route: node.route } : {}),
+              ...(node.tree_route ? { tree_route: node.tree_route } : {}),
               parents: [
                 ...new Map(
                   [node.requires, ...node.options.flatMap((o) => [o.requires, o.maintains])]
@@ -515,6 +516,7 @@ export function lifeChoices(s: State): Choice[] {
               income: o.income,
               description: describe(o, node.kind === "policy", treeEnabled(s)),
               ...(o.route ? { route: o.route } : {}),
+              ...(o.tree_route ? { tree_route: o.tree_route } : {}),
               ...(o.switch_to ? { switch_to: o.switch_to } : {}),
               ...(treeEnabled(s)
                 ? {

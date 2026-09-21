@@ -287,6 +287,7 @@ export interface Choice {
     route_group?: string;
     route_stage?: number;
     route?: string;
+    tree_route?: string;
   };
   menu?: string;
   decision_kind?: "policy" | "action";
@@ -307,6 +308,7 @@ export interface Choice {
     income: number;
     description?: string;
     route?: string;
+    tree_route?: string;
     switch_to?: string;
     visual?: Visual;
     parents?: { option_id: string; label: string }[];

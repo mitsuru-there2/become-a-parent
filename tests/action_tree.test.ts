@@ -146,7 +146,12 @@ describe("S-018 アクションツリー", () => {
   it("学校の4ルートを園から高校まで公開し、転換準備の翌期だけ別ルートを選べる", () => {
     const s = start(48);
     const school = s.settings!.content.life_game!.decisions;
-    const stages = school.filter((node) => node.route_group === "school" && node.kind === "policy");
+    const stages = school.filter(
+      (node) =>
+        node.route_group === "school" &&
+        node.kind === "policy" &&
+        node.options.some((item) => item.route),
+    );
     expect(stages.map((node) => node.route_stage)).toEqual([0, 1, 2, 3]);
     expect(
       choices(start()).find((choice) => choice.event_id === "base-school")?.current_option,
@@ -190,6 +195,20 @@ describe("S-018 アクションツリー", () => {
     s.n = 36;
     openLife(s);
     expect(option(s, "school-future-home", "plan").available).toBe(true);
+  });
+  it("教育の全アクションは年代と表示レーンを持ち、共通領域へ落ちない", () => {
+    const game = defaultContent.life_game!;
+    const group = game.route_groups!.find((item) => item.id === "school")!;
+    expect(group.stage_labels).toHaveLength(5);
+    const nodes = game.decisions.filter(
+      (node) => node.route_group === "school" && node.id !== group.switch_decision,
+    );
+    expect(nodes.length).toBeGreaterThan(0);
+    for (const node of nodes) {
+      expect(node.route_stage).toBeTypeOf("number");
+      for (const item of node.options)
+        expect(item.route ?? item.tree_route ?? node.route ?? node.tree_route).toBeTruthy();
+    }
   });
   it("同じ学校ルートへの進級は開始費なしで引き継ぎ、継続条件を失えば無料経路へ戻る", () => {
     const s = start(48);
@@ -315,14 +334,18 @@ describe("S-018 アクションツリー", () => {
       (node) =>
         !node.id.startsWith("route-") &&
         (node.route_group !== "school" ||
+          node.tree_route ||
+          node.options.some((item) => item.tree_route) ||
           ["base-school", "tree-primary", "tree-secondary"].includes(node.id)),
     );
     for (const node of game.decisions) {
       delete node.route_group;
       delete node.route_stage;
       delete node.route;
+      delete node.tree_route;
       for (const item of node.options) {
         delete item.route;
+        delete item.tree_route;
         delete item.switch_to;
       }
     }

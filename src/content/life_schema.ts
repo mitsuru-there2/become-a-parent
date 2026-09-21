@@ -16,6 +16,7 @@ export const lifeEffectsSchema = v.array(
 const lifeOptionSchema = v.strictObject({
   visual: v.optional(contentIdSchema),
   route: v.optional(contentIdSchema),
+  tree_route: v.optional(contentIdSchema),
   switch_to: v.optional(contentIdSchema),
   income_reduction: v.optional(integer()),
   event_modifiers: v.optional(
@@ -58,6 +59,7 @@ export const lifeDecisionSchema = v.pipe(
     route_group: v.optional(contentIdSchema),
     route_stage: v.optional(integer(0, 10)),
     route: v.optional(contentIdSchema),
+    tree_route: v.optional(contentIdSchema),
     title: text,
     reason: text,
     kind: v.picklist(["policy", "action"]),

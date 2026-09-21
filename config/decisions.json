@@ -71,7 +71,8 @@
           "cost": 0,
           "income": 0,
           "setup_cost": 0,
-          "effects": []
+          "effects": [],
+          "tree_route": "public"
         },
         {
           "id": "together",
@@ -107,7 +108,8 @@
               "kind": "bad",
               "percent": 10
             }
-          ]
+          ],
+          "tree_route": "private"
         },
         {
           "id": "independent",
@@ -133,9 +135,12 @@
               "kind": "bad",
               "percent": 10
             }
-          ]
+          ],
+          "tree_route": "home"
         }
-      ]
+      ],
+      "route_group": "school",
+      "route_stage": 0
     },
     {
       "id": "base-school-visit",
@@ -175,7 +180,10 @@
             }
           ]
         }
-      ]
+      ],
+      "route_group": "school",
+      "route_stage": 0,
+      "tree_route": "private"
     },
     {
       "id": "base-school",
@@ -365,7 +373,10 @@
             "option": "enrolled"
           }
         ]
-      }
+      },
+      "route_group": "school",
+      "route_stage": 0,
+      "tree_route": "private"
     },
     {
       "id": "base-career-talk",
@@ -409,7 +420,10 @@
             }
           ]
         }
-      ]
+      ],
+      "route_group": "school",
+      "route_stage": 2,
+      "tree_route": "public"
     },
     {
       "id": "base-career-visit",
@@ -462,7 +476,10 @@
             "after": 0
           }
         ]
-      }
+      },
+      "route_group": "school",
+      "route_stage": 2,
+      "tree_route": "public"
     },
     {
       "id": "base-home",
@@ -1944,7 +1961,10 @@
             "value": 5
           }
         ]
-      }
+      },
+      "route_group": "school",
+      "route_stage": 1,
+      "tree_route": "private"
     },
     {
       "id": "tree-secondary",
@@ -2358,7 +2378,10 @@
             "value": 70
           }
         ]
-      }
+      },
+      "route_group": "school",
+      "route_stage": 3,
+      "tree_route": "private"
     },
     {
       "id": "tree-career",
@@ -2635,7 +2658,10 @@
             "after": 0
           }
         ]
-      }
+      },
+      "route_group": "school",
+      "route_stage": 0,
+      "tree_route": "home"
     },
     {
       "id": "story-science-fair",
@@ -2711,7 +2737,10 @@
             ]
           }
         }
-      ]
+      ],
+      "route_group": "school",
+      "route_stage": 1,
+      "tree_route": "home"
     },
     {
       "id": "story-invention",
@@ -2799,7 +2828,10 @@
             ]
           }
         }
-      ]
+      ],
+      "route_group": "school",
+      "route_stage": 1,
+      "tree_route": "home"
     },
     {
       "id": "story-music-trial",
@@ -3507,7 +3539,8 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "tree_route": "public"
         },
         {
           "id": "study",
@@ -3538,7 +3571,8 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "tree_route": "international"
         },
         {
           "id": "host",
@@ -3569,9 +3603,12 @@
                 "after": 0
               }
             ]
-          }
+          },
+          "tree_route": "home"
         }
-      ]
+      ],
+      "route_group": "school",
+      "route_stage": 2
     },
     {
       "id": "story-recipe",
@@ -4122,7 +4159,8 @@
                 "value": 45
               }
             ]
-          }
+          },
+          "tree_route": "private"
         },
         {
           "id": "apprentice",
@@ -4144,7 +4182,8 @@
               "path": "child.stress",
               "delta": 3
             }
-          ]
+          ],
+          "tree_route": "home"
         },
         {
           "id": "local",
@@ -4162,7 +4201,8 @@
               "path": "child.stress",
               "delta": -3
             }
-          ]
+          ],
+          "tree_route": "public"
         }
       ],
       "requires": {
@@ -4173,7 +4213,9 @@
             "after": 0
           }
         ]
-      }
+      },
+      "route_group": "school",
+      "route_stage": 3
     },
     {
       "id": "story-independence",
@@ -5892,6 +5934,13 @@
       "label": "学校",
       "menu": "education",
       "switch_decision": "school-switch",
+      "stage_labels": [
+        "0〜5歳 · 学びと園の準備",
+        "6〜11歳 · 小学校の進路",
+        "12〜14歳 · 中学校の進路",
+        "15〜17歳 · 高校の進路",
+        "18〜19歳 · その先の進路"
+      ],
       "routes": [
         {
           "id": "public",

@@ -72,7 +72,8 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
           group.stage_labels?.length === 5,
         `${group.id}.branch_stages`,
       );
-    }
+    } else if (group.stage_labels)
+      ensure(group.stage_labels.length === 5, `${group.id}.stage_labels`);
     stages.forEach((node, index) => {
       ensure(node.route_stage === index, `${node.id}.route_stage`);
       ensure(node.menu === group.menu, `${node.id}.menu`);
@@ -96,6 +97,12 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
         ensure(
           node.route_stage !== undefined && group?.routes.some((route) => route.id === node.route),
           `${node.id}.route`,
+        );
+      if (node.tree_route)
+        ensure(
+          node.route_stage !== undefined &&
+            group?.routes.some((route) => route.id === node.tree_route),
+          `${node.id}.tree_route`,
         );
       if (node.route && node.kind === "action" && group?.layout !== "branches") {
         const prior = game.decisions
@@ -152,7 +159,11 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
                   1),
           `${node.id}.route_stage`,
         );
-    } else ensure(node.route === undefined && node.route_stage === undefined, `${node.id}.route`);
+    } else
+      ensure(
+        node.route === undefined && node.tree_route === undefined && node.route_stage === undefined,
+        `${node.id}.route`,
+      );
     ensure(
       new Set(node.options.map((o) => o.id)).size === node.options.length,
       `${node.id}.options: ID重複`,
@@ -167,6 +178,11 @@ export function validateLifeContent(content: Content, ensure: (ok: unknown, path
         (!o.route || (node.kind === "policy" && node.route_group && !node.route)) &&
           (!o.switch_to || groups.get(node.route_group ?? "")?.switch_decision === node.id),
         `${node.id}.${o.id}.route`,
+      );
+      ensure(
+        !o.tree_route ||
+          groups.get(node.route_group ?? "")?.routes.some((route) => route.id === o.tree_route),
+        `${node.id}.${o.id}.tree_route`,
       );
       ensure(!o.visual || Object.hasOwn(content.visuals, o.visual), `${node.id}.${o.id}.visual`);
       ensure(

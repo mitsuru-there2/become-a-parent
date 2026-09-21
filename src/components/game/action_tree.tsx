@@ -69,41 +69,60 @@ function graphPositions(actions: ActionNode[]) {
   return positions;
 }
 
-const routeColumn = 246;
-const routeRow = 270;
-const routeLeft = 72;
-const routeTop = 100;
+const routeColumn = 320;
+const routeLeft = 520;
 const routeOf = ({ choice, option }: ActionNode) => option.route ?? choice.tree?.route;
+const laneOf = ({ choice, option }: ActionNode) =>
+  option.tree_route ?? choice.tree?.tree_route ?? option.switch_to ?? routeOf({ choice, option });
 
 function routePositions(actions: ActionNode[], group: RouteGroup) {
+  const switchActions = actions.filter((action) => action.option.switch_to);
   const school = actions.filter(
     ({ choice, option }) =>
       choice.tree?.route_group === group.id &&
       choice.tree.route_stage !== undefined &&
-      (option.route || choice.tree.route),
+      !option.switch_to &&
+      laneOf({ choice, option }),
   );
-  const schoolIds = new Set(school.map(({ option }) => option.option_id));
-  const nodes: PositionedNode[] = school.map((action) => ({
+  const nodes: PositionedNode[] = switchActions.map((action) => ({
     ...action,
-    x: routeLeft + group.routes.findIndex((route) => route.id === routeOf(action)) * routeColumn,
-    y:
-      routeTop +
-      action.choice.tree!.route_stage! * routeRow +
-      (action.option.route || action.choice.tree!.route_stage! >= 4 ? 0 : 124),
+    x: routeLeft + group.routes.findIndex((route) => route.id === laneOf(action)) * routeColumn,
+    y: 68,
   }));
-  const lowerTop = routeTop + 5 * routeRow - 12;
+  const stageTops: number[] = [];
+  let top = 240;
+  for (let stage = 0; stage < 5; stage++) {
+    stageTops.push(top);
+    const lanes = group.routes.map((route) =>
+      school.filter(
+        (action) => action.choice.tree?.route_stage === stage && laneOf(action) === route.id,
+      ),
+    );
+    lanes.forEach((lane, index) =>
+      lane.forEach((action, row) =>
+        nodes.push({ ...action, x: routeLeft + index * routeColumn, y: top + row * 116 }),
+      ),
+    );
+    top += Math.max(1, ...lanes.map((lane) => lane.length)) * 116 + 64;
+  }
+  const lowerTop = top;
+  const included = new Set(nodes.map(({ option }) => option.option_id));
   nodes.push(
-    ...graphPositions(actions.filter(({ option }) => !schoolIds.has(option.option_id))).map(
-      (action) => ({ ...action, y: action.y + lowerTop }),
-    ),
+    ...actions
+      .filter(({ option }) => !included.has(option.option_id))
+      .map((action, index) => ({
+        ...action,
+        x: routeLeft + (index % group.routes.length) * routeColumn,
+        y: lowerTop + Math.floor(index / group.routes.length) * 116,
+      })),
   );
   return {
     nodes,
     lowerTop,
     laneLeft: routeLeft,
     laneColumn: routeColumn,
-    stageTops: [0, 1, 2, 3, 4].map((stage) => routeTop + stage * routeRow),
-    canvasMinWidth: 1040,
+    stageTops,
+    canvasMinWidth: routeLeft * 2 + (group.routes.length - 1) * routeColumn + 204,
     commonLane: false,
   };
 }
@@ -127,8 +146,8 @@ function branchPositions(actions: ActionNode[], group: RouteGroup) {
       branch.filter(
         (action) =>
           action.choice.tree?.route_stage === stage &&
-          (routeOf(action)
-            ? group.routes.findIndex((route) => route.id === routeOf(action)) === index
+          (laneOf(action)
+            ? group.routes.findIndex((route) => route.id === laneOf(action)) === index
             : index === group.routes.length),
       ),
     );
@@ -194,7 +213,9 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
       : routePositions(actions, routeGroup)
     : null;
   const nodes = routeLayout?.nodes ?? graphPositions(actions);
-  const switchNode = nodes.find((node) => node.option.switch_to);
+  const switchNode =
+    nodes.find((node) => node.option.switch_to === routeGroup?.current) ??
+    nodes.find((node) => node.option.switch_to);
   const selected = nodes.find((node) => node.option.option_id === selectedId);
   const scheduled = choices.filter((c) => c.selected_option);
   const width = Math.max(routeLayout?.canvasMinWidth ?? 240, ...nodes.map((n) => n.x + 220));
@@ -206,10 +227,17 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
             nodes
               .filter(
                 (node) =>
-                  (node.option.route || node.choice.tree?.route) &&
+                  !node.option.switch_to &&
+                  laneOf(node) &&
                   node.choice.tree?.route_stage !== undefined,
               )
-              .reverse()
+              .sort((a, b) =>
+                a.choice.decision_kind === b.choice.decision_kind
+                  ? 0
+                  : a.choice.decision_kind === "policy"
+                    ? 1
+                    : -1,
+              )
               .map((node) => [node.choice.tree!.route_stage!, node.choice]),
           ).entries(),
         ].sort(([a], [b]) => a - b)
@@ -223,7 +251,9 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
         }))
       : routeStages.map(([stage, choice]) => ({
           stage,
-          label: `${choice.tree!.min_age_months / 12}歳〜 · ${choice.text}`,
+          label:
+            routeGroup?.stage_labels?.[stage] ??
+            `${choice.tree!.min_age_months / 12}歳〜 · ${choice.text}`,
           top: routeLayout!.stageTops[stage],
         }));
   useEffect(() => {
@@ -238,8 +268,12 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
         ? Math.min(4, Math.floor(state.time.child_months / 48))
         : (current?.[0] ?? 0);
     treeScroll.current.scrollTop = stage ? Math.max(0, routeLayout!.stageTops[stage] - 112) : 0;
-    const currentColumn = routeGroup.routes.findIndex((route) => route.id === routeGroup.current);
-    treeScroll.current.scrollLeft = Math.max(0, currentColumn * routeLayout!.laneColumn - 24);
+    const currentColumn = Math.max(
+      0,
+      routeGroup.routes.findIndex((route) => route.id === routeGroup.current),
+    );
+    const routeCenter = routeLayout!.laneLeft + currentColumn * routeLayout!.laneColumn + 102;
+    treeScroll.current.scrollLeft = Math.max(0, routeCenter - treeScroll.current.clientWidth / 2);
   }, [menu, routeGroup?.id, routeGroup?.current, state.time.child_months]);
   return (
     <section
@@ -293,7 +327,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                     });
                   }}
                 >
-                  切替準備を見る ↓
+                  {routeGroup.layout === "branches" ? "切替準備を見る ↓" : "切替準備を見る ↑"}
                 </button>
               )}
             </div>
@@ -334,15 +368,15 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                       <span>{label}</span>
                     </div>
                   ))}
-                  <div
-                    className="tree-other-label"
-                    style={{ top: routeLayout.lowerTop - 16 }}
-                    aria-hidden="true"
-                  >
-                    {routeGroup.layout === "branches"
-                      ? "方針の切替準備"
-                      : "学びと進路のアクション · 切替準備"}
-                  </div>
+                  {routeGroup.layout === "branches" && (
+                    <div
+                      className="tree-other-label"
+                      style={{ top: routeLayout.lowerTop - 16 }}
+                      aria-hidden="true"
+                    >
+                      方針の切替準備
+                    </div>
+                  )}
                 </>
               )}
               <svg className="tree-edges" width={width} height={height} aria-hidden="true">
@@ -359,7 +393,7 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                 {routeGroup &&
                   routeGroup.routes.flatMap((route) => {
                     const chain = nodes
-                      .filter((node) => routeOf(node) === route.id)
+                      .filter((node) => !node.option.switch_to && laneOf(node) === route.id)
                       .sort((a, b) => a.y - b.y);
                     if (routeGroup.layout === "branches")
                       return chain.length > 1
@@ -403,10 +437,10 @@ export function ActionTree({ state, choices }: { state: PublicState; choices: Ch
                 const available = option.available && !current && !planned;
                 return (
                   <button
-                    className={`tree-node ${option.route || choice.tree?.route ? "is-route-node" : ""} ${acquired || current ? "is-acquired" : available ? "is-available" : "is-locked"}`}
+                    className={`tree-node ${laneOf({ choice, option }) ? "is-route-node" : ""} ${acquired || current ? "is-acquired" : available ? "is-available" : "is-locked"}`}
                     key={option.option_id}
                     aria-label={`${choice.text}：${option.label}`}
-                    data-route={option.route ?? choice.tree?.route}
+                    data-route={laneOf({ choice, option })}
                     data-stage={choice.tree?.route_stage}
                     style={{ left: x, top: y }}
                     onClick={() => setSelectedId(option.option_id)}

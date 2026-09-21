@@ -327,10 +327,12 @@ try {
   await menu("教育・進路");
   await expect(page.locator(".tree-route-lane")).toHaveCount(4);
   await expect(page.locator(".tree-stage-label")).toHaveCount(5);
-  await expect(page.locator(".tree-stage-label").first()).toContainText("園での学び方");
-  await expect(page.locator('.tree-node[data-route="home"][data-stage="3"]')).toHaveCount(2);
+  await expect(page.locator(".tree-stage-label").first()).toContainText("学びと園の準備");
+  await expect(page.locator('.tree-node[data-route="home"][data-stage="3"]')).toHaveCount(3);
   await expect(page.locator('.tree-node[data-route="home"][data-stage="4"]')).toHaveCount(1);
   await expect(page.locator(".tree-route-summary")).toContainText("別ルートへの転換");
+  await expect(page.locator(".tree-other-label")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "切替準備を見る ↑" })).toBeVisible();
   const treeGeometry = await page.locator(".tree-canvas").evaluate((canvas) => {
     const position = (route: string, stage: string) => {
       const node = canvas.querySelector<HTMLElement>(
@@ -342,10 +344,19 @@ try {
       vertical: position("public", "0").y < position("public", "1").y,
       aligned: position("public", "0").x === position("public", "1").x,
       columns: position("public", "0").x < position("private", "0").x,
+      switchFirst:
+        canvas.querySelector<HTMLElement>('.tree-node[data-route="public"]')!.offsetTop <
+        position("public", "0").y,
       tall: canvas.clientHeight > canvas.clientWidth,
     };
   });
-  expect(treeGeometry).toEqual({ vertical: true, aligned: true, columns: true, tall: true });
+  expect(treeGeometry).toEqual({
+    vertical: true,
+    aligned: true,
+    columns: true,
+    switchFirst: true,
+    tall: true,
+  });
   await page.screenshot({ path: `${out}/school-tree-mobile.png` });
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.screenshot({ path: `${out}/school-tree-desktop.png` });
@@ -484,6 +495,15 @@ try {
     .poll(() => page.locator(".tree-scroll").evaluate((tree) => tree.scrollTop))
     .toBeGreaterThan(100);
   await page.screenshot({ path: `${out}/school-tree-primary-mobile.png` });
+  const routeFocus = await page.locator(".tree-scroll").evaluate((tree) => {
+    const lane = tree.querySelector<HTMLElement>(".tree-route-lane.is-current")!;
+    const treeBounds = tree.getBoundingClientRect();
+    const laneBounds = lane.getBoundingClientRect();
+    return Math.abs(
+      (laneBounds.left + laneBounds.right) / 2 - (treeBounds.left + treeBounds.right) / 2,
+    );
+  });
+  expect(routeFocus).toBeLessThan(4);
   await node("小学校の進路：公立小学校").click();
   await expect(detail).toContainText("公立小学校");
   await cancel();

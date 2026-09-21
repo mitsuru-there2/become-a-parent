@@ -331,4 +331,10 @@ D-040、S-018 / AC-018-F〜H。本編を29判断・50選択肢・14イベント�
 
 検証：`bun run check`で設定・生成スキーマ・型・lintを確認。`bun run test`は17ファイル123件成功し、5分類の所属、転換準備、専用行動、旧ルートの継続方針終了、rules-9・10保存を確認した。`bun run test:public /tmp/parent-public-all-routes-1 1`は5経路すべて完走。`bun run test:stories /tmp/parent-stories-all-routes-1 1`は19経路すべて完走・再生一致。Chromeの公開UIテストは5分類の列・段・切替準備への移動、390×844の各分類と従来の320〜1600px、詳細・保存再開・40期を確認した。[家庭](/tmp/parent-browser-tree/home-tree-desktop.png)、[実家](/tmp/parent-browser-tree/grandparents-tree-desktop.png)、[遊び](/tmp/parent-browser-tree/afterschool-tree-desktop.png)、[仕事](/tmp/parent-browser-tree/work-tree-desktop.png)のPC画像と各モバイル画像を保存した。`bun run build`は成功し、画面チャンク約652KBの警告が残る。費用・効果の面白さはQ-022で人のプレイによる評価を待つ。
 
+### 教育ツリーの一方向配置（D-066）
+
+教育の下部にあった共通アクション領域をなくし、既存の全アクションへ表示専用のルートと年代段階を設定した。切替準備は各移行先レーンの先頭、方針と後続アクションは年代順に配置する。教育を開くと現在ルートを中央へ、現在年齢の段階を縦位置へ合わせる。`tree_route`は配置専用で、取得条件・効果・保存版を変更しない。
+
+検証：`bun run check`、17ファイル124件のテスト、SPAビルドが成功。Chromeの公開UIテストで共通領域がないこと、切替準備が先頭にあること、4レーンの縦順、0歳と6歳の現在ルート中央合わせ、PCとモバイルの横スクロールを確認した。[PC画像](/tmp/parent-browser-tree/school-tree-desktop.png)、[6歳のモバイル画像](/tmp/parent-browser-tree/school-tree-primary-mobile.png)、[18歳以降の画像](/tmp/parent-browser-tree/school-tree-future-desktop.png)を保存した。画面チャンク約653KBの警告は継続する。
+
 学校間の費用と能力差の面白さ、実機Safari・Firefox、人による画面の読みやすさは未検証。80万円とストレス+3は実装した調整仮値であり、現実の入学制度や育児結果の主張ではない。
