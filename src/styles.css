@@ -3853,6 +3853,11 @@ meter::-moz-meter-bar {
 }
 
 /* D-072: one family strip; observation graphics use public buckets only. */
+@property --ring-progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
 .status-shell {
   --status-sage: #acc2a3;
   --status-gold: #dfc58b;
@@ -3954,8 +3959,10 @@ meter::-moz-meter-bar {
 }
 .status-percent {
   justify-content: space-between;
+  position: relative;
 }
 .status-percent-ring {
+  transition: --ring-progress 850ms cubic-bezier(0.22, 1, 0.36, 1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4021,6 +4028,84 @@ meter::-moz-meter-bar {
   margin: 0;
   font-size: 14px;
   white-space: nowrap;
+}
+.status-shell .party-member[data-changed] .family-member-button {
+  animation: status-card-change 1.4s ease-out;
+}
+.status-change {
+  position: absolute;
+  z-index: 2;
+  top: -7px;
+  right: -10px;
+  width: auto;
+  min-width: 0;
+  padding: 2px 5px;
+  border-radius: 8px;
+  background: #304736;
+  color: #c5edcb;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  animation: status-change-in 300ms ease-out both;
+}
+.status-change[data-direction="down"] {
+  background: #533a31;
+  color: #ffd0b4;
+}
+.status-percent[data-burden] .status-change[data-direction="up"] {
+  background: #533a31;
+  color: #ffd0b4;
+}
+.status-percent[data-burden] .status-change[data-direction="down"] {
+  background: #304736;
+  color: #c5edcb;
+}
+.status-money {
+  position: relative;
+}
+.observation-mark.status-changed svg {
+  animation: status-observation-change 1.3s ease-out;
+}
+@keyframes status-card-change {
+  0%,
+  65% {
+    background: #3c4932;
+  }
+  100% {
+    background: transparent;
+  }
+}
+@keyframes status-change-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes status-observation-change {
+  0%,
+  45% {
+    box-shadow: 0 0 0 5px #dfc58b88;
+    transform: scale(1.08);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-percent-ring {
+    transition: none;
+  }
+  .status-shell .party-member[data-changed] .family-member-button,
+  .status-change,
+  .observation-mark.status-changed svg {
+    animation: none;
+  }
 }
 [data-burden] .status-percent-ring {
   --ring-color: #d7a077;
@@ -4315,11 +4400,14 @@ meter::-moz-meter-bar {
   color: #aeb8a1;
 }
 @media (max-width: 640px) {
-  .status-shell .rpg-party[data-scale="percent"][data-members="4"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .status-shell .rpg-party[data-members="4"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
   }
-  .family-compact-stats.is-percent {
-    gap: 4px;
+  .family-compact-stats.is-percent,
+  .child-compact-observations {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
   }
   .family-compact-stats.is-percent .status-percent-ring {
     inline-size: 44px;
@@ -4341,7 +4429,7 @@ meter::-moz-meter-bar {
   }
   .family-member-button {
     padding: 4px 6px 6px;
-    gap: 5px;
+    gap: 4px;
   }
   .family-member-heading {
     gap: 3px;
@@ -4490,25 +4578,9 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-width: 20rem) {
-  .status-shell .rpg-party,
-  .status-shell .rpg-party[data-members="4"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .family-member-button {
-    flex-direction: row;
-    align-items: center;
-  }
-  .family-member-button:has(.family-compact-stats.is-percent) {
+  .status-shell .family-member-button {
     flex-direction: column;
     align-items: stretch;
-  }
-  .child-member .family-member-button {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .family-compact-stats,
-  .child-compact-observations {
-    flex: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {

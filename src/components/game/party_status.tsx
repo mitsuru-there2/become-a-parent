@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GRANDPARENTS, grandparentNames } from "../../engine/grandparents";
 import type { PublicState } from "../../engine/types";
 import { PEOPLE } from "../../engine/shared";
@@ -10,6 +10,7 @@ import { FamilyPortrait, StatMeter, type PortraitKind } from "./status_visual";
 type Stat = {
   label: string;
   value: number | string;
+  rawValue?: number;
   max?: number;
   burden?: boolean;
   kind?: "percent" | "score";
@@ -22,6 +23,21 @@ type Member = {
   stats: Stat[];
   compact: Stat[];
 };
+
+type StatusChanges = { values: Record<string, number | true>; sequence: number };
+
+function statusSnapshot(state: PublicState, members: Member[]) {
+  const snapshot: Record<string, number | string> = {};
+  for (const member of members) {
+    for (const stat of member.compact)
+      snapshot[`${member.id}:${stat.label}`] = stat.rawValue ?? stat.value;
+  }
+  for (const code of ["energy", "relationship.A", "relationship.B"]) {
+    snapshot[`child:${code}`] =
+      state.observations.find((item) => item.code === code)?.band ?? "unknown";
+  }
+  return snapshot;
+}
 
 function MemberStats({ member }: { member: Member }) {
   return (
@@ -68,6 +84,8 @@ function MemberStats({ member }: { member: Member }) {
 
 export function PartyStatus({ state }: { state: PublicState }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [changes, setChanges] = useState<StatusChanges>({ values: {}, sequence: 0 });
+  const previous = useRef<Record<string, number | string> | null>(null);
   const percent = state.versions.rules === "rules-14";
   const max = [
     "rules-4",
@@ -161,7 +179,7 @@ export function PartyStatus({ state }: { state: PublicState }) {
     const compact: Stat[] = [
       { label: "体力", value: member.health, max, kind: percent ? "percent" : undefined },
       { label: "関係", value: member.relation, max, kind: percent ? "percent" : undefined },
-      { label: "援助資金", value: `${member.funds}万円` },
+      { label: "援助資金", value: `${member.funds}万円`, rawValue: member.funds },
     ];
     members.push({
       id,
@@ -172,6 +190,29 @@ export function PartyStatus({ state }: { state: PublicState }) {
       stats: [...compact, { label: "地域のつながり", value: member.network ? "あり" : "なし" }],
     });
   }
+  const snapshot = statusSnapshot(state, members);
+  useEffect(() => {
+    const before = previous.current;
+    previous.current = snapshot;
+    if (!before) return;
+    const values: Record<string, number | true> = {};
+    for (const [key, value] of Object.entries(snapshot)) {
+      const oldValue = before[key];
+      if (oldValue === undefined || oldValue === value) continue;
+      values[key] =
+        typeof value === "number" && typeof oldValue === "number" ? value - oldValue : true;
+    }
+    if (Object.keys(values).length === 0) {
+      setChanges((current) => ({ ...current, values: {} }));
+      return;
+    }
+    setChanges((current) => ({ values, sequence: current.sequence + 1 }));
+    const timeout = window.setTimeout(
+      () => setChanges((current) => ({ ...current, values: {} })),
+      1700,
+    );
+    return () => window.clearTimeout(timeout);
+  }, [state]);
   const detail = members.find((member) => member.id === selected);
   return (
     <section
@@ -180,9 +221,18 @@ export function PartyStatus({ state }: { state: PublicState }) {
       data-members={members.length + 1}
       data-scale={percent ? "percent" : undefined}
     >
-      <ChildStatus state={state} />
+      <ChildStatus state={state} changes={changes} />
       {members.map((member) => (
-        <section className="party-member" key={member.id} aria-label={`${member.name}のステータス`}>
+        <section
+          className="party-member"
+          key={member.id}
+          aria-label={`${member.name}のステータス`}
+          data-changed={
+            member.compact.some(
+              (stat) => changes.values[`${member.id}:${stat.label}`] !== undefined,
+            ) || undefined
+          }
+        >
           <button
             className="family-member-button"
             aria-label={`${member.name}の詳細を開く`}
@@ -209,11 +259,31 @@ export function PartyStatus({ state }: { state: PublicState }) {
                     max={stat.max}
                     burden={stat.burden}
                     percent={stat.kind === "percent"}
+                    changeSequence={changes.sequence}
+                    delta={
+                      typeof changes.values[`${member.id}:${stat.label}`] === "number"
+                        ? (changes.values[`${member.id}:${stat.label}`] as number)
+                        : undefined
+                    }
                   />
                 ) : (
                   <span className="status-money" key={stat.label}>
                     <span>{stat.label}</span>
                     <strong>{stat.value}</strong>
+                    {typeof changes.values[`${member.id}:${stat.label}`] === "number" && (
+                      <span
+                        className="status-change"
+                        data-direction={
+                          (changes.values[`${member.id}:${stat.label}`] as number) > 0
+                            ? "up"
+                            : "down"
+                        }
+                        key={changes.sequence}
+                      >
+                        {(changes.values[`${member.id}:${stat.label}`] as number) > 0 ? "+" : ""}
+                        {changes.values[`${member.id}:${stat.label}`]}万円
+                      </span>
+                    )}
                   </span>
                 ),
               )}

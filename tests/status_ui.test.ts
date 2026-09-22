@@ -126,6 +126,32 @@ it("家族4枠から詳細を開き、成績は学齢期に公開値だけを表
   expect(screen.getByText("対話")).toBeTruthy();
 });
 
+it("公開状態が変わると下部カードの差分と子どもの観察変化を示す", async () => {
+  const { Catalog } = await import("../src/content/catalog");
+  const { startDecisions } = await import("../src/engine/decisions");
+  const state = publicView(startDecisions("home-01", 0, new Catalog().resolve("normal"))).public;
+  const { rerender } = render(createElement(PartyStatus, { state }));
+  expect(document.querySelector(".status-change")).toBeNull();
+  const next = structuredClone(state);
+  next.parents.A.health += 4;
+  next.grandparents.funds -= 8;
+  const energy = next.observations.find((item) => item.code === "energy")!;
+  energy.band = energy.band === "low" ? "middle" : "low";
+  rerender(createElement(PartyStatus, { state: next }));
+  expect(
+    within(screen.getByRole("button", { name: "父の詳細を開く" })).getByText("+4"),
+  ).toBeTruthy();
+  expect(
+    within(screen.getByRole("button", { name: "実家の詳細を開く" })).getByText("-8万円"),
+  ).toBeTruthy();
+  expect(screen.getByRole("img", { name: /^余裕：/ }).classList.contains("status-changed")).toBe(
+    true,
+  );
+  expect(
+    screen.getByRole("button", { name: "母の詳細を開く" }).closest("[data-changed]"),
+  ).toBeNull();
+});
+
 it("進行不可時は理由を表示し、advanceを送信しない", async () => {
   const { fireEvent, waitFor } = await import("@testing-library/react");
   const { Catalog } = await import("../src/content/catalog");

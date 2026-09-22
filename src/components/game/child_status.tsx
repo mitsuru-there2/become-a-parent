@@ -13,17 +13,31 @@ function ObservationRow({ observation, label }: { observation?: Observation; lab
   );
 }
 
-export function ChildStatus({ state }: { state: PublicState }) {
+export function ChildStatus({
+  state,
+  changes = { values: {}, sequence: 0 },
+}: {
+  state: PublicState;
+  changes?: { values: Record<string, number | true>; sequence: number };
+}) {
   const [open, setOpen] = useState(false);
   const observation = (code: string) => state.observations.find((item) => item.code === code);
   const energy = observation("energy");
   const infant = state.time.child_months < 36;
   const age = `${Math.floor(state.time.child_months / 12)}歳${state.time.child_months % 12 ? "6か月" : ""}`;
-  const changes = state.observations.filter(
+  const recentChanges = state.observations.filter(
     (item) => ["settling", "recovery"].includes(item.code) || item.code.startsWith("trend:"),
   );
   return (
-    <section className="party-member child-member" aria-label="子どものステータス">
+    <section
+      className="party-member child-member"
+      aria-label="子どものステータス"
+      data-changed={
+        ["energy", "relationship.A", "relationship.B"].some(
+          (code) => changes.values[`child:${code}`],
+        ) || undefined
+      }
+    >
       <button
         className="family-member-button"
         aria-label="子どもの詳細を開く"
@@ -41,9 +55,27 @@ export function ChildStatus({ state }: { state: PublicState }) {
           </span>
         </span>
         <span className="child-compact-observations">
-          <ObservationMark observation={energy} label="余裕" compact />
-          <ObservationMark observation={observation("relationship.A")} label="父との関係" compact />
-          <ObservationMark observation={observation("relationship.B")} label="母との関係" compact />
+          <ObservationMark
+            key={`energy:${changes.values["child:energy"] ? changes.sequence : 0}`}
+            observation={energy}
+            label="余裕"
+            compact
+            changed={!!changes.values["child:energy"]}
+          />
+          <ObservationMark
+            key={`father:${changes.values["child:relationship.A"] ? changes.sequence : 0}`}
+            observation={observation("relationship.A")}
+            label="父との関係"
+            compact
+            changed={!!changes.values["child:relationship.A"]}
+          />
+          <ObservationMark
+            key={`mother:${changes.values["child:relationship.B"] ? changes.sequence : 0}`}
+            observation={observation("relationship.B")}
+            label="母との関係"
+            compact
+            changed={!!changes.values["child:relationship.B"]}
+          />
         </span>
       </button>
       {open && (
@@ -142,8 +174,8 @@ export function ChildStatus({ state }: { state: PublicState }) {
           </section>
           <section className="status-section">
             <h3>最近の変化</h3>
-            {changes.length ? (
-              changes.map((item) => <p key={item.code}>{item.text}</p>)
+            {recentChanges.length ? (
+              recentChanges.map((item) => <p key={item.code}>{item.text}</p>)
             ) : (
               <p className="muted">いまは、はっきりした変化の手がかりはありません。</p>
             )}

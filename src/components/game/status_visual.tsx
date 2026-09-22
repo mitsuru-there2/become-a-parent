@@ -27,10 +27,12 @@ export function ObservationMark({
   observation,
   label,
   compact = false,
+  changed = false,
 }: {
   observation?: Observation;
   label: string;
   compact?: boolean;
+  changed?: boolean;
 }) {
   const band = observation?.band;
   const energy = observation?.code === "energy";
@@ -39,7 +41,7 @@ export function ObservationMark({
     relationship && band ? { low: "嫌い", middle: "普通", high: "好き" }[band] : null;
   return (
     <span
-      className={`observation-mark${compact ? " is-compact" : ""}`}
+      className={`observation-mark${compact ? " is-compact" : ""}${changed ? " status-changed" : ""}`}
       data-band={band}
       data-energy={energy || undefined}
       data-relationship={relationship || undefined}
@@ -101,12 +103,16 @@ export function StatMeter({
   max,
   burden = false,
   percent = false,
+  delta,
+  changeSequence,
 }: {
   label: string;
   value: number;
   max: number;
   burden?: boolean;
   percent?: boolean;
+  delta?: number;
+  changeSequence?: number;
 }) {
   if (percent)
     return (
@@ -116,10 +122,26 @@ export function StatMeter({
           className="status-percent-ring"
           role="img"
           aria-label={`${label} ${value}%${burden ? "、高いほど負担" : ""}`}
-          style={{ background: `conic-gradient(var(--ring-color, #acc2a3) ${value}%, #343e32 0)` }}
+          style={
+            {
+              "--ring-progress": `${value}%`,
+              background:
+                "conic-gradient(var(--ring-color, #acc2a3) var(--ring-progress), #343e32 0)",
+            } as React.CSSProperties
+          }
         >
           <span>{value}%</span>
         </span>
+        {delta !== undefined && (
+          <span
+            className="status-change"
+            data-direction={delta > 0 ? "up" : "down"}
+            key={changeSequence}
+          >
+            {delta > 0 ? "+" : ""}
+            {delta}
+          </span>
+        )}
       </span>
     );
   return (
