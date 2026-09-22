@@ -1,5 +1,5 @@
 import type { Visual } from "../../content/types";
-const assets = import.meta.glob("../../../assets/marketing/hero.png", {
+const assets = import.meta.glob("../../../assets/**/*.{png,jpg,jpeg,webp,gif,svg}", {
   eager: true,
   query: "?url",
   import: "default",

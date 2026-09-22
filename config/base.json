@@ -580,38 +580,250 @@
     "baby": {
       "title": "小さな寝息のある暮らし",
       "text": "洗いかけの哺乳瓶。畳み途中の洗濯物。\n小さな寝息を聞きながら、今日の予定を組み直す。",
-      "visual": null
+      "visual": "stage-baby"
     },
     "preschool": {
       "title": "「なんで？」が増える頃",
       "text": "玄関の小さな靴。ポケットの中には、いつの間にか石。\n出かけるだけでも、ひとつの冒険になる。",
-      "visual": null
+      "visual": "stage-preschool"
     },
     "primary": {
       "title": "「ただいま」のその先に",
       "text": "机に置かれた連絡帳。明日の持ち物が、またひとつ。\n家の外の世界が、少しずつ広がっていく。",
-      "visual": null
+      "visual": "stage-primary"
     },
     "junior": {
       "title": "近すぎず、遠すぎず",
       "text": "少し大きくなった靴が、玄関に並ぶ。\n声をかけるタイミングを考えながら、夕飯の支度をする。",
-      "visual": null
+      "visual": "stage-junior"
     },
     "senior": {
       "title": "未来の話をする食卓",
       "text": "机の上には、進路の資料と飲みかけのお茶。\nこれからの話に、今日はゆっくり耳を傾けよう。",
-      "visual": null
+      "visual": "stage-senior"
     },
     "launch": {
       "title": "手を離す練習",
       "text": "予定表に、家族それぞれの用事が増えていく。\nいつもの食卓で、この先の暮らしを思い描く。",
-      "visual": null
+      "visual": "stage-launch"
     }
   },
   "visuals": {
     "hero": {
       "src": "/assets/marketing/hero.png",
       "alt": "親伝説。洗濯物の山と小さな家族を描いた白黒のイラスト。"
+    },
+    "child-state-growing": {
+      "src": "/assets/scenes/generated/child-states/child-state-growing-v1.png",
+      "alt": "成長中の子どものプロフィール画像"
+    },
+    "child-state-music": {
+      "src": "/assets/scenes/generated/child-states/child-state-music-v1.png",
+      "alt": "音楽家の子どものプロフィール画像"
+    },
+    "child-state-sports": {
+      "src": "/assets/scenes/generated/child-states/child-state-sports-v1.png",
+      "alt": "スポーツ選手の子どものプロフィール画像"
+    },
+    "child-state-maker": {
+      "src": "/assets/scenes/generated/child-states/child-state-maker-v1.png",
+      "alt": "発明家の子どものプロフィール画像"
+    },
+    "child-state-gamer": {
+      "src": "/assets/scenes/generated/child-states/child-state-gamer-v1.png",
+      "alt": "ゲーマーの子どものプロフィール画像"
+    },
+    "child-state-researcher": {
+      "src": "/assets/scenes/generated/child-states/child-state-researcher-v1.png",
+      "alt": "ガリ勉の子どものプロフィール画像"
+    },
+    "child-state-writer": {
+      "src": "/assets/scenes/generated/child-states/child-state-writer-v1.png",
+      "alt": "作家の子どものプロフィール画像"
+    },
+    "child-state-quiet": {
+      "src": "/assets/scenes/generated/child-states/child-state-quiet-v1.png",
+      "alt": "静かに過ごす子どものプロフィール画像"
+    },
+    "child-state-social": {
+      "src": "/assets/scenes/generated/child-states/child-state-social-v1.png",
+      "alt": "交流上手な子どものプロフィール画像"
+    },
+    "child-state-leader": {
+      "src": "/assets/scenes/generated/child-states/child-state-leader-v1.png",
+      "alt": "リーダーの子どものプロフィール画像"
+    },
+    "child-state-reliable": {
+      "src": "/assets/scenes/generated/child-states/child-state-reliable-v1.png",
+      "alt": "しっかり者の子どものプロフィール画像"
+    },
+    "child-state-escape": {
+      "src": "/assets/scenes/generated/child-states/child-state-escape-v1.png",
+      "alt": "逃げ上手な子どものプロフィール画像"
+    },
+    "child-state-challenger": {
+      "src": "/assets/scenes/generated/child-states/child-state-challenger-v1.png",
+      "alt": "挑戦者の子どものプロフィール画像"
+    },
+    "event-support": {
+      "src": "/assets/scenes/generated/events/event-support-v1.png",
+      "alt": "support題材のイベント情景"
+    },
+    "event-rest": {
+      "src": "/assets/scenes/generated/events/event-rest-v1.png",
+      "alt": "rest題材のイベント情景"
+    },
+    "event-toddler": {
+      "src": "/assets/scenes/generated/events/event-toddler-v1.png",
+      "alt": "toddler題材のイベント情景"
+    },
+    "event-school": {
+      "src": "/assets/scenes/generated/events/event-school-v1.png",
+      "alt": "school題材のイベント情景"
+    },
+    "event-family": {
+      "src": "/assets/scenes/generated/events/event-family-v1.png",
+      "alt": "family題材のイベント情景"
+    },
+    "event-maker": {
+      "src": "/assets/scenes/generated/events/event-maker-v1.png",
+      "alt": "maker題材のイベント情景"
+    },
+    "event-music": {
+      "src": "/assets/scenes/generated/events/event-music-v1.png",
+      "alt": "music題材のイベント情景"
+    },
+    "event-sports": {
+      "src": "/assets/scenes/generated/events/event-sports-v1.png",
+      "alt": "sports題材のイベント情景"
+    },
+    "event-travel": {
+      "src": "/assets/scenes/generated/events/event-travel-v1.png",
+      "alt": "travel題材のイベント情景"
+    },
+    "event-food": {
+      "src": "/assets/scenes/generated/events/event-food-v1.png",
+      "alt": "food題材のイベント情景"
+    },
+    "event-adult": {
+      "src": "/assets/scenes/generated/events/event-adult-v1.png",
+      "alt": "adult題材のイベント情景"
+    },
+    "event-hidden": {
+      "src": "/assets/scenes/generated/events/event-hidden-v1.png",
+      "alt": "hidden題材のイベント情景"
+    },
+    "decision-category-education": {
+      "src": "/assets/scenes/generated/decisions/decision-category-education-v1.png",
+      "alt": "教育・進路の判断を表す情景"
+    },
+    "decision-category-home": {
+      "src": "/assets/scenes/generated/decisions/decision-category-home-v1.png",
+      "alt": "家庭生活の判断を表す情景"
+    },
+    "decision-category-grandparents": {
+      "src": "/assets/scenes/generated/decisions/decision-category-grandparents-v1.png",
+      "alt": "実家の判断を表す情景"
+    },
+    "decision-category-afterschool": {
+      "src": "/assets/scenes/generated/decisions/decision-category-afterschool-v1.png",
+      "alt": "遊び・放課後の判断を表す情景"
+    },
+    "decision-category-work": {
+      "src": "/assets/scenes/generated/decisions/decision-category-work-v1.png",
+      "alt": "仕事・家計の判断を表す情景"
+    },
+    "decision-route-public": {
+      "src": "/assets/scenes/generated/decisions/decision-route-public-v1.png",
+      "alt": "publicルートの判断を表す情景"
+    },
+    "decision-route-private": {
+      "src": "/assets/scenes/generated/decisions/decision-route-private-v1.png",
+      "alt": "privateルートの判断を表す情景"
+    },
+    "decision-route-international": {
+      "src": "/assets/scenes/generated/decisions/decision-route-international-v1.png",
+      "alt": "internationalルートの判断を表す情景"
+    },
+    "decision-route-home": {
+      "src": "/assets/scenes/generated/decisions/decision-route-home-v1.png",
+      "alt": "homeルートの判断を表す情景"
+    },
+    "decision-route-daily": {
+      "src": "/assets/scenes/generated/decisions/decision-route-daily-v1.png",
+      "alt": "dailyルートの判断を表す情景"
+    },
+    "decision-route-memory": {
+      "src": "/assets/scenes/generated/decisions/decision-route-memory-v1.png",
+      "alt": "memoryルートの判断を表す情景"
+    },
+    "decision-route-adventure": {
+      "src": "/assets/scenes/generated/decisions/decision-route-adventure-v1.png",
+      "alt": "adventureルートの判断を表す情景"
+    },
+    "decision-route-independence": {
+      "src": "/assets/scenes/generated/decisions/decision-route-independence-v1.png",
+      "alt": "independenceルートの判断を表す情景"
+    },
+    "decision-route-visit": {
+      "src": "/assets/scenes/generated/decisions/decision-route-visit-v1.png",
+      "alt": "visitルートの判断を表す情景"
+    },
+    "decision-route-care": {
+      "src": "/assets/scenes/generated/decisions/decision-route-care-v1.png",
+      "alt": "careルートの判断を表す情景"
+    },
+    "decision-route-legacy": {
+      "src": "/assets/scenes/generated/decisions/decision-route-legacy-v1.png",
+      "alt": "legacyルートの判断を表す情景"
+    },
+    "decision-route-maker": {
+      "src": "/assets/scenes/generated/decisions/decision-route-maker-v1.png",
+      "alt": "makerルートの判断を表す情景"
+    },
+    "decision-route-music": {
+      "src": "/assets/scenes/generated/decisions/decision-route-music-v1.png",
+      "alt": "musicルートの判断を表す情景"
+    },
+    "decision-route-sports": {
+      "src": "/assets/scenes/generated/decisions/decision-route-sports-v1.png",
+      "alt": "sportsルートの判断を表す情景"
+    },
+    "decision-route-balance": {
+      "src": "/assets/scenes/generated/decisions/decision-route-balance-v1.png",
+      "alt": "balanceルートの判断を表す情景"
+    },
+    "decision-route-career": {
+      "src": "/assets/scenes/generated/decisions/decision-route-career-v1.png",
+      "alt": "careerルートの判断を表す情景"
+    },
+    "decision-route-venture": {
+      "src": "/assets/scenes/generated/decisions/decision-route-venture-v1.png",
+      "alt": "ventureルートの判断を表す情景"
+    },
+    "stage-baby": {
+      "src": "/assets/scenes/generated/stages/stage-baby-v1.png",
+      "alt": "baby年代の暮らしを描いた情景"
+    },
+    "stage-preschool": {
+      "src": "/assets/scenes/generated/stages/stage-preschool-v1.png",
+      "alt": "preschool年代の暮らしを描いた情景"
+    },
+    "stage-primary": {
+      "src": "/assets/scenes/generated/stages/stage-primary-v1.png",
+      "alt": "primary年代の暮らしを描いた情景"
+    },
+    "stage-junior": {
+      "src": "/assets/scenes/generated/stages/stage-junior-v1.png",
+      "alt": "junior年代の暮らしを描いた情景"
+    },
+    "stage-senior": {
+      "src": "/assets/scenes/generated/stages/stage-senior-v1.png",
+      "alt": "senior年代の暮らしを描いた情景"
+    },
+    "stage-launch": {
+      "src": "/assets/scenes/generated/stages/stage-launch-v1.png",
+      "alt": "launch年代の暮らしを描いた情景"
     }
   },
   "text": {

@@ -38,7 +38,8 @@
         "path": "grandparents.relation",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-support"
   },
   {
     "id": "craft-prize",
@@ -95,7 +96,8 @@
         "path": "child.autonomy",
         "delta": 4
       }
-    ]
+    ],
+    "visual": "event-support"
   },
   {
     "id": "study-prize",
@@ -144,7 +146,8 @@
         "path": "child.autonomy",
         "delta": 4
       }
-    ]
+    ],
+    "visual": "event-support"
   },
   {
     "id": "baby-sleep",
@@ -170,7 +173,8 @@
         "path": "child.stress",
         "delta": -3
       }
-    ]
+    ],
+    "visual": "event-rest"
   },
   {
     "id": "friends",
@@ -209,7 +213,8 @@
         "path": "child.autonomy",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "family-outing",
@@ -260,7 +265,8 @@
         "path": "child.trust.B",
         "delta": 4
       }
-    ]
+    ],
+    "visual": "event-family"
   },
   {
     "id": "father-bonus",
@@ -291,7 +297,8 @@
         "path": "parents.A.fulfillment",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-support"
   },
   {
     "id": "mother-bonus",
@@ -322,7 +329,8 @@
         "path": "parents.B.fulfillment",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-support"
   },
   {
     "id": "appliance-failure",
@@ -348,7 +356,8 @@
         "path": "parents.B.stress",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-food"
   },
   {
     "id": "school-worry",
@@ -383,7 +392,8 @@
         "path": "child.stress",
         "delta": 5
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "father-fatigue",
@@ -418,7 +428,8 @@
         "path": "cash",
         "delta": -10
       }
-    ]
+    ],
+    "visual": "event-rest"
   },
   {
     "id": "mother-fatigue",
@@ -453,7 +464,8 @@
         "path": "cash",
         "delta": -10
       }
-    ]
+    ],
+    "visual": "event-rest"
   },
   {
     "id": "family-home-care",
@@ -484,7 +496,8 @@
         "path": "grandparents.health",
         "delta": -1
       }
-    ]
+    ],
+    "visual": "event-rest"
   },
   {
     "id": "family-home-recovery",
@@ -508,7 +521,8 @@
         "path": "grandparents.health",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-rest"
   },
   {
     "id": "story-baby-conductor",
@@ -530,7 +544,8 @@
         "path": "decisions.fatigue.B",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-toddler"
   },
   {
     "id": "story-first-steps",
@@ -556,7 +571,8 @@
         "path": "parents.B.fulfillment",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-toddler"
   },
   {
     "id": "story-baby-tissue",
@@ -578,7 +594,8 @@
         "path": "decisions.fatigue.B",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-toddler"
   },
   {
     "id": "story-why-committee",
@@ -600,7 +617,8 @@
         "path": "child.trust.A",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "story-pocket-zoo",
@@ -622,7 +640,8 @@
         "path": "decisions.fatigue.A",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-toddler"
   },
   {
     "id": "story-imaginary-shop",
@@ -644,7 +663,8 @@
         "path": "child.autonomy",
         "delta": 4
       }
-    ]
+    ],
+    "visual": "event-toddler"
   },
   {
     "id": "story-school-backpack",
@@ -670,7 +690,8 @@
         "path": "parents.B.fulfillment",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "story-homework-volcano",
@@ -705,7 +726,8 @@
         "path": "decisions.fatigue.A",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "story-library-king",
@@ -727,7 +749,8 @@
         "path": "child.autonomy",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "story-lost-teeth",
@@ -749,7 +772,8 @@
         "path": "couple",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "story-growth-spurt",
@@ -767,7 +791,8 @@
         "path": "cash",
         "delta": -18
       }
-    ]
+    ],
+    "visual": "event-adult"
   },
   {
     "id": "story-school-festival",
@@ -789,7 +814,8 @@
         "path": "parents.B.fulfillment",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "story-door-sign",
@@ -815,7 +841,8 @@
         "path": "child.trust.B",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-family"
   },
   {
     "id": "story-group-project",
@@ -837,7 +864,8 @@
         "path": "child.ability.study",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "story-first-pay",
@@ -859,7 +887,8 @@
         "path": "parents.A.fulfillment",
         "delta": 1
       }
-    ]
+    ],
+    "visual": "event-adult"
   },
   {
     "id": "story-deadline-storm",
@@ -885,7 +914,8 @@
         "path": "child.stress",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-adult"
   },
   {
     "id": "story-adult-photo",
@@ -915,7 +945,8 @@
         "path": "child.trust.B",
         "delta": 4
       }
-    ]
+    ],
+    "visual": "event-family"
   },
   {
     "id": "story-dinner-for-parents",
@@ -941,7 +972,8 @@
         "path": "child.autonomy",
         "delta": 5
       }
-    ]
+    ],
+    "visual": "event-family"
   },
   {
     "id": "story-castle-parade",
@@ -972,7 +1004,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-maker"
   },
   {
     "id": "story-dragon-encore",
@@ -1003,7 +1036,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-music"
   },
   {
     "id": "story-rocket-launch",
@@ -1034,7 +1068,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-maker"
   },
   {
     "id": "story-robot-rebellion",
@@ -1065,7 +1100,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-maker"
   },
   {
     "id": "story-invention-award",
@@ -1096,7 +1132,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-maker"
   },
   {
     "id": "story-robot-order",
@@ -1127,7 +1164,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-maker"
   },
   {
     "id": "story-garage-session",
@@ -1166,7 +1204,8 @@
           "option": "take"
         }
       ]
-    }
+    },
+    "visual": "event-music"
   },
   {
     "id": "story-amp-trouble",
@@ -1196,7 +1235,8 @@
           "option": "take"
         }
       ]
-    }
+    },
+    "visual": "event-music"
   },
   {
     "id": "story-festival-discovery",
@@ -1227,7 +1267,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-music"
   },
   {
     "id": "story-tour-detour",
@@ -1262,7 +1303,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-music"
   },
   {
     "id": "story-relay-finish",
@@ -1302,7 +1344,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-sports"
   },
   {
     "id": "story-cup-sponsor",
@@ -1333,7 +1376,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-sports"
   },
   {
     "id": "story-team-equipment",
@@ -1363,7 +1407,8 @@
           "option": "take"
         }
       ]
-    }
+    },
+    "visual": "event-sports"
   },
   {
     "id": "story-camp-raccoon",
@@ -1394,7 +1439,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-travel"
   },
   {
     "id": "story-star-sea",
@@ -1429,7 +1475,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-travel"
   },
   {
     "id": "story-rail-detour",
@@ -1460,7 +1507,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-travel"
   },
   {
     "id": "story-exchange-letter",
@@ -1491,7 +1539,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-travel"
   },
   {
     "id": "story-outdoor-friends",
@@ -1522,7 +1571,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-travel"
   },
   {
     "id": "story-host-feast",
@@ -1557,7 +1607,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-travel"
   },
   {
     "id": "story-stall-queue",
@@ -1592,7 +1643,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-food"
   },
   {
     "id": "story-stall-potatoes",
@@ -1623,7 +1675,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-food"
   },
   {
     "id": "story-recipe-return",
@@ -1654,7 +1707,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-food"
   },
   {
     "id": "story-small-shop-fan",
@@ -1684,7 +1738,8 @@
           "option": "take"
         }
       ]
-    }
+    },
+    "visual": "event-food"
   },
   {
     "id": "story-big-order",
@@ -1714,7 +1769,8 @@
           "option": "take"
         }
       ]
-    }
+    },
+    "visual": "event-food"
   },
   {
     "id": "story-shop-repair",
@@ -1744,7 +1800,8 @@
           "option": "take"
         }
       ]
-    }
+    },
+    "visual": "event-food"
   },
   {
     "id": "story-fair-contract",
@@ -1781,7 +1838,8 @@
           "option": "take"
         }
       ]
-    }
+    },
+    "visual": "event-food"
   },
   {
     "id": "story-new-town",
@@ -1816,7 +1874,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-adult"
   },
   {
     "id": "story-scholarship-result",
@@ -1847,7 +1906,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-adult"
   },
   {
     "id": "story-apprentice-piece",
@@ -1878,7 +1938,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-adult"
   },
   {
     "id": "story-local-path",
@@ -1909,7 +1970,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-adult"
   },
   {
     "id": "story-first-call",
@@ -1944,7 +2006,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-adult"
   },
   {
     "id": "story-shared-breakfast",
@@ -1979,7 +2042,8 @@
           "after": 0
         }
       ]
-    }
+    },
+    "visual": "event-family"
   },
   {
     "id": "hidden-music-encore",
@@ -2007,7 +2071,8 @@
         "path": "child.profile.music",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-music"
   },
   {
     "id": "hidden-sports-relay",
@@ -2035,7 +2100,8 @@
         "path": "child.profile.leadership",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-sports"
   },
   {
     "id": "hidden-maker-repair",
@@ -2063,7 +2129,8 @@
         "path": "child.profile.making",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-maker"
   },
   {
     "id": "hidden-game-tournament",
@@ -2091,7 +2158,8 @@
         "path": "child.profile.sociability",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-hidden"
   },
   {
     "id": "hidden-quiet-project",
@@ -2119,7 +2187,8 @@
         "path": "child.autonomy",
         "delta": 4
       }
-    ]
+    ],
+    "visual": "event-school"
   },
   {
     "id": "hidden-team-lead",
@@ -2147,7 +2216,8 @@
         "path": "child.autonomy",
         "delta": 4
       }
-    ]
+    ],
+    "visual": "event-hidden"
   },
   {
     "id": "hidden-missed-promise",
@@ -2175,7 +2245,8 @@
         "path": "child.profile.responsibility",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-family"
   },
   {
     "id": "hidden-task-postponed",
@@ -2203,6 +2274,7 @@
         "path": "child.stress",
         "delta": 3
       }
-    ]
+    ],
+    "visual": "event-family"
   }
 ]

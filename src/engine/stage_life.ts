@@ -211,6 +211,7 @@ export function stageChoices(s: State): Choice[] {
           option_id: `${id}:${route.id}`,
           label: route.label,
           route: route.id,
+          visual: contentFor(s).visuals[`decision-route-${route.id}`],
           cost,
           income: 0,
           description: changed

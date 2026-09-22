@@ -2,7 +2,66 @@ import { useState } from "react";
 import type { Observation, PublicState } from "../../engine/types";
 import { StatusDetail } from "./status_detail";
 import { FamilyPortrait, ObservationMark } from "./status_visual";
-import featurePlaceholder from "../../../assets/scenes/child-feature-placeholder.svg";
+const featureImages = import.meta.glob("../../../assets/scenes/generated/child-states/*.png", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+const featureVisuals: Record<string, { src: string; alt: string }> = {
+  discovering: {
+    src: "/assets/scenes/generated/child-states/child-state-growing-v1.png",
+    alt: "成長中の子どものプロフィール画像",
+  },
+  musician: {
+    src: "/assets/scenes/generated/child-states/child-state-music-v1.png",
+    alt: "音楽家の子どものプロフィール画像",
+  },
+  athlete: {
+    src: "/assets/scenes/generated/child-states/child-state-sports-v1.png",
+    alt: "スポーツ選手の子どものプロフィール画像",
+  },
+  inventor: {
+    src: "/assets/scenes/generated/child-states/child-state-maker-v1.png",
+    alt: "発明家の子どものプロフィール画像",
+  },
+  gamer: {
+    src: "/assets/scenes/generated/child-states/child-state-gamer-v1.png",
+    alt: "ゲーマーの子どものプロフィール画像",
+  },
+  scholar: {
+    src: "/assets/scenes/generated/child-states/child-state-researcher-v1.png",
+    alt: "ガリ勉の子どものプロフィール画像",
+  },
+  writer: {
+    src: "/assets/scenes/generated/child-states/child-state-writer-v1.png",
+    alt: "作家の子どものプロフィール画像",
+  },
+  homebody: {
+    src: "/assets/scenes/generated/child-states/child-state-quiet-v1.png",
+    alt: "静かに過ごす子どものプロフィール画像",
+  },
+  socialite: {
+    src: "/assets/scenes/generated/child-states/child-state-social-v1.png",
+    alt: "交流上手な子どものプロフィール画像",
+  },
+  leader: {
+    src: "/assets/scenes/generated/child-states/child-state-leader-v1.png",
+    alt: "リーダーの子どものプロフィール画像",
+  },
+  reliable: {
+    src: "/assets/scenes/generated/child-states/child-state-reliable-v1.png",
+    alt: "しっかり者の子どものプロフィール画像",
+  },
+  escapist: {
+    src: "/assets/scenes/generated/child-states/child-state-escape-v1.png",
+    alt: "逃げ上手な子どものプロフィール画像",
+  },
+  challenger: {
+    src: "/assets/scenes/generated/child-states/child-state-challenger-v1.png",
+    alt: "挑戦者の子どものプロフィール画像",
+  },
+};
 
 function ObservationRow({ observation, label }: { observation?: Observation; label: string }) {
   if (!observation) return null;
@@ -100,8 +159,15 @@ export function ChildStatus({
               <h3>今の特徴</h3>
               <div className="child-feature-detail">
                 <img
-                  src={featurePlaceholder}
-                  alt={`${state.child_identity.feature.label}の仮画像`}
+                  src={
+                    featureImages[
+                      `../../../assets/scenes/generated/child-states/child-state-${state.child_identity.feature.id === "discovering" ? "growing" : (({ musician: "music", athlete: "sports", inventor: "maker", scholar: "researcher", homebody: "quiet", socialite: "social", escapist: "escape" } as Record<string, string>)[state.child_identity.feature.id] ?? state.child_identity.feature.id)}-v1.png`
+                    ] ?? featureVisuals[state.child_identity.feature.id]?.src
+                  }
+                  alt={
+                    featureVisuals[state.child_identity.feature.id]?.alt ??
+                    `${state.child_identity.feature.label}のプロフィール画像`
+                  }
                 />
                 <strong>{state.child_identity.feature.label}</strong>
               </div>

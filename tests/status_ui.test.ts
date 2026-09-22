@@ -108,12 +108,16 @@ it("子どもの代表状態と獲得済み称号を仮画像とともに表示�
   );
   fireEvent.click(screen.getByRole("button", { name: "子どもの詳細を開く" }));
   const dialog = screen.getByRole("dialog", { name: "子どもの様子" });
-  expect(within(dialog).getByRole("img", { name: "音楽家の仮画像" })).toBeTruthy();
+  expect(
+    within(dialog).getByRole("img", { name: "音楽家の子どものプロフィール画像" }),
+  ).toBeTruthy();
   expect(within(dialog).getByText(/天才ピアニスト/)).toBeTruthy();
   state.child.profile!.making = 50;
   awardChildTitles(state);
   rerender(createElement(ChildStatus, { state: publicView(state).public }));
-  expect(within(dialog).getByRole("img", { name: "発明家の仮画像" })).toBeTruthy();
+  expect(
+    within(dialog).getByRole("img", { name: "発明家の子どものプロフィール画像" }),
+  ).toBeTruthy();
   expect(within(dialog).getByText(/天才ピアニスト/)).toBeTruthy();
   expect(within(dialog).getByText(/小さな発明家/)).toBeTruthy();
 });
