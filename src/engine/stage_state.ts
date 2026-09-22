@@ -1,7 +1,8 @@
 import { contentFor } from "../content/catalog";
 import type { State } from "./types";
 
-export const stageModel = (s: State) => s.versions.rules === "rules-13";
+export const stageModel = (s: State) =>
+  s.versions.rules === "rules-13" || s.versions.rules === "rules-14";
 export const stageIndex = (s: State) =>
   Math.min(4, Math.floor((s.phase === "childhood" ? s.n : Math.max(0, s.n - 1)) / 8));
 export const stageRouteId = (group: string) => `crossroad-${group}`;

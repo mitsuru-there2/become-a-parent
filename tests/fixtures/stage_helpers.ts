@@ -6,7 +6,7 @@ import type { State } from "../../src/engine/types";
 export const startStage = () => {
   const content = clone(defaultContent);
   content.automatic_events = [];
-  return startDecisions("home-01", 2, new Catalog(content, []).resolve());
+  return startDecisions("home-01", 2, new Catalog(content, []).resolve(), "rules-13");
 };
 export const chooseStage = (s: State, id: string, option: string) =>
   chooseDecision(s, `t${String(s.n + 1).padStart(2, "0")}:${id}`, `${id}:${option}`);

@@ -4,6 +4,7 @@ import { createElement, type ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeAll, afterAll, expect, it, vi } from "vite-plus/test";
 import { ChildStatus } from "../src/components/game/child_status";
+import { ObservationMark } from "../src/components/game/status_visual";
 import { PartyStatus } from "../src/components/game/party_status";
 import { publicView, start } from "../src/engine/simulation";
 import { chooseDecision } from "../src/engine/decisions";
@@ -46,6 +47,31 @@ afterAll(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+});
+it("父母との関係は3種類のハートで示し、区分の文字は表示しない", () => {
+  const states = { low: "嫌い", middle: "普通", high: "好き" } as const;
+  const diagrams = (["low", "middle", "high"] as const).map((band) => {
+    const { container, unmount } = render(
+      createElement(ObservationMark, {
+        label: "父との関係",
+        compact: true,
+        observation: { code: "relationship.A", subject: "子ども", text: `${band}の様子`, band },
+      }),
+    );
+    expect(
+      screen.getByRole("img", { name: `父との関係：${states[band]}。${band}の様子` }),
+    ).toBeTruthy();
+    expect(screen.getByText("父")).toBeTruthy();
+    expect(screen.queryByText(states[band])).toBeNull();
+    expect(container.querySelector(".relationship-heart")?.classList.contains("is-filled")).toBe(
+      band === "high",
+    );
+    expect(!!container.querySelector(".relationship-heart-half")).toBe(band === "middle");
+    const diagram = container.querySelector("svg")!.innerHTML;
+    unmount();
+    return diagram;
+  });
+  expect(new Set(diagrams).size).toBe(3);
 });
 it("短文がない旧保存でも両親と両分野の観察本文を表示する", () => {
   const state = publicView(start("home-01", 0)).public;
@@ -160,33 +186,33 @@ it("岐路の必須選択が残る間は半年進行ボタンを無効にする"
   expect(update).not.toHaveBeenCalled();
 });
 
-it("現在ルートの取得可能な判断だけを通知し、取得後に通知を更新する", () => {
+it("現在ルートの取得可能な判断数をマップに表示し、取得後に更新する", () => {
   const state = startStage();
   const props = () => {
     const view = publicView(state);
     return { state: view.public, choices: view.choices };
   };
   const { rerender } = render(createElement(StageSelectionTree, props()));
-  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+  expect(screen.queryByText(/取得可能 \d+件/)).toBeNull();
   chooseStage(state, "crossroad-school", "public");
   rerender(createElement(StageSelectionTree, props()));
-  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+  expect(screen.getByText(/取得可能 \d+件/)).toBeTruthy();
   expect(screen.getAllByRole("alert")).toHaveLength(1);
   expect(screen.getByText("ルートを選択")).toBeTruthy();
   satisfyStage(state);
   rerender(createElement(StageSelectionTree, props()));
-  const alert = screen.getByRole("alert", { name: "取得可能な判断" });
-  expect(screen.getAllByRole("alert")).toHaveLength(1);
-  expect(within(alert).getAllByRole("button")).toHaveLength(5);
-  const count = publicView(state).choices.flatMap((choice) =>
-    choice.route_choice ? [] : choice.options.filter((option) => option.available),
-  ).length;
-  expect(
-    within(alert).getByText(`選択中のルートに、取得できる判断が${count}件あります`),
-  ).toBeTruthy();
-  fireEvent.click(within(alert).getByRole("button", { name: /教育・進路/ }));
+  expect(screen.queryByRole("alert")).toBeNull();
+  const map = screen.getByRole("group", { name: "ホームの選択" });
+  const availableMenus = new Set(
+    publicView(state)
+      .choices.filter(
+        (choice) => !choice.route_choice && choice.options.some((option) => option.available),
+      )
+      .map((choice) => choice.menu),
+  );
+  expect(within(map).getAllByText(/取得可能 \d+件/)).toHaveLength(availableMenus.size);
+  fireEvent.click(within(map).getByRole("button", { name: /教育・進路/ }));
   expect(screen.getByRole("heading", { name: "教育・進路" })).toBeTruthy();
-  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "← ホームに戻る" }));
   // 公開された取得可能な判断をすべて取得し、取得済み・条件待ち・別ステージだけにする。
   for (;;) {
@@ -198,10 +224,10 @@ it("現在ルートの取得可能な判断だけを通知し、取得後に通�
     chooseDecision(state, choice.instance_id, option.option_id);
   }
   rerender(createElement(StageSelectionTree, props()));
-  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
+  expect(screen.queryByText(/取得可能 \d+件/)).toBeNull();
 });
 
-it("資金とパラメータの現在値に応じて通知の合計とカテゴリ件数が増減する", () => {
+it("資金とパラメータの現在値に応じてマップのカテゴリ件数が増減する", () => {
   const state = startStage();
   chooseStage(state, "crossroad-home", "daily");
   satisfyStage(state);
@@ -217,21 +243,20 @@ it("資金とパラメータの現在値に応じて通知の合計とカテゴ�
   const verifyCount = () => {
     const current = props();
     rerender(createElement(StageSelectionTree, current));
-    const count = current.choices.flatMap((choice) =>
-      choice.route_choice ? [] : choice.options.filter((option) => option.available),
+    const count = current.choices.filter(
+      (choice) => !choice.route_choice && choice.options.some((option) => option.available),
     ).length;
-    if (count === 0) expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
-    else {
-      const alert = screen.getByRole("alert", { name: "取得可能な判断" });
-      expect(
-        within(alert).getByText(`選択中のルートに、取得できる判断が${count}件あります`),
-      ).toBeTruthy();
-      expect(
-        within(alert).getByRole("button", {
-          name: `家庭生活（${current.choices.filter((choice) => choice.menu === "home" && !choice.route_choice).flatMap((choice) => choice.options.filter((option) => option.available)).length}件）`,
-        }),
-      ).toBeTruthy();
-    }
+    const homeCount = current.choices.filter(
+      (choice) =>
+        choice.menu === "home" &&
+        !choice.route_choice &&
+        choice.options.some((option) => option.available),
+    ).length;
+    const homeMarker = document.querySelector('.map-marker[data-menu="home"]')!;
+    expect(homeMarker.querySelector(".map-available-count")?.textContent ?? null).toBe(
+      homeCount ? `取得可能 ${homeCount}件` : null,
+    );
+    expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
     return count;
   };
   state.cash = 0;
@@ -258,7 +283,7 @@ it("別ルートは閲覧専用と示して取得を拒否し、将来ステー�
   satisfyStage(state);
   const { container, rerender } = render(createElement(StageSelectionTree, props()));
   fireEvent.click(
-    within(screen.getByRole("alert", { name: "取得可能な判断" })).getByRole("button", {
+    within(screen.getByRole("group", { name: "ホームの選択" })).getByRole("button", {
       name: /教育・進路/,
     }),
   );
@@ -296,7 +321,7 @@ it("取得や資金変更でもルート内の判断の並び順を維持する"
   satisfyStage(state);
   const { container, rerender } = render(createElement(StageSelectionTree, props()));
   fireEvent.click(
-    within(screen.getByRole("alert", { name: "取得可能な判断" })).getByRole("button", {
+    within(screen.getByRole("group", { name: "ホームの選択" })).getByRole("button", {
       name: /家庭生活/,
     }),
   );
@@ -321,7 +346,7 @@ it("取得や資金変更でもルート内の判断の並び順を維持する"
   expect(cards()).toEqual(before);
 });
 
-it("後続の岐路ではルート変更案内を優先し、次期に取得通知へ戻る", () => {
+it("後続の岐路ではルート変更案内を表示し、次期にマップの件数を表示する", () => {
   const state = startStage();
   until(state, 8);
   const props = () => {
@@ -335,6 +360,6 @@ it("後続の岐路ではルート変更案内を優先し、次期に取得通�
   until(state, 9);
   rerender(createElement(StageSelectionTree, props()));
   expect(screen.queryByRole("alert", { name: "岐路のルート変更" })).toBeNull();
-  expect(screen.getByRole("alert", { name: "取得可能な判断" })).toBeTruthy();
-  expect(screen.getAllByRole("alert")).toHaveLength(1);
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(screen.getAllByText(/取得可能 \d+件/).length).toBeGreaterThan(0);
 });

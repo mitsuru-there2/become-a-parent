@@ -91,19 +91,38 @@ export function ChildStatus({ state }: { state: PublicState }) {
                   observation={observation(`progress.${domain}`)}
                   label="得意・成長"
                 />
-                {domain === "study" &&
-                  state.time.child_months >= 72 &&
+                {((state.versions.rules === "rules-14" && state.life?.craft_score !== undefined) ||
+                  (domain === "study" && state.time.child_months >= 72)) &&
                   state.life?.study_score !== undefined && (
                     <div className="study-score">
-                      <span>成績</span>
-                      <meter min={0} max={100} value={state.life.study_score} aria-label="成績" />
+                      <span>
+                        {domain === "study" && state.time.child_months >= 72
+                          ? "学びの能力・成績"
+                          : `${domain === "study" ? "学び" : "創作"}の能力`}
+                      </span>
+                      <meter
+                        min={0}
+                        max={100}
+                        value={
+                          domain === "study"
+                            ? state.life.study_score
+                            : (state.life.craft_score ?? 0)
+                        }
+                        aria-label={
+                          domain === "study" && state.time.child_months >= 72
+                            ? "成績"
+                            : `${domain === "study" ? "学び" : "創作"}の能力`
+                        }
+                      />
                       <strong>
-                        {state.life.study_score}
-                        <small> / 100</small>
+                        {domain === "study" ? state.life.study_score : state.life.craft_score}
+                        <small> / 100点</small>
                       </strong>
-                      <p className="muted">
-                        進路ごとの必要な成績は、教育・進路の選択詳細で確認できます。
-                      </p>
+                      {domain === "study" && state.time.child_months >= 72 && (
+                        <p className="muted">
+                          進路ごとの必要な成績は、教育・進路の選択詳細で確認できます。
+                        </p>
+                      )}
                     </div>
                   )}
               </div>

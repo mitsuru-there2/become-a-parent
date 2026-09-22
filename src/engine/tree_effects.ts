@@ -3,7 +3,9 @@ import { contentFor } from "../content/catalog";
 import type { State } from "./types";
 
 export const treeEnabled = (state: State) =>
-  ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(state.versions.rules);
+  ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(
+    state.versions.rules,
+  );
 
 export function activeTreeEffects(state: State) {
   if (stageModel(state))

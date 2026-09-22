@@ -39,14 +39,9 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
   const availableCounts = new Map<string, number>();
   for (const choice of choices) {
     if (choice.route_choice || !choice.menu) continue;
-    const count = choice.options.filter((option) => option.available).length;
-    if (count > 0)
-      availableCounts.set(choice.menu, (availableCounts.get(choice.menu) ?? 0) + count);
+    if (choice.options.some((option) => option.available))
+      availableCounts.set(choice.menu, (availableCounts.get(choice.menu) ?? 0) + 1);
   }
-  const availableTotal = Array.from(availableCounts.values()).reduce(
-    (sum, count) => sum + count,
-    0,
-  );
   useEffect(() => {
     if (menu) heading.current?.focus();
   }, [menu]);
@@ -275,21 +270,6 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
         </>
       ) : (
         <>
-          {missing.length === 0 && changeable.length === 0 && availableTotal > 0 && (
-            <aside className="judgment-alert" role="alert" aria-label="取得可能な判断">
-              <strong>選択中のルートに、取得できる判断が{availableTotal}件あります</strong>
-              <nav aria-label="判断を取得できるカテゴリ">
-                {life.menus
-                  .filter((item) => availableCounts.has(item.id))
-                  .map((item) => (
-                    <button key={item.id} onClick={() => openMenu(item.id)}>
-                      {item.id === "grandparents" ? "実家との関わり" : item.label}（
-                      {availableCounts.get(item.id)}件）
-                    </button>
-                  ))}
-              </nav>
-            </aside>
-          )}
           <p className="stage-map-caption">
             ステージ {currentStage.label} <span>判断カテゴリから、ルートと選択を確認</span>
           </p>
@@ -314,6 +294,11 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                   <small>
                     {route.routes.find((r) => r.id === route.current)?.label ?? "ルート未選択"}
                   </small>
+                  {!!availableCounts.get(item.id) && (
+                    <span className="map-available-count">
+                      取得可能 {availableCounts.get(item.id)}件
+                    </span>
+                  )}
                 </button>
               );
             })}

@@ -3521,14 +3521,23 @@ meter::-moz-meter-bar {
 }
 .required-routes-alert nav {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   min-width: 0;
-  overflow-x: auto;
+  overflow: visible;
 }
 .required-routes-alert button {
-  flex-shrink: 0;
   min-height: 44px;
-  white-space: nowrap;
+  white-space: normal;
+}
+@media (max-width: 640px) {
+  .required-routes-alert {
+    max-height: none;
+    overflow: visible;
+  }
+  .required-routes-alert nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .stage-tree.is-map {
   overflow: auto;
@@ -3734,29 +3743,14 @@ meter::-moz-meter-bar {
   font-size: 12px;
   flex-shrink: 0;
 }
-.judgment-alert {
-  flex-shrink: 0;
-  margin: 4px 12px;
-  padding: 8px 12px;
+.status-shell .map-marker .map-available-count {
+  padding: 2px 6px;
   border: 1px solid #a7b986;
-  border-left-width: 4px;
-  background: #293222;
+  border-radius: 2px;
+  background: #293c26;
   color: #edf1df;
-  font-size: 12px;
-}
-.judgment-alert nav {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  margin-top: 4px;
-}
-.judgment-alert button {
-  flex-shrink: 0;
-  min-height: 44px;
-  padding: 6px 10px;
-  border: 1px solid #7b8c66;
-  background: #1c2518;
-  color: #edf1df;
+  font-size: 10px;
+  font-weight: 700;
   white-space: nowrap;
 }
 .stage-map-caption span {
@@ -3941,6 +3935,86 @@ meter::-moz-meter-bar {
   min-width: 0;
   min-height: 15px;
 }
+.status-percent {
+  justify-content: space-between;
+}
+.status-percent-ring {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 38px;
+  block-size: 38px;
+  min-inline-size: 38px;
+  min-block-size: 38px;
+  flex: none;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: #ede8d9;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+}
+.status-percent-ring::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: #222b21;
+}
+.status-percent-ring > span {
+  z-index: 1;
+}
+.family-compact-stats.is-percent {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+.family-compact-stats.is-percent .status-percent,
+.family-compact-stats.is-percent .status-money {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  text-align: center;
+}
+.family-compact-stats.is-percent .status-percent > span:first-child,
+.family-compact-stats.is-percent .status-money > span {
+  min-width: 0;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.family-compact-stats.is-percent .status-percent-ring {
+  inline-size: 56px;
+  block-size: 56px;
+  min-inline-size: 56px;
+  min-block-size: 56px;
+  font-size: 12px;
+}
+.family-compact-stats.is-percent .status-percent-ring::before {
+  inset: 6px;
+}
+.family-compact-stats.is-percent .status-money strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 56px;
+  margin: 0;
+  font-size: 14px;
+  white-space: nowrap;
+}
+[data-burden] .status-percent-ring {
+  --ring-color: #d7a077;
+}
+.member-full-stats .status-percent {
+  flex: 1;
+  justify-content: flex-end;
+}
+.member-full-stats .status-percent > span:first-child {
+  display: none;
+}
 .status-meter > span,
 .status-money > span {
   color: #bcc4b3;
@@ -4000,39 +4074,68 @@ meter::-moz-meter-bar {
 }
 .observation-mark svg {
   flex-shrink: 0;
-  width: 54px;
-  height: 20px;
+  width: 44px;
+  height: 44px;
   stroke: currentColor;
-  stroke-width: 1.5;
+  stroke-width: 2;
   stroke-linecap: round;
-}
-.observation-mark .relation-line {
-  stroke: #72745a;
+  stroke-linejoin: round;
 }
 .observation-mark circle {
   fill: #222b21;
 }
 .observation-mark circle.is-current {
-  fill: #dfc58b;
-  stroke: #dfc58b;
+  fill: currentColor;
+}
+.observation-mark .relationship-heart {
+  fill: none;
+  stroke: #e77e83;
+  stroke-width: 2.5;
+}
+.observation-mark .relationship-heart.is-filled,
+.observation-mark .relationship-heart-half {
+  fill: #e77e83;
+}
+.observation-mark .relationship-heart-half {
+  stroke: none;
+}
+.observation-mark[data-band="low"] {
+  color: #d7a077;
+}
+.observation-mark[data-band="high"] {
+  color: #acc2a3;
+}
+.observation-mark[data-energy][data-band="low"] {
+  color: #acc2a3;
 }
 .observation-mark[data-energy][data-band="high"] {
   color: #d7a077;
 }
-.observation-mark:not([data-band]) svg > :not(.unknown-mark) {
-  opacity: 0.15;
-}
 .observation-mark.is-compact {
-  justify-content: space-between;
-  min-height: 15px;
-  height: 15px;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
+  text-align: center;
 }
 .observation-mark.is-compact .observation-label {
-  font-size: 11px;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 .observation-mark.is-compact svg {
-  width: 54px;
-  height: 16px;
+  width: 56px;
+  height: 56px;
+  padding: 6px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: #222b21;
+}
+.child-compact-observations {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 8px;
 }
 .status-shell .rpg-dock-controls {
   display: flex;
@@ -4195,6 +4298,30 @@ meter::-moz-meter-bar {
   color: #aeb8a1;
 }
 @media (max-width: 640px) {
+  .status-shell .rpg-party[data-scale="percent"][data-members="4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .family-compact-stats.is-percent {
+    gap: 4px;
+  }
+  .family-compact-stats.is-percent .status-percent-ring {
+    inline-size: 44px;
+    block-size: 44px;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    font-size: 10px;
+  }
+  .family-compact-stats.is-percent .status-percent-ring::before {
+    inset: 4px;
+  }
+  .family-compact-stats.is-percent .status-money strong {
+    min-block-size: 44px;
+    font-size: 10px;
+  }
+  .family-compact-stats.is-percent .status-percent > span:first-child,
+  .family-compact-stats.is-percent .status-money > span {
+    font-size: 9px;
+  }
   .family-member-button {
     padding: 4px 6px 6px;
     gap: 5px;
@@ -4244,7 +4371,9 @@ meter::-moz-meter-bar {
     gap: 2px;
   }
   .observation-mark.is-compact svg {
-    width: 34px;
+    width: 44px;
+    height: 44px;
+    padding: 4px;
   }
   .status-shell .rpg-dock-controls {
     gap: 0;
@@ -4272,6 +4401,21 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-width: 340px) {
+  .observation-mark.is-compact svg {
+    width: 38px;
+    height: 38px;
+    padding: 3px;
+  }
+  .family-compact-stats.is-percent .status-percent-ring {
+    inline-size: 38px;
+    block-size: 38px;
+    min-inline-size: 38px;
+    min-block-size: 38px;
+    font-size: 9px;
+  }
+  .family-compact-stats.is-percent .status-money strong {
+    min-block-size: 38px;
+  }
   .family-member-button {
     padding-inline: 4px;
   }
@@ -4285,6 +4429,14 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-height: 500px) and (min-width: 641px) {
+  .child-member .family-member-button {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .family-member-button:has(.family-compact-stats.is-percent) {
+    flex-direction: column;
+    align-items: stretch;
+  }
   .family-member-button {
     flex-direction: row;
     align-items: center;
@@ -4315,7 +4467,9 @@ meter::-moz-meter-bar {
     font-size: 9px;
   }
   .observation-mark.is-compact svg {
-    width: 30px;
+    width: 56px;
+    height: 56px;
+    padding: 6px;
   }
 }
 @media (max-width: 20rem) {
@@ -4326,6 +4480,14 @@ meter::-moz-meter-bar {
   .family-member-button {
     flex-direction: row;
     align-items: center;
+  }
+  .family-member-button:has(.family-compact-stats.is-percent) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .child-member .family-member-button {
+    flex-direction: column;
+    align-items: stretch;
   }
   .family-compact-stats,
   .child-compact-observations {

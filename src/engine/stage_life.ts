@@ -4,6 +4,7 @@ import type { Choice, Forecast, PublicState, State } from "./types";
 import { clone } from "./shared";
 import { applyStat, statLabel } from "./automatic_events";
 import { observeChild, stage } from "./simulation";
+import { percentStats } from "./stat_scale";
 import { annualIncome, meetsLifeRequirement } from "./life_requirements";
 import {
   activeStageEffects,
@@ -36,11 +37,17 @@ function conditions(s: State, requirement?: LifeRequirement) {
       label: `${label(r.decision, r.option)}の継続効果が有効`,
       met: meetsLifeRequirement(s, { policies: [r] }),
     });
-  for (const r of requirement?.stats ?? [])
+  for (const r of requirement?.stats ?? []) {
+    const familyPercent =
+      percentStats(s) &&
+      /^(parents\.[AB]\.(stress|health|fulfillment|social|regret)|decisions\.fatigue\.[AB]|couple|grandparents\.(health|relation))$/.test(
+        r.path,
+      );
     results.push({
-      label: `${statLabel(r.path, true)} ${r.value}${r.op === "gte" ? "以上" : r.op === "lt" ? "未満" : "と同じ"}`,
+      label: `${statLabel(r.path, true)} ${familyPercent ? r.value * 10 : r.value}${familyPercent ? "%" : ""}${r.op === "gte" ? "以上" : r.op === "lt" ? "未満" : "と同じ"}`,
       met: meetsLifeRequirement(s, { stats: [r] }),
     });
+  }
   if (requirement?.annual_income !== undefined)
     results.push({
       label: `年収 ${requirement.annual_income}万円以上（現在${annualIncome(s)}万円）`,
@@ -52,9 +59,20 @@ const reasonsFrom = (details: { label: string; met: boolean }[], path: string) =
   details
     .filter((d) => !d.met)
     .map((d) => ({ code: "CONDITION_REQUIRED", path, message: d.label }));
-const effectDescription = (effects: LifeOption["effects"]) =>
-  effects.map((e) => `${statLabel(e.path, true)} ${e.delta > 0 ? "+" : ""}${e.delta}`).join("、");
+const effectDescription = (s: State, effects: LifeOption["effects"]) =>
+  effects
+    .map((e) => {
+      const familyPercent =
+        percentStats(s) &&
+        /^(parents\.[AB]\.(stress|health|fulfillment|social|regret)|decisions\.fatigue\.[AB]|couple|grandparents\.(health|relation))$/.test(
+          e.path,
+        );
+      const delta = familyPercent ? e.delta * 5 : e.delta;
+      return `${statLabel(e.path, true)} ${delta > 0 ? "+" : ""}${delta}${familyPercent ? "%" : e.path.startsWith("child.ability.") ? "点" : ""}`;
+    })
+    .join("、");
 function effectDetails(
+  s: State,
   option: LifeOption,
 ): NonNullable<Choice["options"][number]["effect_details"]> {
   const details: NonNullable<Choice["options"][number]["effect_details"]> = [
@@ -63,7 +81,11 @@ function effectDetails(
       description: [
         `支出 ${option.cost}万円`,
         ...(option.income ? [`入金 ${option.income}万円`] : []),
-        effectDescription(option.effects),
+        effectDescription(s, option.effects),
+        ...(percentStats(s) &&
+        option.effects.some((item) => item.path.startsWith("child.ability.") && item.delta > 0)
+          ? ["父母の経験に応じて子どもの能力が追加で伸びる"]
+          : []),
         ...(option.skill
           ? [`${option.skill.parent === "A" ? "父" : "母"}の支援能力に応じた成長`]
           : []),
@@ -79,7 +101,7 @@ function effectDetails(
       duration,
       description: [
         `毎期の支出 ${effect.cost}万円・入金 ${effect.income}万円`,
-        effectDescription(effect.effects),
+        effectDescription(s, effect.effects),
         ...(effect.event_modifiers ?? []).map(
           (m) =>
             `${m.label}：${m.kind === "good" ? "良い" : "悪い"}イベント効果 ${m.percent > 0 ? "+" : ""}${m.percent}%`,
@@ -181,7 +203,7 @@ export function stageChoices(s: State): Choice[] {
           cost,
           income: 0,
           description: changed
-            ? `ルート変更：${cost}万円 ／ ${effectDescription(group.switch_effects!)}。確定後は次の岐路まで変更できません。`
+            ? `ルート変更：${cost}万円 ／ ${effectDescription(s, group.switch_effects!)}。確定後は次の岐路まで変更できません。`
             : `${previous ? "同じルートを継続" : "初回のルート選択"}：無料。確定後は次の岐路まで変更できません。`,
           requirements: details.map((d) => `${d.met ? "✓" : "未達"} ${d.label}`),
           acquired: current === route.id,
@@ -259,7 +281,7 @@ export function stageChoices(s: State): Choice[] {
             description: option.description,
             visual: contentFor(s).visuals[option.visual ?? "hero"],
             routes: option.routes,
-            effect_details: effectDetails(option),
+            effect_details: effectDetails(s, option),
             acquired,
             requirements: details.map((d) => `${d.met ? "✓" : "未達"} ${d.label}`),
             available: details.every((d) => d.met),
@@ -286,6 +308,7 @@ export function stageView(s: State): NonNullable<PublicState["life"]> {
     stages: Array.from({ length: 5 }, (_, i) => ({ index: i, label: stageLabel(i) })),
     annual_income: annualIncome(s),
     study_score: s.child.ability.study,
+    ...(percentStats(s) ? { craft_score: s.child.ability.craft } : {}),
     active_effects: active.flatMap(({ effect, source, duration }) =>
       (effect.event_modifiers ?? []).map((m) => ({
         ...m,
@@ -337,10 +360,49 @@ export function stageView(s: State): NonNullable<PublicState["life"]> {
     })),
   };
 }
-function applyEffects(s: State, effects: LifeOption["effects"], lines: string[]) {
+const skillForGroup = (group: string) =>
+  group === "work"
+    ? "planning"
+    : group === "school" || group === "afterschool"
+      ? "learning"
+      : "dialogue";
+function applyEffects(s: State, effects: LifeOption["effects"], lines: string[], group?: string) {
   for (const effect of effects) {
-    const { previous, current } = applyStat(s, effect);
+    const isAbilityGain = effect.path.startsWith("child.ability.") && effect.delta > 0;
+    const bonus =
+      percentStats(s) && group && isAbilityGain
+        ? Math.floor(
+            (s.decisions!.skills.A[skillForGroup(group)] +
+              s.decisions!.skills.B[skillForGroup(group)]) /
+              50,
+          )
+        : 0;
+    const { previous, current } = applyStat(s, { ...effect, delta: effect.delta + bonus });
     if (previous !== current) lines.push(`${statLabel(effect.path, true)} ${previous}→${current}`);
+  }
+}
+function practiceSkill(
+  s: State,
+  group: string | undefined,
+  effects: LifeOption["effects"],
+  lines: string[],
+) {
+  if (!percentStats(s) || !group) return;
+  const skill = skillForGroup(group);
+  const affected = (["A", "B"] as const).filter((parent) =>
+    effects.some(
+      (effect) => effect.path.includes(`.${parent}.`) || effect.path.endsWith(`.${parent}`),
+    ),
+  );
+  const parents = affected.length ? affected : (["A", "B"] as const);
+  for (const parent of parents) {
+    const previous = s.decisions!.skills[parent][skill];
+    const current = Math.min(100, previous + (affected.length ? 2 : 1));
+    s.decisions!.skills[parent][skill] = current;
+    if (current !== previous)
+      lines.push(
+        `${parent === "A" ? "父" : "母"}の${{ dialogue: "対話", planning: "段取り", learning: "学びの支援" }[skill]} ${previous}→${current}点`,
+      );
   }
 }
 export function chooseStageLife(s: State, eventInstance: string, optionId: string) {
@@ -361,7 +423,8 @@ export function chooseStageLife(s: State, eventInstance: string, optionId: strin
   } else {
     const node = config(s).decisions.find((n) => n.id === choice.event_id)!;
     const item = node.options.find((o) => key(node, o) === optionId)!;
-    applyEffects(s, item.effects, lines);
+    applyEffects(s, item.effects, lines, node.route_group);
+    practiceSkill(s, node.route_group, item.effects, lines);
     if (item.skill) {
       const { parent, ability, target, gain } = item.skill;
       applyEffects(

@@ -7,7 +7,13 @@ import { StatusDetail } from "./status_detail";
 import { ChildStatus } from "./child_status";
 import { FamilyPortrait, StatMeter, type PortraitKind } from "./status_visual";
 
-type Stat = { label: string; value: number | string; max?: number; burden?: boolean };
+type Stat = {
+  label: string;
+  value: number | string;
+  max?: number;
+  burden?: boolean;
+  kind?: "percent" | "score";
+};
 type Member = {
   id: string;
   name: string;
@@ -27,18 +33,32 @@ function MemberStats({ member }: { member: Member }) {
             {stat.burden && <small>高いほど負担</small>}
           </dt>
           <dd>
-            {stat.max !== undefined && typeof stat.value === "number" && (
+            {stat.kind === "percent" && typeof stat.value === "number" ? (
+              <StatMeter
+                label={stat.label}
+                value={stat.value}
+                max={100}
+                burden={stat.burden}
+                percent
+              />
+            ) : stat.max !== undefined && typeof stat.value === "number" ? (
               <meter
                 min={0}
                 max={stat.max}
                 value={stat.value}
                 aria-label={`${member.name}の${stat.label}`}
               />
+            ) : null}
+            {stat.kind !== "percent" && (
+              <strong>
+                {stat.value}
+                {stat.kind === "score" ? (
+                  "点"
+                ) : stat.max !== undefined ? (
+                  <small> / {stat.max}</small>
+                ) : null}
+              </strong>
             )}
-            <strong>
-              {stat.value}
-              {stat.max !== undefined && <small> / {stat.max}</small>}
-            </strong>
           </dd>
         </div>
       ))}
@@ -48,6 +68,7 @@ function MemberStats({ member }: { member: Member }) {
 
 export function PartyStatus({ state }: { state: PublicState }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const percent = state.versions.rules === "rules-14";
   const max = [
     "rules-4",
     "rules-5",
@@ -65,9 +86,30 @@ export function PartyStatus({ state }: { state: PublicState }) {
   const turn = state.decision_turn;
   const members: Member[] = PEOPLE.map((id) => {
     const compact: Stat[] = [
-      { label: "健康", value: state.parents[id].health, max },
-      ...(turn ? [{ label: "疲労", value: turn.fatigue[id], max, burden: true }] : []),
-      { label: "ストレス", value: state.parents[id].stress, max, burden: true },
+      {
+        label: "健康",
+        value: state.parents[id].health,
+        max,
+        kind: percent ? ("percent" as const) : undefined,
+      },
+      ...(turn
+        ? [
+            {
+              label: "疲労",
+              value: turn.fatigue[id],
+              max,
+              burden: true,
+              kind: percent ? ("percent" as const) : undefined,
+            },
+          ]
+        : []),
+      {
+        label: "ストレス",
+        value: state.parents[id].stress,
+        max,
+        burden: true,
+        kind: percent ? ("percent" as const) : undefined,
+      },
     ];
     return {
       id,
@@ -82,18 +124,34 @@ export function PartyStatus({ state }: { state: PublicState }) {
           value: state.parents[id][key],
           max,
           burden: key === "regret",
+          kind: percent ? ("percent" as const) : undefined,
         })),
         ...(turn
           ? [
-              { label: "対話", value: turn.skills[id].dialogue, max },
-              { label: "段取り", value: turn.skills[id].planning, max },
-              { label: "学びの支援", value: turn.skills[id].learning, max },
+              {
+                label: "対話",
+                value: turn.skills[id].dialogue,
+                max,
+                kind: percent ? ("score" as const) : undefined,
+              },
+              {
+                label: "段取り",
+                value: turn.skills[id].planning,
+                max,
+                kind: percent ? ("score" as const) : undefined,
+              },
+              {
+                label: "学びの支援",
+                value: turn.skills[id].learning,
+                max,
+                kind: percent ? ("score" as const) : undefined,
+              },
             ]
           : []),
       ],
     };
   });
-  for (const id of ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(
+  for (const id of ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(
     state.versions.rules,
   )
     ? (["home"] as const)
@@ -101,8 +159,8 @@ export function PartyStatus({ state }: { state: PublicState }) {
     const member =
       id === "home" ? state.grandparents : (state.grandparents.members?.[id] ?? state.grandparents);
     const compact: Stat[] = [
-      { label: "体力", value: member.health, max },
-      { label: "関係", value: member.relation, max },
+      { label: "体力", value: member.health, max, kind: percent ? "percent" : undefined },
+      { label: "関係", value: member.relation, max, kind: percent ? "percent" : undefined },
       { label: "援助資金", value: `${member.funds}万円` },
     ];
     members.push({
@@ -116,7 +174,12 @@ export function PartyStatus({ state }: { state: PublicState }) {
   }
   const detail = members.find((member) => member.id === selected);
   return (
-    <section className="rpg-party" aria-label="家族のステータス" data-members={members.length + 1}>
+    <section
+      className="rpg-party"
+      aria-label="家族のステータス"
+      data-members={members.length + 1}
+      data-scale={percent ? "percent" : undefined}
+    >
       <ChildStatus state={state} />
       {members.map((member) => (
         <section className="party-member" key={member.id} aria-label={`${member.name}のステータス`}>
@@ -136,7 +199,7 @@ export function PartyStatus({ state }: { state: PublicState }) {
                 ↗
               </span>
             </span>
-            <span className="family-compact-stats">
+            <span className={`family-compact-stats${percent ? " is-percent" : ""}`}>
               {member.compact.map((stat) =>
                 stat.max !== undefined && typeof stat.value === "number" ? (
                   <StatMeter
@@ -145,6 +208,7 @@ export function PartyStatus({ state }: { state: PublicState }) {
                     value={stat.value}
                     max={stat.max}
                     burden={stat.burden}
+                    percent={stat.kind === "percent"}
                   />
                 ) : (
                   <span className="status-money" key={stat.label}>

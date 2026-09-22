@@ -6,6 +6,7 @@ import { contentFor } from "../content/catalog";
 import { clone } from "./shared";
 import { matches } from "./events";
 import { draw, observeChild } from "./simulation";
+import { percentStats } from "./stat_scale";
 import { activeTreeEffects, modifiedDelta, treeEnabled } from "./tree_effects";
 
 export const automaticEventsEnabled = (state: State) =>
@@ -18,6 +19,7 @@ export const automaticEventsEnabled = (state: State) =>
     "rules-11",
     "rules-12",
     "rules-13",
+    "rules-14",
   ].includes(state.versions.rules);
 export function applyAutomaticEvents(state: State): History | null {
   const turn = state.n + 1;
@@ -172,7 +174,12 @@ export function applyStat(state: State, effect: AutomaticEvent["effects"][number
   if (state.grandparents.members && /^grandparents\.(health|relation|funds)$/.test(effect.path)) {
     const field = effect.path.split(".")[1] as "health" | "relation" | "funds";
     const previous = state.grandparents[field];
-    applyGrandparentDelta(state.grandparents, field, effect.delta, 10);
+    applyGrandparentDelta(
+      state.grandparents,
+      field,
+      percentStats(state) && field !== "funds" ? effect.delta * 5 : effect.delta,
+      percentStats(state) ? 100 : 10,
+    );
     return { previous, current: state.grandparents[field] };
   }
   const keys = effect.path.split(".");
@@ -185,8 +192,15 @@ export function applyStat(state: State, effect: AutomaticEvent["effects"][number
       ? 99999
       : effect.path.startsWith("child.")
         ? 100
-        : 10;
-  const current = Math.max(0, Math.min(max, previous + effect.delta));
+        : percentStats(state)
+          ? 100
+          : 10;
+  const familyCondition =
+    /^(parents\.[AB]\.(stress|health|fulfillment|social|regret)|decisions\.fatigue\.[AB]|couple|grandparents\.(health|relation))$/.test(
+      effect.path,
+    );
+  const delta = percentStats(state) && familyCondition ? effect.delta * 5 : effect.delta;
+  const current = Math.max(0, Math.min(max, previous + delta));
   object[key] = current;
   syncGrandparents(state.grandparents);
   return { previous, current };

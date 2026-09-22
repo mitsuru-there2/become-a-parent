@@ -29,6 +29,7 @@ import {
   scaleParents,
   legacyEquivalent,
   parentFields,
+  percentStats,
 } from "./stat_scale";
 
 const names = { A: "父", B: "母", both: "父母" };
@@ -59,7 +60,7 @@ export function startDecisions(
   settings: Settings,
   rules = settings.content.life_game
     ? settings.content.life_game.stage_model
-      ? "rules-13"
+      ? "rules-14"
       : settings.content.life_game.crossroads?.length
         ? "rules-12"
         : settings.content.life_game.selection_tree
@@ -77,36 +78,42 @@ export function startDecisions(
 ): State {
   const state = start(scenario, seed, settings);
   state.versions =
-    rules === "rules-13"
-      ? {
-          rules,
-          data: settings.content.life_game?.judgment_catalog ? "data-14" : "data-13",
-          save: "save-14",
-        }
-      : rules === "rules-12"
-        ? { rules, data: "data-12", save: "save-13" }
-        : rules === "rules-11"
-          ? { rules, data: "data-11", save: "save-12" }
-          : rules === "rules-10"
-            ? { rules, data: "data-10", save: "save-11" }
-            : rules === "rules-9"
-              ? { rules, data: "data-9", save: "save-10" }
-              : rules === "rules-8"
-                ? { rules, data: "data-8", save: "save-9" }
-                : rules === "rules-3"
-                  ? { rules, data: "data-3", save: "save-4" }
-                  : rules === "rules-4"
-                    ? { rules, data: "data-4", save: "save-5" }
-                    : rules === "rules-5"
-                      ? { rules, data: "data-5", save: "save-6" }
-                      : rules === "rules-6"
-                        ? { rules, data: "data-6", save: "save-7" }
-                        : { rules, data: "data-7", save: "save-8" };
+    rules === "rules-14"
+      ? { rules, data: "data-15", save: "save-15" }
+      : rules === "rules-13"
+        ? {
+            rules,
+            data: settings.content.life_game?.judgment_catalog ? "data-14" : "data-13",
+            save: "save-14",
+          }
+        : rules === "rules-12"
+          ? { rules, data: "data-12", save: "save-13" }
+          : rules === "rules-11"
+            ? { rules, data: "data-11", save: "save-12" }
+            : rules === "rules-10"
+              ? { rules, data: "data-10", save: "save-11" }
+              : rules === "rules-9"
+                ? { rules, data: "data-9", save: "save-10" }
+                : rules === "rules-8"
+                  ? { rules, data: "data-8", save: "save-9" }
+                  : rules === "rules-3"
+                    ? { rules, data: "data-3", save: "save-4" }
+                    : rules === "rules-4"
+                      ? { rules, data: "data-4", save: "save-5" }
+                      : rules === "rules-5"
+                        ? { rules, data: "data-5", save: "save-6" }
+                        : rules === "rules-6"
+                          ? { rules, data: "data-6", save: "save-7" }
+                          : { rules, data: "data-7", save: "save-8" };
   if (tenPoint(state)) scaleParents(state, 0.1);
   if (automaticEventsEnabled(state))
     state.grandparents.funds = game(state).initial_grandparent_funds ?? 40;
-  if (["rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(rules)) {
+  if (["rules-9", "rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(rules)) {
     state.grandparents = clone(settings.content.life_game!.initial_family_home!);
+    if (percentStats(state)) {
+      state.grandparents.health *= 10;
+      state.grandparents.relation *= 10;
+    }
   } else if (["rules-7", "rules-8"].includes(rules)) {
     state.grandparents.members = clone(
       rules === "rules-8"
@@ -134,6 +141,10 @@ export function startDecisions(
     crisis: { divorce: 0, separation: 0 },
     event_history: null,
   };
+  if (percentStats(state)) {
+    state.child.ability = { study: 0, craft: 0 };
+    for (const p of PEOPLE) state.decisions.skills[p] = { dialogue: 0, planning: 0, learning: 0 };
+  }
   if (tenPoint(state)) {
     for (const p of PEOPLE) {
       for (const key of ["dialogue", "planning", "learning"] as const)
@@ -141,7 +152,11 @@ export function startDecisions(
       state.decisions.fatigue[p] = 3;
     }
   }
-  if (["rules-8", "rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(rules))
+  if (
+    ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(
+      rules,
+    )
+  )
     initializeLife(state);
   openDecisionTurn(state);
   return state;

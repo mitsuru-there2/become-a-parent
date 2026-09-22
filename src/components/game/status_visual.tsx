@@ -1,6 +1,8 @@
 import type { Observation } from "../../engine/types";
 
 export type PortraitKind = "child" | "father" | "mother" | "home";
+const relationshipHeart = "M24 37C19 33 9 26 9 18a8 8 0 0 1 15-3 8 8 0 0 1 15 3c0 8-10 15-15 19Z";
+const halfRelationshipHeart = "M24 37C19 33 9 26 9 18a8 8 0 0 1 15-3v22Z";
 export function FamilyPortrait({
   kind,
   ageMonths = 0,
@@ -32,51 +34,62 @@ export function ObservationMark({
 }) {
   const band = observation?.band;
   const energy = observation?.code === "energy";
+  const relationship = observation?.code.startsWith("relationship.");
+  const relationshipState =
+    relationship && band ? { low: "嫌い", middle: "普通", high: "好き" }[band] : null;
   return (
     <span
       className={`observation-mark${compact ? " is-compact" : ""}`}
       data-band={band}
       data-energy={energy || undefined}
+      data-relationship={relationship || undefined}
       role="img"
-      aria-label={`${label}：${observation?.short_text ?? observation?.text ?? "まだ様子がわかりません"}`}
+      aria-label={`${label}：${relationshipState ? `${relationshipState}。` : ""}${observation?.short_text ?? observation?.text ?? "まだ様子がわかりません"}`}
     >
       <span className="observation-label" aria-hidden="true">
         {compact ? label.replace("との関係", "") : label}
       </span>
-      <svg viewBox="0 0 54 20" fill="none" aria-hidden="true">
-        {energy ? (
+      <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        {energy && band ? (
           <>
-            <circle cx="27" cy="10" r="8" />
-            <path d="M24 7v1m6-1v1" />
+            <circle cx="24" cy="24" r="16" />
+            <path d="M18 20v2m12-2v2" />
             <path
               d={
                 band === "high"
-                  ? "M23 14q4-5 8 0"
+                  ? "M17 32q7-8 14 0"
                   : band === "middle"
-                    ? "M24 13h6"
-                    : "M23 12q4 5 8 0"
+                    ? "M18 30h12"
+                    : "M17 29q7 9 14 0"
               }
             />
           </>
-        ) : (
+        ) : relationship && band ? (
           <>
+            {band === "middle" && (
+              <path className="relationship-heart-half" d={halfRelationshipHeart} />
+            )}
             <path
-              className="relation-line"
-              d="M10 10h34"
-              strokeDasharray={band === "high" ? undefined : "2 4"}
+              className={`relationship-heart${band === "high" ? " is-filled" : ""}`}
+              d={relationshipHeart}
             />
-            {["low", "middle", "high"].map((step, index) => (
+          </>
+        ) : band ? (
+          <>
+            <path d="M8 24h32" strokeDasharray={band === "high" ? undefined : "2 4"} />
+            {(["low", "middle", "high"] as const).map((step, index) => (
               <circle
                 key={step}
-                cx={10 + index * 17}
-                cy="10"
+                cx={10 + index * 14}
+                cy="24"
                 r={band === step ? 5 : 3}
                 className={band === step ? "is-current" : ""}
               />
             ))}
           </>
+        ) : (
+          <path className="unknown-mark" d="M19 17a6 6 0 1 1 8 6c-3 2-3 3-3 5m0 5v1" />
         )}
-        {!band && <path className="unknown-mark" d="M24 6q0-4 5-2c4 3-2 4-2 7m0 4v.1" />}
       </svg>
     </span>
   );
@@ -87,12 +100,28 @@ export function StatMeter({
   value,
   max,
   burden = false,
+  percent = false,
 }: {
   label: string;
   value: number;
   max: number;
   burden?: boolean;
+  percent?: boolean;
 }) {
+  if (percent)
+    return (
+      <span className="status-meter status-percent" data-burden={burden || undefined}>
+        <span>{label}</span>
+        <span
+          className="status-percent-ring"
+          role="img"
+          aria-label={`${label} ${value}%${burden ? "、高いほど負担" : ""}`}
+          style={{ background: `conic-gradient(var(--ring-color, #acc2a3) ${value}%, #343e32 0)` }}
+        >
+          <span>{value}%</span>
+        </span>
+      </span>
+    );
   return (
     <span className="status-meter" data-burden={burden || undefined}>
       <span>{label}</span>

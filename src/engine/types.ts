@@ -216,6 +216,7 @@ export interface PublicState {
     selection_tree?: boolean;
     annual_income?: number;
     study_score?: number;
+    craft_score?: number;
     active_effects?: { source: string; label: string; kind: "good" | "bad"; percent: number }[];
     route_groups?: {
       id: string;

@@ -94,6 +94,15 @@ export interface Repository {
 }
 export const SCENARIOS = catalog.list().scenarios;
 export const digest = (state: State) => hash(canonical(state));
+const validSavedGrandparent = (value: State["grandparents"], percent: boolean) =>
+  v.is(grandparentSchema, percent ? { ...value, health: 0, relation: 0 } : value) &&
+  (!percent ||
+    (Number.isInteger(value.health) &&
+      value.health >= 0 &&
+      value.health <= 100 &&
+      Number.isInteger(value.relation) &&
+      value.relation >= 0 &&
+      value.relation <= 100));
 export function validateRun(run: Run) {
   if (!run || typeof run !== "object" || !run.state || typeof run.state !== "object")
     throw new Failure("CORRUPT_SAVE", "保存を読み込めません。");
@@ -116,7 +125,8 @@ export function validateRun(run: Run) {
     (version?.save === "save-14" &&
       version.rules === "rules-13" &&
       version.data ===
-        (run.state.settings?.content?.life_game?.judgment_catalog ? "data-14" : "data-13"));
+        (run.state.settings?.content?.life_game?.judgment_catalog ? "data-14" : "data-13")) ||
+    (version?.save === "save-15" && version.rules === "rules-14" && version.data === "data-15");
   if (!legacy && !current && !decisions)
     throw new Failure("VERSION_MISMATCH", "このバージョンの保存データには対応していません。");
   try {
@@ -136,32 +146,34 @@ export function validateRun(run: Run) {
         if (canonical(expected) !== canonical(group)) throw new Error("祖父母の集計が一致しません");
       }
       if (
-        ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(
+        ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(
           version.rules,
         ) &&
         (!run.state.life || !run.state.settings!.content.life_game)
       )
         throw new Error("生活メニューの状態がありません");
       if (
-        ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(
+        ["rules-8", "rules-9", "rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(
           version.rules,
         )
       )
         validateLifeState(run.state);
       if (
-        ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13"].includes(version.rules) &&
-        (!v.is(grandparentSchema, run.state.grandparents) ||
+        ["rules-9", "rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(
+          version.rules,
+        ) &&
+        (!validSavedGrandparent(run.state.grandparents, version.rules === "rules-14") ||
           !run.state.settings!.content.life_game?.selection_tree ||
           !run.state.settings!.content.life_game?.initial_family_home)
       )
         throw new Error("実家の状態が不正です");
       if (
-        ["rules-10", "rules-11", "rules-12", "rules-13"].includes(version.rules) &&
+        ["rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(version.rules) &&
         !run.state.settings!.content.life_game?.route_groups?.length
       )
         throw new Error("長期ルートの設定がありません");
       if (
-        ["rules-11", "rules-12", "rules-13"].includes(version.rules) &&
+        ["rules-11", "rules-12", "rules-13", "rules-14"].includes(version.rules) &&
         run.state.settings!.content.life_game?.route_groups?.length !== 5
       )
         throw new Error("5分類のルート設定がありません");
@@ -184,6 +196,7 @@ export function validateRun(run: Run) {
           "rules-11",
           "rules-12",
           "rules-13",
+          "rules-14",
         ].includes(version.rules) &&
         !run.state.settings!.content.automatic_events
       )
@@ -564,6 +577,7 @@ export function importRun(text: string): Run {
         "parent-save-12",
         "parent-save-13",
         "parent-save-14",
+        "parent-save-15",
       ].includes(parsed.format)
     )
       throw new Failure("VERSION_MISMATCH", "対応していない書き出し形式です。");
