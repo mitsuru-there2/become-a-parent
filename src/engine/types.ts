@@ -33,6 +33,23 @@ export interface Child {
   ability: Record<Domain, number>;
   aptitude: Record<Domain, number>;
   adaptation: number;
+  /** Private progression. Never spread this object into PublicState. */
+  profile?: {
+    music: number;
+    sports: number;
+    making: number;
+    games: number;
+    research: number;
+    writing: number;
+    introversion: number;
+    sociability: number;
+    leadership: number;
+    responsibility: number;
+    avoidance: number;
+    perseverance: number;
+  };
+  titles?: string[];
+  latest_titles?: string[];
 }
 export interface Observation {
   /** Existing observation bucket, attached only to public responses. Never a raw child value. */
@@ -209,6 +226,11 @@ export interface State extends NumericState {
   result: Result | null;
 }
 export interface PublicState {
+  child_identity?: {
+    titles: { id: string; label: string }[];
+    latest_titles: { id: string; label: string }[];
+    feature: { id: string; label: string };
+  };
   life?: {
     stage_model?: boolean;
     stage?: { index: number; label: string; start_age_months: number; end_age_months: number };

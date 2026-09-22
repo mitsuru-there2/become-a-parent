@@ -1,5 +1,6 @@
 import { LifeMenus } from "./life_menus";
 import { EventDialogs } from "./event_dialogs";
+import { ChildTitleCelebration } from "./child_title_celebration";
 import { CashForecast } from "./cash_forecast";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -195,6 +196,11 @@ export function DecisionPlay({ response }: { response: Response }) {
     <div
       className={`rpg-shell status-shell${life ? " life-shell" : ""}${state.life?.selection_tree ? " tree-shell" : ""}`}
     >
+      <ChildTitleCelebration
+        runId={response.run_id}
+        revision={response.revision}
+        titles={state.child_identity?.latest_titles ?? []}
+      />
       <header className="rpg-header" inert={showingResult}>
         <Link to="/" className="brand">
           親伝説 <span>BECOME A PARENT</span>
@@ -213,9 +219,15 @@ export function DecisionPlay({ response }: { response: Response }) {
               {Math.floor(state.time.child_months / 12)}
               <small>歳{state.time.child_months % 12 ? "6か月" : ""}</small>
             </strong>
-            <span>
-              {state.time.season} · {state.time.school_label}
-            </span>
+            <div className="rpg-age-info">
+              <span className="rpg-age-season">
+                {state.time.season} · {state.time.school_label}
+              </span>
+              <span className="rpg-age-scene">
+                <span className="rpg-age-turn">第 {state.time.next_turn} 期 / 40</span>
+                <span className="rpg-age-scene-title">{state.scene?.title}</span>
+              </span>
+            </div>
           </div>
           <div
             className={`rpg-hud-right${life && !ended && projection ? " has-money-summary" : ""}`}
@@ -248,10 +260,6 @@ export function DecisionPlay({ response }: { response: Response }) {
               <img src={familyRoom} alt="" fetchPriority="high" />
             </div>
           )}
-          <div className="rpg-caption">
-            <span>第 {state.time.next_turn} 期 / 40</span>
-            <p>{state.scene?.title}</p>
-          </div>
           <section className="rpg-window" aria-label="家族の物語">
             {error && (
               <p role="alert" className="error">

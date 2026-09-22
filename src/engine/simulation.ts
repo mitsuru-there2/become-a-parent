@@ -1,4 +1,5 @@
 import { applyGrandparentDelta } from "./grandparents";
+import { publicChildIdentity } from "./child_identity";
 import { decisionView, decisionForecast, advanceDecisions } from "./decisions";
 import type {
   State,
@@ -399,6 +400,7 @@ export function publicView(state: State): { public: PublicState; choices: Choice
   const scene = content.scenes[lifeStage.id];
   const summaries = observeChild(state, true);
   const publicState: PublicState = {
+    ...(state.child.profile ? { child_identity: publicChildIdentity(state.child) } : {}),
     content: {
       difficulty: state.settings?.difficulty ?? "normal",
       difficulty_label: difficultyFor(state).label,

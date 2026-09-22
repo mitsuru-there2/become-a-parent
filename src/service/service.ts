@@ -1,4 +1,5 @@
 import { publicHistory, publicStateHistory } from "../engine/public_history";
+import { validChildIdentity } from "../engine/child_identity";
 import { stageModel } from "../engine/stage_state";
 import { validateLifeState } from "../engine/life_save";
 import * as v from "valibot";
@@ -184,6 +185,12 @@ export function validateRun(run: Run) {
         throw new Error("岐路の設定がありません");
       if (stageModel(run.state) && !run.state.settings!.content.life_game?.stage_model)
         throw new Error("ステージ設定がありません");
+      if (
+        version.rules === "rules-14" &&
+        run.state.settings!.content.life_game?.child_identity &&
+        !validChildIdentity(run.state.child)
+      )
+        throw new Error("子どもの隠し特性が不正です");
       if (decisions && (!run.state.settings!.content.decision_game || !run.state.decisions))
         throw new Error("選択ゲームの状態がありません");
       if (

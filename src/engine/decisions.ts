@@ -19,6 +19,7 @@ import { PEOPLE, clampStat, clone } from "./shared";
 import { start, draw, stage, observeChild, publicView, applyEffect } from "./simulation";
 import { finish } from "./adult";
 import { matches } from "./events";
+import { initializeChildIdentity } from "./child_identity";
 
 import {
   tenPoint,
@@ -143,6 +144,7 @@ export function startDecisions(
   };
   if (percentStats(state)) {
     state.child.ability = { study: 0, craft: 0 };
+    if (settings.content.life_game?.child_identity) initializeChildIdentity(state);
     for (const p of PEOPLE) state.decisions.skills[p] = { dialogue: 0, planning: 0, learning: 0 };
   }
   if (tenPoint(state)) {
@@ -703,6 +705,7 @@ export function advanceDecisions(state: State) {
     throw new Error(
       state.life ? "今期の予定と資金を確認してください" : "3件すべての回答と資金を確認してください",
     );
+  if (state.child.profile) state.child.latest_titles = [];
   const cash = state.cash;
   const previousStress = state.child.stress;
   state.cash = Math.min(99999, f.projected_cash);

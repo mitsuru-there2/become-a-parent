@@ -1,5 +1,6 @@
 import * as v from "valibot";
 import { integer } from "../validation/primitives";
+import { hiddenTraits } from "./child_traits";
 // 明示した数値だけを読み書きし、任意の状態パスは受け付けない。
 export const eventStatPaths = [
   "cash",
@@ -12,6 +13,7 @@ export const eventStatPaths = [
   "child.interest.craft",
   "child.ability.study",
   "child.ability.craft",
+  ...hiddenTraits.map((trait) => `child.profile.${trait}`),
   "parents.A.stress",
   "parents.A.health",
   "parents.A.fulfillment",

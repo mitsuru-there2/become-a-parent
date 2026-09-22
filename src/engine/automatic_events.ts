@@ -8,6 +8,7 @@ import { matches } from "./events";
 import { draw, observeChild } from "./simulation";
 import { percentStats } from "./stat_scale";
 import { activeTreeEffects, modifiedDelta, treeEnabled } from "./tree_effects";
+import { awardChildTitles } from "./child_identity";
 
 export const automaticEventsEnabled = (state: State) =>
   [
@@ -102,6 +103,8 @@ export function applyAutomaticEvents(state: State): History | null {
           income += effect.delta;
           overflow += effect.delta - (current - previous);
         } else expense += previous - current;
+      } else if (effect.path.startsWith("child.profile.")) {
+        // Hidden changes are deliberately absent from event text and public history.
       } else if (!effect.path.startsWith("child.")) {
         const label = statLabel(effect.path, treeEnabled(state));
         if (current !== previous) {
@@ -171,6 +174,8 @@ function formatChange(label: string, previous: number, current: number, money = 
   return `${label} ${previous}${unit}→${current}${unit}（${current > previous ? "+" : ""}${current - previous}${unit}）`;
 }
 export function applyStat(state: State, effect: AutomaticEvent["effects"][number]) {
+  if (effect.path.startsWith("child.profile.") && !state.child.profile)
+    return { previous: 0, current: 0 };
   if (state.grandparents.members && /^grandparents\.(health|relation|funds)$/.test(effect.path)) {
     const field = effect.path.split(".")[1] as "health" | "relation" | "funds";
     const previous = state.grandparents[field];
@@ -202,6 +207,7 @@ export function applyStat(state: State, effect: AutomaticEvent["effects"][number
   const delta = percentStats(state) && familyCondition ? effect.delta * 5 : effect.delta;
   const current = Math.max(0, Math.min(max, previous + delta));
   object[key] = current;
+  if (effect.path.startsWith("child.profile.")) awardChildTitles(state);
   syncGrandparents(state.grandparents);
   return { previous, current };
 }

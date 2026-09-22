@@ -4,10 +4,12 @@ import { createElement, type ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeAll, afterAll, expect, it, vi } from "vite-plus/test";
 import { ChildStatus } from "../src/components/game/child_status";
+import { ChildTitleCelebration } from "../src/components/game/child_title_celebration";
 import { ObservationMark } from "../src/components/game/status_visual";
 import { PartyStatus } from "../src/components/game/party_status";
 import { publicView, start } from "../src/engine/simulation";
 import { chooseDecision } from "../src/engine/decisions";
+import { awardChildTitles } from "../src/engine/child_identity";
 import { StageSelectionTree } from "../src/components/game/stage_selection_tree";
 import { chooseStage, satisfyStage, startStage, until } from "./fixtures/stage_helpers";
 
@@ -92,6 +94,51 @@ it("短文がない旧保存でも両親と両分野の観察本文を表示す�
     const text = state.observations.find((item) => item.code === code)!.text;
     expect(screen.getAllByText(text).length).toBeGreaterThan(0);
   }
+});
+
+it("子どもの代表状態と獲得済み称号を仮画像とともに表示する", async () => {
+  const { Catalog } = await import("../src/content/catalog");
+  const { startDecisions } = await import("../src/engine/decisions");
+  const state = startDecisions("home-01", 0, new Catalog().resolve("normal"));
+  state.child.profile!.music = 45;
+  awardChildTitles(state);
+  const { rerender } = render(createElement(ChildStatus, { state: publicView(state).public }));
+  expect(screen.getByRole("button", { name: "子どもの詳細を開く" }).textContent).toContain(
+    "音楽家",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "子どもの詳細を開く" }));
+  const dialog = screen.getByRole("dialog", { name: "子どもの様子" });
+  expect(within(dialog).getByRole("img", { name: "音楽家の仮画像" })).toBeTruthy();
+  expect(within(dialog).getByText(/天才ピアニスト/)).toBeTruthy();
+  state.child.profile!.making = 50;
+  awardChildTitles(state);
+  rerender(createElement(ChildStatus, { state: publicView(state).public }));
+  expect(within(dialog).getByRole("img", { name: "発明家の仮画像" })).toBeTruthy();
+  expect(within(dialog).getByText(/天才ピアニスト/)).toBeTruthy();
+  expect(within(dialog).getByText(/小さな発明家/)).toBeTruthy();
+});
+
+it("新称号を目立つ通知で祝い、閉じた後の新しい獲得は再表示する", () => {
+  const first = [{ id: "pianist", label: "天才ピアニスト" }];
+  const { rerender } = render(
+    createElement(ChildTitleCelebration, {
+      runId: "test",
+      revision: 1,
+      titles: first,
+    }),
+  );
+  expect(screen.getByRole("status").textContent).toContain("新しい称号を獲得！");
+  expect(screen.getByRole("status").textContent).toContain("天才ピアニスト");
+  fireEvent.click(screen.getByRole("button", { name: "称号のお祝いを閉じる" }));
+  expect(screen.queryByRole("status")).toBeNull();
+  rerender(
+    createElement(ChildTitleCelebration, {
+      runId: "test",
+      revision: 2,
+      titles: [{ id: "gamer", label: "生粋のゲーマー" }],
+    }),
+  );
+  expect(screen.getByRole("status").textContent).toContain("生粋のゲーマー");
 });
 
 it("家族4枠から詳細を開き、成績は学齢期に公開値だけを表示する", async () => {

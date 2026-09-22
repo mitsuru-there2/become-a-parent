@@ -28,6 +28,14 @@ export const ongoingLifeEffectSchema = v.strictObject({
   event_modifiers: v.optional(eventModifiersSchema),
 });
 const lifeOptionSchema = v.strictObject({
+  hidden_effects: v.optional(
+    v.array(
+      v.strictObject({
+        path: v.picklist(eventStatPaths.filter((path) => path.startsWith("child.profile."))),
+        delta: integer(-20, 20),
+      }),
+    ),
+  ),
   routes: v.optional(v.pipe(v.array(contentIdSchema), v.minLength(1))),
   stage_effect: v.optional(ongoingLifeEffectSchema),
   permanent_effect: v.optional(ongoingLifeEffectSchema),
@@ -93,6 +101,7 @@ export const lifeDecisionSchema = v.pipe(
 );
 export const lifeDecisionsSchema = v.array(lifeDecisionSchema);
 export const lifeGameSchema = v.strictObject({
+  child_identity: v.optional(v.boolean()),
   judgment_catalog: v.optional(v.literal("routes-10")),
   selection_tree: v.optional(v.boolean()),
   stage_model: v.optional(v.boolean()),

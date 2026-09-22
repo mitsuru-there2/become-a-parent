@@ -1583,10 +1583,12 @@ meter::-moz-meter-bar {
 }
 .rpg-age {
   display: flex;
-  align-items: baseline;
-  gap: 20px;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
 }
 .rpg-age > strong {
+  flex: none;
   font-size: 32px;
   line-height: 1;
 }
@@ -1594,9 +1596,35 @@ meter::-moz-meter-bar {
   font-size: 14px;
   margin-left: 4px;
 }
-.rpg-age > span {
+.rpg-age-info {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.rpg-age-season {
   font-size: 10px;
   color: #a8a79e;
+}
+.rpg-age-scene {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.rpg-age-turn {
+  flex: none;
+  font:
+    10px ui-monospace,
+    monospace;
+  color: #929289;
+  white-space: nowrap;
+}
+.rpg-age-scene-title {
+  overflow: hidden;
+  color: #c2c1b7;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .rpg-family-status,
 .rpg-cash {
@@ -1658,6 +1686,12 @@ meter::-moz-meter-bar {
   .rpg-hud-right.has-money-summary {
     grid-template-columns: 1fr;
     gap: 2px;
+  }
+}
+@media (max-width: 360px) {
+  .rpg-money-summary .rpg-money-income,
+  .rpg-money-summary .rpg-money-cost {
+    display: none;
   }
 }
 .rpg-finance-dialog {
@@ -1800,19 +1834,6 @@ meter::-moz-meter-bar {
   height: 100%;
   object-fit: contain;
   image-rendering: pixelated;
-}
-.rpg-caption {
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  font-size: 12px;
-  color: #c2c1b7;
-}
-.rpg-caption span {
-  font:
-    10px ui-monospace,
-    monospace;
-  color: #929289;
 }
 .rpg-window {
   width: min(100%, 940px);
@@ -1992,14 +2013,25 @@ meter::-moz-meter-bar {
     gap: 4px;
   }
   .rpg-age {
-    display: grid;
-    gap: 5px;
+    gap: 8px;
   }
   .rpg-age > strong {
     font-size: 27px;
   }
-  .rpg-age > span {
+  .rpg-age-info {
+    gap: 2px;
+  }
+  .rpg-age-season {
     font-size: 9px;
+  }
+  .rpg-age-scene {
+    display: grid;
+    gap: 1px;
+  }
+  .rpg-age-scene-title {
+    line-height: 1.2;
+    overflow: visible;
+    white-space: normal;
   }
   .rpg-family-status strong,
   .rpg-cash strong {
@@ -2018,14 +2050,6 @@ meter::-moz-meter-bar {
   }
   .rpg-money-more {
     font-size: 12px;
-  }
-  .rpg-caption {
-    top: 0;
-    left: 4px;
-    font-size: 10px;
-  }
-  .rpg-caption p {
-    max-width: 130px;
   }
   .rpg-window {
     max-height: 80%;
@@ -2227,9 +2251,6 @@ meter::-moz-meter-bar {
   .life-shell .rpg-scenery {
     flex-basis: 46px;
   }
-  .life-shell .rpg-caption p {
-    display: none;
-  }
   .life-content h2 {
     font-size: 17px;
   }
@@ -2279,15 +2300,6 @@ meter::-moz-meter-bar {
 /* 条件未達でも閲覧できる計画用の選択ツリー。 */
 .tree-shell .rpg-party {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.tree-shell .rpg-caption {
-  position: static;
-  padding: 3px 8px 8px;
-  display: flex;
-  gap: 16px;
-}
-.tree-shell .rpg-caption p {
-  margin: 0;
 }
 .tree-shell .rpg-window {
   width: min(100%, 1320px);
@@ -3053,11 +3065,6 @@ meter::-moz-meter-bar {
   flex: 1;
   padding: 12px;
 }
-.status-shell .rpg-caption {
-  flex-shrink: 0;
-  font-size: 10px;
-  padding: 4px 8px 6px;
-}
 .status-shell .rpg-header a,
 .status-shell .rpg-money-summary {
   min-height: 44px;
@@ -3399,10 +3406,6 @@ meter::-moz-meter-bar {
   .status-shell .rpg-window {
     margin-bottom: 6px;
   }
-  .status-shell .rpg-caption {
-    padding-block: 2px 4px;
-  }
-
   .status-shell .selection-tree-content.is-map .selection-map {
     width: min(100cqw, 78.947cqh);
     min-width: 280px;
@@ -3472,9 +3475,6 @@ meter::-moz-meter-bar {
 
   .rpg-bottom {
     gap: 2px;
-  }
-  .status-shell .rpg-caption {
-    padding-block: 1px;
   }
   .status-shell .rpg-window-body {
     padding: 4px;
@@ -4434,6 +4434,8 @@ meter::-moz-meter-bar {
   .family-member-heading {
     gap: 3px;
     flex-wrap: wrap;
+    min-height: 38px;
+    align-content: flex-start;
   }
   .family-member-heading .family-portrait {
     width: 32px;
@@ -4586,5 +4588,134 @@ meter::-moz-meter-bar {
 @media (prefers-reduced-motion: reduce) {
   .family-member-button {
     transition: none;
+  }
+}
+.child-member-heading-text,
+.child-member-name {
+  min-width: 0;
+}
+.child-member-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 6px;
+  row-gap: 1px;
+}
+.child-feature-compact {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 1px 6px;
+  border: 1px solid #d3a747;
+  border-radius: 999px;
+  color: #f5d98a;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .child-member-heading-text {
+    flex: 1 1 0;
+  }
+  .child-member-name {
+    column-gap: 3px;
+  }
+  .child-feature-compact {
+    padding-inline: 3px;
+    font-size: 9px;
+  }
+}
+@media (max-width: 340px) {
+  .child-feature-compact {
+    padding-inline: 2px;
+    font-size: 8px;
+  }
+}
+.child-feature-detail {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 320px;
+}
+.child-feature-detail img {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+}
+.child-feature-detail strong {
+  color: #f5d98a;
+  font-size: 1.2rem;
+}
+.child-title-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0;
+  list-style: none;
+}
+.child-title-list li {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid #d3a747;
+  border-radius: 6px;
+  background: #47391e;
+}
+.child-award-celebration {
+  position: fixed;
+  z-index: 120;
+  top: max(1rem, env(safe-area-inset-top));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: min(92vw, 520px);
+  padding: 0.8rem 1rem;
+  transform: translateX(-50%);
+  border: 2px solid #f5d98a;
+  border-radius: 12px;
+  background: #372915;
+  box-shadow:
+    0 10px 32px #000b,
+    0 0 28px #d3a74766;
+  color: #fff3cc;
+  animation: child-award-enter 420ms ease-out both;
+}
+.child-award-symbol {
+  font-size: 2rem;
+  color: #f5d98a;
+}
+.child-award-celebration div {
+  display: grid;
+  flex: 1;
+}
+.child-award-celebration small {
+  font-size: 0.72rem;
+}
+.child-award-celebration strong {
+  font-size: 1.1rem;
+}
+.child-award-celebration button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+@keyframes child-award-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -18px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .child-award-celebration {
+    animation: none;
   }
 }

@@ -3,6 +3,7 @@ import type { LifeDecision, LifeOption, LifeRequirement } from "../content/life_
 import type { Choice, Forecast, PublicState, State } from "./types";
 import { clone } from "./shared";
 import { applyStat, statLabel } from "./automatic_events";
+import { applyHiddenJudgment } from "./child_identity";
 import { observeChild, stage } from "./simulation";
 import { percentStats } from "./stat_scale";
 import { annualIncome, meetsLifeRequirement } from "./life_requirements";
@@ -410,6 +411,7 @@ export function chooseStageLife(s: State, eventInstance: string, optionId: strin
   const option = choice?.options.find((o) => o.option_id === optionId);
   if (!choice || !option?.available)
     throw new Error(option?.reasons[0]?.message ?? "現在の選択肢ではありません");
+  if (s.child.profile) s.child.latest_titles = [];
   const before = s.cash;
   s.cash = Math.min(99999, s.cash - option.cost + option.income);
   const lines = [
@@ -424,6 +426,7 @@ export function chooseStageLife(s: State, eventInstance: string, optionId: strin
     const node = config(s).decisions.find((n) => n.id === choice.event_id)!;
     const item = node.options.find((o) => key(node, o) === optionId)!;
     applyEffects(s, item.effects, lines, node.route_group);
+    applyHiddenJudgment(s, node, item);
     practiceSkill(s, node.route_group, item.effects, lines);
     if (item.skill) {
       const { parent, ability, target, gain } = item.skill;

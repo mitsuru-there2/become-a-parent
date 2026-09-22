@@ -70,6 +70,14 @@
           "op": "gte"
         },
         "add": 8
+      },
+      {
+        "condition": {
+          "path": "child.profile.making",
+          "value": 25,
+          "op": "gte"
+        },
+        "add": 12
       }
     ],
     "cooldown": 6,
@@ -108,6 +116,14 @@
         "condition": {
           "path": "child.ability.study",
           "value": 60,
+          "op": "gte"
+        },
+        "add": 12
+      },
+      {
+        "condition": {
+          "path": "child.profile.research",
+          "value": 25,
           "op": "gte"
         },
         "add": 12
@@ -172,6 +188,14 @@
           "op": "gte"
         },
         "add": 10
+      },
+      {
+        "condition": {
+          "path": "child.profile.sociability",
+          "value": 25,
+          "op": "gte"
+        },
+        "add": 12
       }
     ],
     "cooldown": 4,
@@ -342,6 +366,14 @@
           "op": "gte"
         },
         "add": 15
+      },
+      {
+        "condition": {
+          "path": "child.profile.avoidance",
+          "value": 25,
+          "op": "gte"
+        },
+        "add": 10
       }
     ],
     "cooldown": 3,
@@ -648,7 +680,16 @@
     "max_age_months": 137,
     "probability": 18,
     "conditions": [],
-    "modifiers": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "child.profile.making",
+          "value": 25,
+          "op": "gte"
+        },
+        "add": 12
+      }
+    ],
     "cooldown": 6,
     "once": true,
     "effects": [
@@ -1096,7 +1137,16 @@
     "max_age_months": 95,
     "probability": 18,
     "conditions": [],
-    "modifiers": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "child.profile.music",
+          "value": 25,
+          "op": "gte"
+        },
+        "add": 15
+      }
+    ],
     "cooldown": 6,
     "once": false,
     "effects": [
@@ -1222,7 +1272,16 @@
     "max_age_months": 215,
     "probability": 35,
     "conditions": [],
-    "modifiers": [],
+    "modifiers": [
+      {
+        "condition": {
+          "path": "child.profile.sports",
+          "value": 25,
+          "op": "gte"
+        },
+        "add": 15
+      }
+    ],
     "cooldown": 6,
     "once": true,
     "effects": [
@@ -1921,5 +1980,229 @@
         }
       ]
     }
+  },
+  {
+    "id": "hidden-music-encore",
+    "text": "子どもの演奏に思いがけないアンコール。緊張していた顔が、最後には誇らしげに変わった。",
+    "kind": "good",
+    "min_age_months": 72,
+    "max_age_months": 234,
+    "probability": 28,
+    "conditions": [
+      {
+        "path": "child.profile.music",
+        "op": "gte",
+        "value": 25
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 5
+      },
+      {
+        "path": "child.profile.music",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "hidden-sports-relay",
+    "text": "急な欠員でリレーに飛び入り。仲間の声に押され、最後まで走り切った。",
+    "kind": "good",
+    "min_age_months": 72,
+    "max_age_months": 234,
+    "probability": 28,
+    "conditions": [
+      {
+        "path": "child.profile.sports",
+        "op": "gte",
+        "value": 25
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.autonomy",
+        "delta": 5
+      },
+      {
+        "path": "child.profile.leadership",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "hidden-maker-repair",
+    "text": "壊れたおもちゃを自分で直した。家族は新しい発明品を見るように目を丸くした。",
+    "kind": "good",
+    "min_age_months": 48,
+    "max_age_months": 234,
+    "probability": 28,
+    "conditions": [
+      {
+        "path": "child.profile.making",
+        "op": "gte",
+        "value": 25
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.ability.craft",
+        "delta": 5
+      },
+      {
+        "path": "child.profile.making",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "hidden-game-tournament",
+    "text": "手作りのゲーム大会を開催。独自ルールが評判になり、次の会を頼まれた。",
+    "kind": "good",
+    "min_age_months": 72,
+    "max_age_months": 234,
+    "probability": 28,
+    "conditions": [
+      {
+        "path": "child.profile.games",
+        "op": "gte",
+        "value": 25
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.profile.games",
+        "delta": 4
+      },
+      {
+        "path": "child.profile.sociability",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "hidden-quiet-project",
+    "text": "ひとりで続けていた小さな企画が完成。自分のペースで形にした。",
+    "kind": "good",
+    "min_age_months": 72,
+    "max_age_months": 234,
+    "probability": 25,
+    "conditions": [
+      {
+        "path": "child.profile.introversion",
+        "op": "gte",
+        "value": 25
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.profile.research",
+        "delta": 3
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 4
+      }
+    ]
+  },
+  {
+    "id": "hidden-team-lead",
+    "text": "行き詰まった班の相談役に。子どもが提案した役割分担で、みんなが動き始めた。",
+    "kind": "good",
+    "min_age_months": 96,
+    "max_age_months": 234,
+    "probability": 28,
+    "conditions": [
+      {
+        "path": "child.profile.leadership",
+        "op": "gte",
+        "value": 25
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.profile.responsibility",
+        "delta": 4
+      },
+      {
+        "path": "child.autonomy",
+        "delta": 4
+      }
+    ]
+  },
+  {
+    "id": "hidden-missed-promise",
+    "text": "引き受けた係の準備を後回しにして、当日に大慌て。仲間と話して立て直した。",
+    "kind": "bad",
+    "min_age_months": 96,
+    "max_age_months": 234,
+    "probability": 27,
+    "conditions": [
+      {
+        "path": "child.profile.avoidance",
+        "op": "gte",
+        "value": 25
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 6,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.stress",
+        "delta": 5
+      },
+      {
+        "path": "child.profile.responsibility",
+        "delta": 3
+      }
+    ]
+  },
+  {
+    "id": "hidden-task-postponed",
+    "text": "係の準備を後回しにして、提出前夜に大あわて。仲間に手伝ってもらった。",
+    "kind": "bad",
+    "min_age_months": 96,
+    "max_age_months": 234,
+    "probability": 28,
+    "conditions": [
+      {
+        "path": "child.profile.responsibility",
+        "op": "lt",
+        "value": 30
+      }
+    ],
+    "modifiers": [],
+    "cooldown": 4,
+    "once": false,
+    "effects": [
+      {
+        "path": "child.profile.avoidance",
+        "delta": 6
+      },
+      {
+        "path": "child.stress",
+        "delta": 3
+      }
+    ]
   }
 ]

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Observation, PublicState } from "../../engine/types";
 import { StatusDetail } from "./status_detail";
 import { FamilyPortrait, ObservationMark } from "./status_visual";
+import featurePlaceholder from "../../../assets/scenes/child-feature-placeholder.svg";
 
 function ObservationRow({ observation, label }: { observation?: Observation; label: string }) {
   if (!observation) return null;
@@ -46,8 +47,15 @@ export function ChildStatus({
       >
         <span className="family-member-heading">
           <FamilyPortrait kind="child" ageMonths={state.time.child_months} />
-          <span>
-            <strong>子ども</strong>
+          <span className="child-member-heading-text">
+            <span className="child-member-name">
+              <strong>子ども</strong>
+              {state.child_identity && (
+                <span className="child-feature-compact" title={state.child_identity.feature.label}>
+                  {state.child_identity.feature.label}
+                </span>
+              )}
+            </span>
             <small>{age}</small>
           </span>
           <span className="family-open" aria-hidden="true">
@@ -87,6 +95,29 @@ export function ChildStatus({
               <p>{state.time.school_label ?? "成人後"}</p>
             </div>
           </div>
+          {state.child_identity && (
+            <section className="status-section child-identity-section">
+              <h3>今の特徴</h3>
+              <div className="child-feature-detail">
+                <img
+                  src={featurePlaceholder}
+                  alt={`${state.child_identity.feature.label}の仮画像`}
+                />
+                <strong>{state.child_identity.feature.label}</strong>
+              </div>
+              <p className="muted">今いちばん目立つ特徴を表しています。</p>
+              <h3>獲得した称号</h3>
+              {state.child_identity.titles.length ? (
+                <ul className="child-title-list">
+                  {state.child_identity.titles.map((title) => (
+                    <li key={title.id}>✦ {title.label}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">まだ称号はありません。</p>
+              )}
+            </section>
+          )}
           {state.life?.route_groups
             ?.filter((group) => group.menu === "education")
             .map((group) => (
