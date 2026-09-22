@@ -12,7 +12,7 @@ import {
 import { GRANDPARENTS, grandparentNames, syncGrandparents } from "./grandparents";
 import { applyAutomaticEvents, automaticEventsEnabled } from "./automatic_events";
 import type { DecisionOption, DecisionTheme } from "../content/decision_schema";
-import type { Choice, Forecast, History, Person, State } from "./types";
+import type { Choice, Forecast, GameOver, History, Person, State } from "./types";
 import type { Settings } from "../content/types";
 import { contentFor, difficultyFor } from "../content/catalog";
 import { PEOPLE, clampStat, clone } from "./shared";
@@ -146,7 +146,11 @@ export function startDecisions(
     themes: [],
     selections: {},
     contract: null,
-    crisis: { divorce: 0, separation: 0 },
+    crisis: {
+      divorce: 0,
+      separation: 0,
+      ...(rules === "rules-14" ? { burnout: { A: 0, B: 0 }, child: null } : {}),
+    },
     event_history: null,
   };
   if (percentStats(state)) {
@@ -296,8 +300,10 @@ export function openDecisionTurn(state: State) {
     }
     d.event_history = applyAutomaticEvents(state);
     state.observations = observeChild(state);
-    if (state.life) openLife(state);
-    else openThemes(state);
+    if (state.life) {
+      openLife(state);
+      state.life.notices.push(...crisisNotices(state));
+    } else openThemes(state);
     return;
   }
   d.special = pick(state, [...game(state).events, ...packEvents(state)], "special");
@@ -649,11 +655,101 @@ function historyEntry(
     adult_result: null,
   };
 }
-function endGame(state: State, reason: "divorce" | "separation" | "bankruptcy") {
+function crisisNotices(state: State): string[] {
+  if (state.versions.rules !== "rules-14") return [];
+  const crisis = state.decisions!.crisis;
+  const notices: string[] = [];
+  for (const parent of PEOPLE)
+    if ((crisis.burnout?.[parent] ?? 0) > 0)
+      notices.push(
+        `${names[parent]}の健康・疲労・ストレスが限界に近づいています。次の半年も続くと親の燃え尽きでゲームオーバーです。休息や働き方を見直してください。`,
+      );
+  if (crisis.child)
+    notices.push(
+      crisis.child.kind === "runaway"
+        ? crisis.child.turns === 1
+          ? "子どもが家を離れたい様子です。負担を減らし、父母との関係を立て直してください。"
+          : "子どもが家に戻りたくないと話しています。次の半年も状況が続くと家出でゲームオーバーです。"
+        : crisis.child.turns === 1
+          ? "子どもに危険な誘いが届いています。負担を減らし、相談できる関係を取り戻してください。"
+          : "子どもが深夜のトラブルで補導されました。次の半年も状況が続くと少年院エンドに進みます。",
+    );
+  return notices;
+}
+
+function updateAdditionalCrises(state: State, lines: string[]): GameOver["reason"] | null {
+  if (state.versions.rules !== "rules-14") return null;
+  const crisis = state.decisions!.crisis;
+  crisis.burnout ??= { A: 0, B: 0 };
+  for (const parent of PEOPLE) {
+    const exhausted =
+      state.parents[parent].health <= 30 &&
+      state.parents[parent].stress >= 80 &&
+      state.decisions!.fatigue[parent] >= 80;
+    crisis.burnout[parent] = exhausted ? crisis.burnout[parent] + 1 : 0;
+    if (crisis.burnout[parent] === 1)
+      lines.push(`${names[parent]}は疲労が重なり、今の暮らしを続けることが難しくなっている。`);
+  }
+
+  const age = (state.n - 1) / 2;
+  const atRisk =
+    age >= 12 &&
+    age < 20 &&
+    state.child.stress >= 70 &&
+    state.child.trust.A < 30 &&
+    state.child.trust.B < 30;
+  const child = crisis.child;
+  if (!atRisk || (child?.kind === "runaway" && age >= 18)) {
+    if (child) lines.push("子どもは相談できる相手を見つけ、危機から少しずつ離れた。");
+    crisis.child = null;
+  } else if (child) {
+    child.turns++;
+    if (child.turns === 2)
+      lines.push(
+        child.kind === "runaway"
+          ? "子どもは『しばらく家に帰りたくない』と話した。家族には立て直す時間がまだある。"
+          : "子どもが深夜のトラブルで補導された。ここから関係を立て直す時間がまだある。",
+      );
+  } else {
+    const kind =
+      age < 14
+        ? "runaway"
+        : age >= 18
+          ? "juvenile"
+          : draw(state, "child-crisis", state.n, "path") < 50
+            ? "runaway"
+            : "juvenile";
+    crisis.child = { kind, turns: 1 };
+    lines.push(
+      kind === "runaway"
+        ? "子どもが家を離れたいと漏らした。会話と支援が必要な時期に入った。"
+        : "子どもに危険な誘いが届いた。本人の負担と孤立に気を配る必要がある。",
+    );
+  }
+  if (crisis.child?.turns === 3) return crisis.child.kind;
+  if (PEOPLE.some((parent) => crisis.burnout![parent] >= 2)) return "burnout";
+  return null;
+}
+
+function endGame(state: State, reason: GameOver["reason"]) {
   state.phase = "game_over";
+  const exhaustedParent = PEOPLE.find(
+    (parent) => (state.decisions!.crisis.burnout?.[parent] ?? 0) >= 2,
+  );
   state.game_over = {
     reason,
-    title: reason === "divorce" ? "離婚" : reason === "separation" ? "一家離散" : "資金難",
+    title:
+      reason === "divorce"
+        ? "離婚"
+        : reason === "separation"
+          ? "一家離散"
+          : reason === "bankruptcy"
+            ? "資金難"
+            : reason === "burnout"
+              ? `${names[exhaustedParent ?? "A"]}の燃え尽き`
+              : reason === "runaway"
+                ? "家出"
+                : "少年院",
     turn:
       state.n +
       (!state.life && state.decisions!.special_answer && state.decisions!.themes.length === 0
@@ -664,7 +760,13 @@ function endGame(state: State, reason: "divorce" | "separation" | "bankruptcy") 
         ? "父と母は別々の道を歩むことになった。この家庭での物語は、ここで幕を閉じる。"
         : reason === "separation"
           ? "家族はそれぞれ家を離れた。一緒に暮らした日々を、この記録に残す。"
-          : "今期の生活費を支払えず、この家庭での物語はここで幕を閉じる。",
+          : reason === "bankruptcy"
+            ? "今期の生活費を支払えず、この家庭での物語はここで幕を閉じる。"
+            : reason === "burnout"
+              ? `${names[exhaustedParent ?? "A"]}は長く続いた疲労から暮らしを支えきれなくなった。この家庭での物語は、ここで幕を閉じる。`
+              : reason === "runaway"
+                ? "子どもは家を離れ、戻らないと告げた。家族が共に暮らした日々を、この記録に残す。"
+                : "補導の後も危険な誘いが続き、子どもは窃盗事件に関わった。家庭裁判所は少年院送致を決めた。この家庭での物語は、ここで幕を閉じる。",
   };
   state.history.at(-1)?.text.push(state.game_over.text);
 }
@@ -799,6 +901,7 @@ export function advanceDecisions(state: State) {
     state.child.trust.B <= 15
       ? d.crisis.separation + 1
       : 0;
+  const additionalEnd = updateAdditionalCrises(state, lines);
   state.deltas.push(state.child.stress - previousStress);
   state.deltas = state.deltas.slice(-2);
   state.observations = observeChild(state);
@@ -809,6 +912,7 @@ export function advanceDecisions(state: State) {
   state.history.push(entry);
   if (d.crisis.separation >= 2) endGame(state, "separation");
   else if (d.crisis.divorce >= 2) endGame(state, "divorce");
+  else if (additionalEnd) endGame(state, additionalEnd);
   else if (state.n === 40) {
     state.answers = {};
     state.events = [];

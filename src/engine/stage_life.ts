@@ -360,7 +360,7 @@ export function stageView(s: State): NonNullable<PublicState["life"]> {
           })),
         }
       : null,
-    notices: [],
+    notices: [...s.life!.notices],
     policies: active.map(({ node, option, effect, duration }) => ({
       id: `${node.id}:${option.id}:${duration}`,
       title: `${node.title}（${duration === "stage" ? "ステージ中" : "恒久"}）`,

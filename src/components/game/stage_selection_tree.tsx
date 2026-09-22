@@ -76,6 +76,11 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
       className={`life-content selection-tree-content stage-tree ${menu ? "is-category" : "is-map"}`}
       aria-label={menu ? "選択ツリー" : "ホーム"}
     >
+      {life.notices.map((notice) => (
+        <p className="warning" role="alert" key={notice}>
+          {notice}
+        </p>
+      ))}
       {missing.length === 0 && changeable.length > 0 && (
         <aside className="crossroad-alert" role="alert" aria-label="岐路のルート変更">
           <div>

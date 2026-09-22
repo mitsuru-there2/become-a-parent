@@ -32,7 +32,7 @@ export function validateLifeState(state: State) {
       life.route_stage_resolved !== undefined ||
       life.visible.length ||
       life.fresh.length ||
-      life.notices.length
+      (state.versions.rules !== "rules-14" && life.notices.length)
     )
       throw new Error("ステージ状態が不正です");
     for (const [id, route] of Object.entries(life.stage_routes)) {

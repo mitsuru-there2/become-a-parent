@@ -178,11 +178,16 @@ export interface DecisionTurn {
   themes: DecisionTheme[];
   selections: Record<string, string>;
   contract: { label: string; cost: number } | null;
-  crisis: { divorce: number; separation: number };
+  crisis: {
+    divorce: number;
+    separation: number;
+    burnout?: Record<Person, number>;
+    child?: { kind: "runaway" | "juvenile"; turns: number } | null;
+  };
   event_history: History | null;
 }
 export interface GameOver {
-  reason: "divorce" | "separation" | "bankruptcy";
+  reason: "divorce" | "separation" | "bankruptcy" | "burnout" | "runaway" | "juvenile";
   title: string;
   text: string;
   turn: number;
