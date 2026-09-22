@@ -193,16 +193,25 @@ it("現在ルートの取得可能な判断数をマップに表示し、取得�
     return { state: view.public, choices: view.choices };
   };
   const { rerender } = render(createElement(StageSelectionTree, props()));
+  const map = screen.getByRole("group", { name: "ホームの選択" });
+  expect(within(map).getAllByText("ルートを選択")).toHaveLength(5);
+  expect(map.querySelectorAll(".map-marker.is-route-required")).toHaveLength(5);
+  expect(screen.queryByRole("alert")).toBeNull();
   expect(screen.queryByText(/取得可能 \d+件/)).toBeNull();
   chooseStage(state, "crossroad-school", "public");
   rerender(createElement(StageSelectionTree, props()));
   expect(screen.getByText(/取得可能 \d+件/)).toBeTruthy();
-  expect(screen.getAllByRole("alert")).toHaveLength(1);
-  expect(screen.getByText("ルートを選択")).toBeTruthy();
+  expect(within(map).getAllByText("ルートを選択")).toHaveLength(4);
+  expect(
+    within(map)
+      .getByRole("button", { name: /教育・進路/ })
+      .classList.contains("is-route-required"),
+  ).toBe(false);
+  expect(screen.queryByRole("alert")).toBeNull();
   satisfyStage(state);
   rerender(createElement(StageSelectionTree, props()));
   expect(screen.queryByRole("alert")).toBeNull();
-  const map = screen.getByRole("group", { name: "ホームの選択" });
+  expect(within(map).queryByText("ルートを選択")).toBeNull();
   const availableMenus = new Set(
     publicView(state)
       .choices.filter(

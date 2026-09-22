@@ -3514,31 +3514,6 @@ meter::-moz-meter-bar {
 .stage-tree {
   min-height: 0;
 }
-.required-routes-alert {
-  align-items: stretch;
-  flex-direction: column;
-  gap: 6px;
-}
-.required-routes-alert nav {
-  display: flex;
-  flex-wrap: wrap;
-  min-width: 0;
-  overflow: visible;
-}
-.required-routes-alert button {
-  min-height: 44px;
-  white-space: normal;
-}
-@media (max-width: 640px) {
-  .required-routes-alert {
-    max-height: none;
-    overflow: visible;
-  }
-  .required-routes-alert nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 .stage-tree.is-map {
   overflow: auto;
 }
@@ -3752,6 +3727,48 @@ meter::-moz-meter-bar {
   font-size: 10px;
   font-weight: 700;
   white-space: nowrap;
+}
+.status-shell .stage-tree .map-marker.is-route-required {
+  border: 2px solid #f3bc70;
+  background: #38271cf5;
+  box-shadow:
+    0 5px 0 #090e0be6,
+    0 0 0 5px #f3bc7066;
+}
+.status-shell .stage-tree .map-marker .map-route-required {
+  padding: 3px 7px;
+  border-radius: 2px;
+  background: #f3bc70;
+  color: #21170f;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+@media (max-height: 700px) {
+  .status-shell .stage-tree .map-marker.is-route-required {
+    flex-direction: column;
+  }
+  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .status-shell .stage-tree .map-marker.is-route-required {
+    gap: 2px;
+    padding: 4px;
+  }
+  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon {
+    width: 26px;
+    height: 26px;
+  }
+  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+  .status-shell .stage-tree .map-marker.is-route-required small {
+    display: none;
+  }
 }
 .stage-map-caption span {
   color: #b7b69e;

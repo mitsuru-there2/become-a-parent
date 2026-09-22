@@ -76,22 +76,6 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
       className={`life-content selection-tree-content stage-tree ${menu ? "is-category" : "is-map"}`}
       aria-label={menu ? "選択ツリー" : "ホーム"}
     >
-      {missing.length > 0 && (
-        <aside
-          className="crossroad-alert required-routes-alert"
-          role="alert"
-          aria-label="岐路の必須選択"
-        >
-          <strong>ルートを選択</strong>
-          <nav aria-label="未実施の必須選択">
-            {missing.map((item) => (
-              <button key={item.decision_id} onClick={() => openMenu(item.menu)}>
-                {item.title}へ →
-              </button>
-            ))}
-          </nav>
-        </aside>
-      )}
       {missing.length === 0 && changeable.length > 0 && (
         <aside className="crossroad-alert" role="alert" aria-label="岐路のルート変更">
           <div>
@@ -276,17 +260,19 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
           <SelectionMap>
             {life.menus.map((item) => {
               const route = life.route_groups!.find((g) => g.menu === item.id)!;
+              const routeRequired = missing.some((entry) => entry.menu === item.id);
               return (
                 <button
                   ref={(element) => {
                     mapButtons.current[item.id] = element;
                   }}
                   key={item.id}
-                  className="map-marker"
+                  className={`map-marker ${routeRequired ? "is-route-required" : ""}`}
                   data-menu={item.id}
                   style={markerPosition(item.id)}
                   onClick={() => openMenu(item.id)}
                 >
+                  {routeRequired && <span className="map-route-required">ルートを選択</span>}
                   <span className="map-marker-icon" aria-hidden="true">
                     <MenuIcon id={item.id} />
                   </span>
