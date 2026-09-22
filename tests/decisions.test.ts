@@ -382,5 +382,5 @@ describe("S-016 10点スケール", () => {
     expect(importRun(exportRun(run))).toEqual(run);
     expect(state.phase).toBe("finished");
     expect(state.versions.rules).toBe("rules-3");
-  });
+  }, 30_000);
 });

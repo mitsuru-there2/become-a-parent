@@ -46,7 +46,7 @@
     "kind": "good",
     "min_age_months": 72,
     "max_age_months": 234,
-    "probability": 10,
+    "probability": 15,
     "conditions": [
       {
         "path": "child.ability.craft",
@@ -85,7 +85,7 @@
     "effects": [
       {
         "path": "cash",
-        "delta": 50
+        "delta": 60
       },
       {
         "path": "child.interest.craft",
@@ -103,7 +103,7 @@
     "kind": "good",
     "min_age_months": 96,
     "max_age_months": 234,
-    "probability": 10,
+    "probability": 15,
     "conditions": [
       {
         "path": "child.ability.study",
@@ -134,7 +134,7 @@
     "effects": [
       {
         "path": "cash",
-        "delta": 50
+        "delta": 60
       },
       {
         "path": "child.interest.study",
@@ -152,7 +152,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 30,
-    "probability": 35,
+    "probability": 40,
     "conditions": [],
     "modifiers": [],
     "cooldown": 2,
@@ -217,7 +217,7 @@
     "kind": "good",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 24,
+    "probability": 28,
     "conditions": [],
     "modifiers": [
       {
@@ -254,11 +254,11 @@
       },
       {
         "path": "child.trust.A",
-        "delta": 3
+        "delta": 4
       },
       {
         "path": "child.trust.B",
-        "delta": 3
+        "delta": 4
       }
     ]
   },
@@ -330,7 +330,7 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 18,
+    "probability": 20,
     "conditions": [],
     "modifiers": [],
     "cooldown": 5,
@@ -338,7 +338,7 @@
     "effects": [
       {
         "path": "cash",
-        "delta": -20
+        "delta": -18
       },
       {
         "path": "parents.A.stress",
@@ -356,7 +356,7 @@
     "kind": "bad",
     "min_age_months": 72,
     "max_age_months": 210,
-    "probability": 20,
+    "probability": 22,
     "conditions": [],
     "modifiers": [
       {
@@ -381,7 +381,7 @@
     "effects": [
       {
         "path": "child.stress",
-        "delta": 6
+        "delta": 5
       }
     ]
   },
@@ -391,7 +391,7 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 15,
+    "probability": 13,
     "conditions": [],
     "modifiers": [
       {
@@ -426,7 +426,7 @@
     "kind": "bad",
     "min_age_months": 0,
     "max_age_months": 234,
-    "probability": 15,
+    "probability": 13,
     "conditions": [],
     "modifiers": [
       {

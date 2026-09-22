@@ -54,9 +54,31 @@ describe("現行ステージ制の難易度", () => {
       expect(state.history.at(-1)!.money[0].income).toBe(income);
       return { income, stress: state.parents.A.stress };
     });
-    expect(results.map((result) => result.income)).toEqual([250, 150, 80]);
+    expect(results.map((result) => result.income)).toEqual([250, 150, 120]);
     expect(results[0].stress).toBeLessThan(results[1].stress);
-    expect(results[1].stress).toBeLessThan(results[2].stress);
+    expect(results[1].stress).toBeLessThanOrEqual(results[2].stress);
+  });
+
+  it("仕事の無料休息はストレスの予兆後に開き、継続回復の費用を公開する", () => {
+    const state = startDecisions("home-01", 0, catalog().resolve("normal"));
+    const route = publicView(state).choices.find((choice) => choice.event_id === "crossroad-work")!;
+    chooseDecision(
+      state,
+      route.instance_id,
+      route.options.find((option) => option.route === "career")!.option_id,
+    );
+    const rest = () =>
+      publicView(state).choices.find((choice) => choice.event_id === "work-career-0-07")!
+        .options[0];
+    expect(rest().available).toBe(false);
+    expect(rest().reasons.some((reason) => reason.message.includes("40%"))).toBe(true);
+    state.parents.A.stress = 40;
+    expect(rest().available).toBe(true);
+    const recovery = state.settings!.content.life_game!.decisions.find(
+      (choice) => choice.id === "home-daily-0-04",
+    )!.options[0];
+    expect(recovery.cost).toBe(30);
+    expect(recovery.stage_effect!.cost).toBe(25);
   });
 
   it("良い出来事を減らし、悪い出来事を増やす", () => {

@@ -42,8 +42,8 @@
       "good_event_probability": 55,
       "bad_event_probability": 160,
       "positive_effect": 65,
-      "negative_effect": 150,
-      "income_effect": 40
+      "negative_effect": 125,
+      "income_effect": 60
     }
   },
   "schema_version": 1,
@@ -9401,7 +9401,7 @@
           "id": "take",
           "label": "住み込み執事に家事を託す",
           "description": "住み込み執事に家事を託す。今ステージの毎期、家族の暮らしに効果が続く。継続費用を払い、次の岐路で終了する。",
-          "cost": 38,
+          "cost": 30,
           "income": 0,
           "setup_cost": 0,
           "effects": [
@@ -9416,7 +9416,7 @@
           ],
           "routes": ["daily"],
           "stage_effect": {
-            "cost": 35,
+            "cost": 25,
             "income": 0,
             "effects": [
               {
@@ -9869,7 +9869,7 @@
           "id": "take",
           "label": "夕食配達で平日の夜を買う",
           "description": "夕食配達で平日の夜を買う。今ステージの毎期、家族の暮らしに効果が続く。継続費用を払い、次の岐路で終了する。",
-          "cost": 48,
+          "cost": 40,
           "income": 0,
           "setup_cost": 0,
           "effects": [
@@ -9884,7 +9884,7 @@
           ],
           "routes": ["daily"],
           "stage_effect": {
-            "cost": 40,
+            "cost": 30,
             "income": 0,
             "effects": [
               {
@@ -10337,7 +10337,7 @@
           "id": "take",
           "label": "専属料理人に夕飯を任せる",
           "description": "専属料理人に夕飯を任せる。今ステージの毎期、家族の暮らしに効果が続く。継続費用を払い、次の岐路で終了する。",
-          "cost": 58,
+          "cost": 50,
           "income": 0,
           "setup_cost": 0,
           "effects": [
@@ -10352,7 +10352,7 @@
           ],
           "routes": ["daily"],
           "stage_effect": {
-            "cost": 45,
+            "cost": 35,
             "income": 0,
             "effects": [
               {
@@ -10805,7 +10805,7 @@
           "id": "take",
           "label": "掃除と洗濯を丸ごと外注する",
           "description": "掃除と洗濯を丸ごと外注する。今ステージの毎期、家族の暮らしに効果が続く。継続費用を払い、次の岐路で終了する。",
-          "cost": 68,
+          "cost": 60,
           "income": 0,
           "setup_cost": 0,
           "effects": [
@@ -10820,7 +10820,7 @@
           ],
           "routes": ["daily"],
           "stage_effect": {
-            "cost": 50,
+            "cost": 40,
             "income": 0,
             "effects": [
               {
@@ -11273,7 +11273,7 @@
           "id": "take",
           "label": "最後の受験期を家事代行で支える",
           "description": "最後の受験期を家事代行で支える。今ステージの毎期、家族の暮らしに効果が続く。継続費用を払い、次の岐路で終了する。",
-          "cost": 78,
+          "cost": 70,
           "income": 0,
           "setup_cost": 0,
           "effects": [
@@ -11288,7 +11288,7 @@
           ],
           "routes": ["daily"],
           "stage_effect": {
-            "cost": 55,
+            "cost": 45,
             "income": 0,
             "effects": [
               {
@@ -35231,11 +35231,11 @@
             "effects": [
               {
                 "path": "parents.A.stress",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "decisions.fatigue.A",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "couple",
@@ -35392,7 +35392,16 @@
               "delta": -2
             }
           ],
-          "routes": ["career"]
+          "routes": ["career"],
+          "requires": {
+            "stats": [
+              {
+                "path": "parents.A.stress",
+                "value": 4,
+                "op": "gte"
+              }
+            ]
+          }
         }
       ],
       "stages": [0],
@@ -35703,11 +35712,11 @@
             "effects": [
               {
                 "path": "parents.A.stress",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "decisions.fatigue.A",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "couple",
@@ -35864,7 +35873,16 @@
               "delta": -2
             }
           ],
-          "routes": ["career"]
+          "routes": ["career"],
+          "requires": {
+            "stats": [
+              {
+                "path": "parents.A.stress",
+                "value": 4,
+                "op": "gte"
+              }
+            ]
+          }
         }
       ],
       "stages": [1],
@@ -36175,11 +36193,11 @@
             "effects": [
               {
                 "path": "parents.A.stress",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "decisions.fatigue.A",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "couple",
@@ -36336,7 +36354,16 @@
               "delta": -2
             }
           ],
-          "routes": ["career"]
+          "routes": ["career"],
+          "requires": {
+            "stats": [
+              {
+                "path": "parents.A.stress",
+                "value": 4,
+                "op": "gte"
+              }
+            ]
+          }
         }
       ],
       "stages": [2],
@@ -36647,11 +36674,11 @@
             "effects": [
               {
                 "path": "parents.A.stress",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "decisions.fatigue.A",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "couple",
@@ -36808,7 +36835,16 @@
               "delta": -2
             }
           ],
-          "routes": ["career"]
+          "routes": ["career"],
+          "requires": {
+            "stats": [
+              {
+                "path": "parents.A.stress",
+                "value": 4,
+                "op": "gte"
+              }
+            ]
+          }
         }
       ],
       "stages": [3],
@@ -37119,11 +37155,11 @@
             "effects": [
               {
                 "path": "parents.A.stress",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "decisions.fatigue.A",
-                "delta": 2
+                "delta": 1
               },
               {
                 "path": "couple",
@@ -37280,7 +37316,16 @@
               "delta": -2
             }
           ],
-          "routes": ["career"]
+          "routes": ["career"],
+          "requires": {
+            "stats": [
+              {
+                "path": "parents.A.stress",
+                "value": 4,
+                "op": "gte"
+              }
+            ]
+          }
         }
       ],
       "stages": [4],

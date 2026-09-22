@@ -120,6 +120,7 @@ describe("S-018-AA〜AC 各ステージ・ルートに固有の10判断", () => 
     const career = startStage();
     chooseStage(career, "crossroad-work", "career");
     satisfyStage(career);
+    career.parents.A.stress = 4;
     const rest = clone(career);
     chooseStage(career, "work-career-0-06", "take");
     chooseStage(rest, "work-career-0-07", "take");
