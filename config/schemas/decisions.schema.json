@@ -1,6 +1,265 @@
 {
   "type": "object",
   "properties": {
+    "difficulty_profiles": {
+      "type": "object",
+      "properties": {
+        "easy": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1
+            },
+            "initial_cash": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "living_cost": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "parent_start_age": {
+              "type": "integer",
+              "minimum": 18,
+              "maximum": 60
+            },
+            "family_home_funds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "base_income": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "income_growth_per_stage": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "good_event_probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "bad_event_probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "positive_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "negative_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "income_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            }
+          },
+          "required": [
+            "label",
+            "description",
+            "initial_cash",
+            "living_cost",
+            "parent_start_age",
+            "family_home_funds",
+            "base_income",
+            "income_growth_per_stage",
+            "good_event_probability",
+            "bad_event_probability",
+            "positive_effect",
+            "negative_effect",
+            "income_effect"
+          ],
+          "additionalProperties": false
+        },
+        "normal": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1
+            },
+            "initial_cash": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "living_cost": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "parent_start_age": {
+              "type": "integer",
+              "minimum": 18,
+              "maximum": 60
+            },
+            "family_home_funds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "base_income": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "income_growth_per_stage": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "good_event_probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "bad_event_probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "positive_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "negative_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "income_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            }
+          },
+          "required": [
+            "label",
+            "description",
+            "initial_cash",
+            "living_cost",
+            "parent_start_age",
+            "family_home_funds",
+            "base_income",
+            "income_growth_per_stage",
+            "good_event_probability",
+            "bad_event_probability",
+            "positive_effect",
+            "negative_effect",
+            "income_effect"
+          ],
+          "additionalProperties": false
+        },
+        "hard": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1
+            },
+            "initial_cash": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "living_cost": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "parent_start_age": {
+              "type": "integer",
+              "minimum": 18,
+              "maximum": 60
+            },
+            "family_home_funds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "base_income": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "income_growth_per_stage": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99999
+            },
+            "good_event_probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "bad_event_probability": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "positive_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "negative_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "income_effect": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 300
+            }
+          },
+          "required": [
+            "label",
+            "description",
+            "initial_cash",
+            "living_cost",
+            "parent_start_age",
+            "family_home_funds",
+            "base_income",
+            "income_growth_per_stage",
+            "good_event_probability",
+            "bad_event_probability",
+            "positive_effect",
+            "negative_effect",
+            "income_effect"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": ["easy", "normal", "hard"],
+      "additionalProperties": false
+    },
     "child_identity": {
       "type": "boolean"
     },

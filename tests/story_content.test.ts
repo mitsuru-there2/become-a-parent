@@ -70,7 +70,7 @@ describe("850判断の物語と期限", () => {
     expect(applyAutomaticEvents(s)).toBeNull();
   });
   it("DLCは本編850判断へ追加し、工作の履歴から取得できる", () => {
-    const s = startDecisions("home-01", 0, new Catalog().resolve("normal", ["community-life"]));
+    const s = startDecisions("home-01", 0, new Catalog().resolve("easy", ["community-life"]));
     until(s, 8);
     chooseStage(s, "afterschool-maker-1-01", "take");
     expect(stageOption(s, "community-life-workshop", "join").available).toBe(true);

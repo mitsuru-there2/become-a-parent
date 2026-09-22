@@ -47,7 +47,9 @@ export class Catalog {
         label,
         description,
       })),
-      difficulties: Object.entries(this.base.difficulties).map(([id, d]) => ({
+      difficulties: Object.entries(
+        this.base.life_game?.difficulty_profiles ?? this.base.difficulties,
+      ).map(([id, d]) => ({
         id,
         label: d.label,
         description: d.description,
@@ -131,5 +133,11 @@ validateContent(legacyData);
 export const defaultContent: Content = currentData;
 export const contentFor = (state: State): Content =>
   state.settings?.content ?? (legacyData as Content);
-export const difficultyFor = (state: State) =>
-  contentFor(state).difficulties[state.settings?.difficulty ?? "normal"];
+export const difficultyFor = (state: State) => {
+  const content = contentFor(state);
+  const id = state.settings?.difficulty ?? "normal";
+  return {
+    ...content.difficulties[id],
+    ...(state.versions.rules === "rules-14" ? content.life_game?.difficulty_profiles?.[id] : {}),
+  };
+};

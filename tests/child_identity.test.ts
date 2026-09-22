@@ -102,7 +102,7 @@ describe("子どもの隠し特性と称号", () => {
     state.child.profile!.music = 25;
     const event = applyAutomaticEvents(state);
     expect(event?.events[0].event_id).toBe("profile-test");
-    expect(state.child.profile!.music).toBe(30);
+    expect(state.child.profile!.music).toBe(29);
     expect(event?.event_results?.[0].changes).toEqual([]);
     expect(JSON.stringify(publicView(state).public)).not.toContain("child.profile");
   });

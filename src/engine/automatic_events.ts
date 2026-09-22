@@ -9,6 +9,7 @@ import { draw, observeChild } from "./simulation";
 import { percentStats } from "./stat_scale";
 import { activeTreeEffects, modifiedDelta, treeEnabled } from "./tree_effects";
 import { awardChildTitles } from "./child_identity";
+import { difficultyDelta, eventProbability } from "./difficulty";
 
 export const automaticEventsEnabled = (state: State) =>
   [
@@ -39,7 +40,7 @@ export function applyAutomaticEvents(state: State): History | null {
         !meetsLifeRequirement(state, event.requires)
       )
         return [];
-      const probability = Math.max(
+      const rawProbability = Math.max(
         0,
         Math.min(
           100,
@@ -50,6 +51,7 @@ export function applyAutomaticEvents(state: State): History | null {
             ),
         ),
       );
+      const probability = eventProbability(state, event.kind, rawProbability);
       return draw(state, "automatic-event", turn, event.id) < probability
         ? [{ event, probability }]
         : [];
@@ -95,7 +97,7 @@ export function applyAutomaticEvents(state: State): History | null {
         delta:
           transfer && (original.path === "cash" || original.path.endsWith(".funds"))
             ? original.delta
-            : modifiedDelta(original.delta, percent),
+            : difficultyDelta(state, original.path, modifiedDelta(original.delta, percent)),
       };
       const { previous, current } = applyStat(state, effect);
       if (effect.path === "cash") {

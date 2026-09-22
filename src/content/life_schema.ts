@@ -100,7 +100,29 @@ export const lifeDecisionSchema = v.pipe(
   v.check((d) => d.min_age_months <= d.max_age_months, "対象月齢が逆です"),
 );
 export const lifeDecisionsSchema = v.array(lifeDecisionSchema);
+const difficultyProfileSchema = v.strictObject({
+  label: text,
+  description: text,
+  initial_cash: integer(0),
+  living_cost: integer(0),
+  parent_start_age: integer(18, 60),
+  family_home_funds: integer(0),
+  base_income: integer(0),
+  income_growth_per_stage: integer(0),
+  good_event_probability: integer(0, 300),
+  bad_event_probability: integer(0, 300),
+  positive_effect: integer(0, 300),
+  negative_effect: integer(0, 300),
+  income_effect: integer(0, 300),
+});
 export const lifeGameSchema = v.strictObject({
+  difficulty_profiles: v.optional(
+    v.strictObject({
+      easy: difficultyProfileSchema,
+      normal: difficultyProfileSchema,
+      hard: difficultyProfileSchema,
+    }),
+  ),
   child_identity: v.optional(v.boolean()),
   judgment_catalog: v.optional(v.literal("routes-10")),
   selection_tree: v.optional(v.boolean()),

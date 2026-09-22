@@ -257,19 +257,30 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       expect(() => new Catalog(content, [])).toThrow();
     }
   });
-  it("3難易度・複数シードで40期と親の最期まで到達し、同一シードで一致する", () => {
-    for (const difficulty of ["easy", "normal", "hard"])
-      for (let seed = 0; seed < 3; seed++) {
+  it("3難易度の無操作でイージーは完走し、ノーマル・ハードは早期終了も再現できる", () => {
+    for (const difficulty of ["easy", "normal", "hard"]) {
+      const turns: number[] = [];
+      for (let seed = 0; seed < 5; seed++) {
         const run = () => {
           const s = startDecisions("home-01", seed, new Catalog().resolve(difficulty));
-          until(s, 40);
+          while (s.phase === "childhood") {
+            satisfyStage(s);
+            advance(s);
+          }
           return s;
         };
         const s = run();
-        expect(s.phase).toBe("finished");
-        expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
+        turns.push(s.n);
+        if (difficulty === "easy") {
+          expect(s.phase).toBe("finished");
+          expect(s.result!.parents.A.death_age).toBeGreaterThan(50);
+        } else if (s.phase === "game_over") expect(s.game_over?.reason).toBe("bankruptcy");
         if (!seed) expect(run()).toEqual(s);
       }
+      if (difficulty === "normal")
+        expect(turns.filter((turn) => turn < 24).length).toBeGreaterThanOrEqual(3);
+      if (difficulty === "hard") expect(turns.every((turn) => turn < 12)).toBe(true);
+    }
   }, 30_000);
   it("即時確定を保存再開・再送・再生でき、改ざんした取得とルートを拒否する", async () => {
     const repo = new IndexedRepository(new GameDatabase(`stage-${crypto.randomUUID()}`));
@@ -279,6 +290,7 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       run: "stage",
       scenario: "home-01",
       seed: 3,
+      difficulty: "easy",
       request_id: "new",
     });
     for (const choice of r.choices.filter((c) => c.route_choice)) {

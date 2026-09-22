@@ -6,6 +6,7 @@ import { applyStat, statLabel } from "./automatic_events";
 import { applyHiddenJudgment } from "./child_identity";
 import { observeChild, stage } from "./simulation";
 import { percentStats } from "./stat_scale";
+import { baseIncome, difficultyDelta, difficultyIncome } from "./difficulty";
 import { annualIncome, meetsLifeRequirement } from "./life_requirements";
 import {
   activeStageEffects,
@@ -68,7 +69,9 @@ const effectDescription = (s: State, effects: LifeOption["effects"]) =>
         /^(parents\.[AB]\.(stress|health|fulfillment|social|regret)|decisions\.fatigue\.[AB]|couple|grandparents\.(health|relation))$/.test(
           e.path,
         );
-      const delta = familyPercent ? e.delta * 5 : e.delta;
+      const delta = familyPercent
+        ? difficultyDelta(s, e.path, e.delta) * 5
+        : difficultyDelta(s, e.path, e.delta);
       return `${statLabel(e.path, true)} ${delta > 0 ? "+" : ""}${delta}${familyPercent ? "%" : e.path.startsWith("child.ability.") ? "点" : ""}`;
     })
     .join("、");
@@ -81,7 +84,7 @@ function effectDetails(
       duration: "instant",
       description: [
         `支出 ${option.cost}万円`,
-        ...(option.income ? [`入金 ${option.income}万円`] : []),
+        ...(option.income ? [`入金 ${difficultyIncome(s, option.income)}万円`] : []),
         effectDescription(s, option.effects),
         ...(percentStats(s) &&
         option.effects.some((item) => item.path.startsWith("child.ability.") && item.delta > 0)
@@ -101,7 +104,7 @@ function effectDetails(
     details.push({
       duration,
       description: [
-        `毎期の支出 ${effect.cost}万円・入金 ${effect.income}万円`,
+        `毎期の支出 ${effect.cost}万円・入金 ${difficultyIncome(s, effect.income)}万円`,
         effectDescription(s, effect.effects),
         ...(effect.event_modifiers ?? []).map(
           (m) =>
@@ -118,19 +121,19 @@ export function stageForecast(s: State): Forecast {
   const game = config(s);
   const baseCost = difficultyFor(s).living_cost + stage(s.n, s).cost;
   let cost = baseCost;
-  let income = game.income;
+  let income = baseIncome(s);
   const cashFlow: NonNullable<Forecast["cash_flow"]> = [
     { label: "半年の基本収入", income },
     { label: "基本生活費・年齢に応じた生活費", cost },
   ];
   for (const { effect, source, duration } of activeStageEffects(s)) {
     cost += effect.cost;
-    income += effect.income;
+    income += difficultyIncome(s, effect.income);
     if (effect.cost || effect.income)
       cashFlow.push({
         label: `${source}（${duration === "stage" ? "ステージ中" : "恒久"}）`,
         cost: effect.cost,
-        income: effect.income,
+        income: difficultyIncome(s, effect.income),
       });
   }
   const reasons: Forecast["reasons"] = missingGroups(s).map((g) => ({
@@ -142,14 +145,21 @@ export function stageForecast(s: State): Forecast {
     reasons.push({
       code: "CASH_LIMIT",
       path: "cash",
-      message: "半年後の資金が不足します。収入を得られる選択を確認してください。",
+      message:
+        s.versions.rules === "rules-14"
+          ? "このまま半年進めると資金不足でゲームオーバーになります。収入や支出を見直してください。"
+          : "半年後の資金が不足します。収入を得られる選択を確認してください。",
     });
   return {
     income,
     cost,
     cash_flow: cashFlow,
     projected_cash: Math.min(99999, s.cash + income - cost),
-    can_advance: s.phase === "childhood" && reasons.length === 0,
+    can_advance:
+      s.phase === "childhood" &&
+      (s.versions.rules === "rules-14"
+        ? reasons.every((reason) => reason.code === "CASH_LIMIT")
+        : reasons.length === 0),
     reasons,
     time_used: { A: 0, B: 0 },
     time_limit: 0,
@@ -241,7 +251,7 @@ export function stageChoices(s: State): Choice[] {
           const id = key(node, option);
           const acquired = !!s.life!.history[id];
           const ongoingNet = [option.stage_effect, option.permanent_effect].reduce(
-            (sum, effect) => sum + (effect ? effect.cost - effect.income : 0),
+            (sum, effect) => sum + (effect ? effect.cost - difficultyIncome(s, effect.income) : 0),
             0,
           );
           const details = [
@@ -264,11 +274,11 @@ export function stageChoices(s: State): Choice[] {
               met: s.cash >= option.cost,
             },
           ];
-          if (option.cost > option.income || ongoingNet > 0)
+          if (option.cost > difficultyIncome(s, option.income) || ongoingNet > 0)
             details.push({
               label: "取得後も今期の継続費を支払えます",
               met:
-                Math.min(99999, s.cash - option.cost + option.income) +
+                Math.min(99999, s.cash - option.cost + difficultyIncome(s, option.income)) +
                   forecast.income -
                   forecast.cost -
                   ongoingNet >=
@@ -278,7 +288,7 @@ export function stageChoices(s: State): Choice[] {
             option_id: id,
             label: option.label,
             cost: option.cost,
-            income: option.income,
+            income: difficultyIncome(s, option.income),
             description: option.description,
             visual: contentFor(s).visuals[option.visual ?? "hero"],
             routes: option.routes,
@@ -378,7 +388,10 @@ function applyEffects(s: State, effects: LifeOption["effects"], lines: string[],
               50,
           )
         : 0;
-    const { previous, current } = applyStat(s, { ...effect, delta: effect.delta + bonus });
+    const { previous, current } = applyStat(s, {
+      ...effect,
+      delta: difficultyDelta(s, effect.path, effect.delta + bonus),
+    });
     if (previous !== current) lines.push(`${statLabel(effect.path, true)} ${previous}→${current}`);
   }
 }
@@ -398,7 +411,10 @@ function practiceSkill(
   const parents = affected.length ? affected : (["A", "B"] as const);
   for (const parent of parents) {
     const previous = s.decisions!.skills[parent][skill];
-    const current = Math.min(100, previous + (affected.length ? 2 : 1));
+    const current = Math.min(
+      100,
+      previous + difficultyDelta(s, `decisions.skills.${parent}.${skill}`, affected.length ? 2 : 1),
+    );
     s.decisions!.skills[parent][skill] = current;
     if (current !== previous)
       lines.push(

@@ -1,6 +1,7 @@
 import type { Child, State } from "./types";
 import type { LifeDecision, LifeOption } from "../content/life_schema";
 import { hiddenTraits } from "../content/child_traits";
+import { difficultyDelta } from "./difficulty";
 
 export type HiddenTrait = keyof NonNullable<Child["profile"]>;
 
@@ -111,7 +112,10 @@ export function applyHiddenJudgment(state: State, node: LifeDecision, option: Li
     deltas[trait] = (deltas[trait] ?? 0) + effect.delta;
   }
   for (const [trait, delta] of Object.entries(deltas) as [HiddenTrait, number][])
-    profile[trait] = Math.max(0, Math.min(100, profile[trait] + delta));
+    profile[trait] = Math.max(
+      0,
+      Math.min(100, profile[trait] + difficultyDelta(state, `child.profile.${trait}`, delta)),
+    );
   awardChildTitles(state);
 }
 

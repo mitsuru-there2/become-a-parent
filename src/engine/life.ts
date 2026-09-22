@@ -13,6 +13,7 @@ import { clone } from "./shared";
 import { stage } from "./simulation";
 import { applyStat, statLabel } from "./automatic_events";
 import { annualIncome, meetsLifeRequirement } from "./life_requirements";
+import { baseIncome, difficultyDelta } from "./difficulty";
 import { activeTreeEffects, treeEnabled } from "./tree_effects";
 
 const config = (s: State) => contentFor(s).life_game!;
@@ -373,7 +374,7 @@ export function lifeForecast(s: State): Forecast {
   ];
   if (stageCost) cashFlow.push({ label: "年齢に応じた生活費", cost: stageCost });
   let cost = livingCost + stageCost;
-  let income = game.income;
+  let income = baseIncome(s);
   let count = 0;
   const known = new Set<string>();
   for (const node of game.decisions) {
@@ -651,7 +652,10 @@ export function chooseLife(s: State, eventInstance: string, optionId: string) {
 }
 function applyEffects(s: State, effects: LifeOption["effects"], lines: string[]) {
   for (const effect of effects) {
-    const { previous, current } = applyStat(s, effect);
+    const { previous, current } = applyStat(s, {
+      ...effect,
+      delta: difficultyDelta(s, effect.path, effect.delta),
+    });
     if (previous !== current)
       lines.push(
         `${statLabel(effect.path, treeEnabled(s))} ${current > previous ? "+" : ""}${current - previous}`,

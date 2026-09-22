@@ -3,20 +3,22 @@ import type { State } from "./types";
 import type { LifeRequirement } from "../content/life_requirements_schema";
 import { matches } from "./events";
 import { contentFor } from "../content/catalog";
+import { baseIncome, difficultyIncome } from "./difficulty";
 export function annualIncome(state: State): number {
   const game = contentFor(state).life_game;
   if (!game || !state.life) return 0;
   if (stageModel(state))
     return Math.max(
       0,
-      (game.income +
+      (baseIncome(state) +
         activeStageEffects(state).reduce(
-          (sum, { effect }) => sum + effect.income - (effect.income_reduction ?? 0),
+          (sum, { effect }) =>
+            sum + difficultyIncome(state, effect.income) - (effect.income_reduction ?? 0),
           0,
         )) *
         2,
     );
-  let income = game.income;
+  let income = baseIncome(state);
   for (const node of game.decisions) {
     if (
       node.kind !== "policy" ||

@@ -20,6 +20,7 @@ import { start, draw, stage, observeChild, publicView, applyEffect } from "./sim
 import { finish } from "./adult";
 import { matches } from "./events";
 import { initializeChildIdentity } from "./child_identity";
+import { baseIncome } from "./difficulty";
 
 import {
   tenPoint,
@@ -106,11 +107,17 @@ export function startDecisions(
                         : rules === "rules-6"
                           ? { rules, data: "data-6", save: "save-7" }
                           : { rules, data: "data-7", save: "save-8" };
+  state.cash = difficultyFor(state).initial_cash;
   if (tenPoint(state)) scaleParents(state, 0.1);
+  if (rules === "rules-14" && difficultyFor(state).parent_start_age !== undefined)
+    for (const parent of PEOPLE)
+      state.parents[parent].age_months = difficultyFor(state).parent_start_age! * 12;
   if (automaticEventsEnabled(state))
     state.grandparents.funds = game(state).initial_grandparent_funds ?? 40;
   if (["rules-9", "rules-10", "rules-11", "rules-12", "rules-13", "rules-14"].includes(rules)) {
     state.grandparents = clone(settings.content.life_game!.initial_family_home!);
+    if (rules === "rules-14")
+      state.grandparents.funds = difficultyFor(state).family_home_funds ?? state.grandparents.funds;
     if (percentStats(state)) {
       state.grandparents.health *= 10;
       state.grandparents.relation *= 10;
@@ -380,7 +387,7 @@ export function decisionForecast(state: State): Forecast {
     });
   let cost = difficultyFor(state).living_cost + stage(state.n, state).cost;
   let contract = d.contract;
-  let income = game(state).income;
+  let income = baseIncome(state);
   for (const theme of d.themes) {
     const selected = d.selections[instance(state, theme)];
     const option = theme.options.find((o) => `${theme.id}:${o.id}` === selected);
@@ -642,11 +649,11 @@ function historyEntry(
     adult_result: null,
   };
 }
-function endGame(state: State, reason: "divorce" | "separation") {
+function endGame(state: State, reason: "divorce" | "separation" | "bankruptcy") {
   state.phase = "game_over";
   state.game_over = {
     reason,
-    title: reason === "divorce" ? "離婚" : "一家離散",
+    title: reason === "divorce" ? "離婚" : reason === "separation" ? "一家離散" : "資金難",
     turn:
       state.n +
       (!state.life && state.decisions!.special_answer && state.decisions!.themes.length === 0
@@ -655,7 +662,9 @@ function endGame(state: State, reason: "divorce" | "separation") {
     text:
       reason === "divorce"
         ? "父と母は別々の道を歩むことになった。この家庭での物語は、ここで幕を閉じる。"
-        : "家族はそれぞれ家を離れた。一緒に暮らした日々を、この記録に残す。",
+        : reason === "separation"
+          ? "家族はそれぞれ家を離れた。一緒に暮らした日々を、この記録に残す。"
+          : "今期の生活費を支払えず、この家庭での物語はここで幕を閉じる。",
   };
   state.history.at(-1)?.text.push(state.game_over.text);
 }
@@ -708,6 +717,22 @@ export function advanceDecisions(state: State) {
   if (state.child.profile) state.child.latest_titles = [];
   const cash = state.cash;
   const previousStress = state.child.stress;
+  if (state.versions.rules === "rules-14" && state.life && f.projected_cash < 0) {
+    state.n++;
+    for (const parent of PEOPLE) state.parents[parent].age_months += 6;
+    state.cash = 0;
+    const entry = historyEntry(
+      state,
+      "turn",
+      [`半年の必要額${f.cost}万円に対し、${-f.projected_cash}万円不足した。`],
+      cash,
+      f.income,
+      cash + f.income,
+    );
+    state.history.push(entry);
+    endGame(state, "bankruptcy");
+    return;
+  }
   state.cash = Math.min(99999, f.projected_cash);
   const config = { ...game(state) };
   if (tenPoint(state)) {

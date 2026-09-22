@@ -1,4 +1,51 @@
 {
+  "difficulty_profiles": {
+    "easy": {
+      "label": "やさしい",
+      "description": "一流大学卒・エリート会社員。高収入と裕福な実家。30歳から始める",
+      "initial_cash": 800,
+      "living_cost": 190,
+      "parent_start_age": 30,
+      "family_home_funds": 800,
+      "base_income": 390,
+      "income_growth_per_stage": 25,
+      "good_event_probability": 130,
+      "bad_event_probability": 70,
+      "positive_effect": 125,
+      "negative_effect": 75,
+      "income_effect": 125
+    },
+    "normal": {
+      "label": "ふつう",
+      "description": "大学卒・中堅会社員。平均的な年収と一般的な実家。28歳から始める",
+      "initial_cash": 200,
+      "living_cost": 250,
+      "parent_start_age": 28,
+      "family_home_funds": 100,
+      "base_income": 250,
+      "income_growth_per_stage": 8,
+      "good_event_probability": 80,
+      "bad_event_probability": 125,
+      "positive_effect": 85,
+      "negative_effect": 120,
+      "income_effect": 75
+    },
+    "hard": {
+      "label": "むずかしい",
+      "description": "高卒・飲食店勤務。低収入で昇給はわずか、実家の援助も少ない。25歳から始める",
+      "initial_cash": 150,
+      "living_cost": 210,
+      "parent_start_age": 25,
+      "family_home_funds": 30,
+      "base_income": 210,
+      "income_growth_per_stage": 1,
+      "good_event_probability": 55,
+      "bad_event_probability": 160,
+      "positive_effect": 65,
+      "negative_effect": 150,
+      "income_effect": 40
+    }
+  },
   "schema_version": 1,
   "max_selections": 0,
   "crossroads": [

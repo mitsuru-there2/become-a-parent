@@ -182,7 +182,7 @@ export interface DecisionTurn {
   event_history: History | null;
 }
 export interface GameOver {
-  reason: "divorce" | "separation";
+  reason: "divorce" | "separation" | "bankruptcy";
   title: string;
   text: string;
   turn: number;
