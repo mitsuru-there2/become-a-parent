@@ -126,16 +126,7 @@ describe("子どもの隠し特性と称号", () => {
       seed: 4,
       request_id: "new",
     });
-    for (const route of response.choices.filter((choice) => choice.route_choice)) {
-      response = await service.execute({
-        command: "choose",
-        run: "identity",
-        revision: response.revision!,
-        request_id: route.event_id,
-        input: { event_instance: route.instance_id, option_id: route.options[0].option_id },
-      });
-      expect(response.ok).toBe(true);
-    }
+    expect(response.public!.life!.crossroad!.missing).toEqual([]);
     const decision = response.choices.find((choice) => choice.event_id === "home-daily-0-01")!;
     response = await service.execute({
       command: "choose",

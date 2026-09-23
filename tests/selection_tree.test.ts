@@ -29,6 +29,38 @@ import {
 } from "./fixtures/stage_helpers";
 
 describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
+  it("現行ルールは5分類の既定ルートで開始し、変更しなくても進める", () => {
+    const s = startDecisions("home-01", 2, new Catalog().resolve("normal"));
+    const life = publicView(s).public.life!;
+    expect(life.crossroad!.missing).toEqual([]);
+    expect(life.crossroad!.changeable).toHaveLength(5);
+    expect(life.route_groups!.every((group) => group.current === group.routes[0].id)).toBe(true);
+    expect(publicView(s).public.forecast!.can_advance).toBe(true);
+    const untouched = startDecisions("home-01", 2, new Catalog().resolve("normal"));
+    advance(untouched);
+    expect(untouched.n).toBe(1);
+    expect(() => validateLifeState(untouched)).not.toThrow();
+    const before = clone(s);
+    expect(() => chooseStage(s, "crossroad-school", "public")).toThrow();
+    expect(s).toEqual(before);
+    const cash = s.cash;
+    const stress = s.child.stress;
+    chooseStage(s, "crossroad-school", "private");
+    expect(s.cash).toBe(cash);
+    expect(s.child.stress).toBe(stress);
+    expect(publicView(s).public.life!.crossroad!.changeable).toHaveLength(4);
+    expect(() => chooseStage(s, "crossroad-school", "home")).toThrow();
+    expect(() => validateLifeState(s)).not.toThrow();
+    advance(s);
+    expect(s.life!.stage_routes!["0:school"]).toBe("private");
+    expect(() => validateLifeState(s)).not.toThrow();
+  });
+  it("既定ルートの判断を取ってから初回変更しても保存状態を検証できる", () => {
+    const s = startDecisions("home-01", 2, new Catalog().resolve("normal"));
+    chooseStage(s, "grandparents-visit-0-01", "take");
+    chooseStage(s, "crossroad-grandparents", "care");
+    expect(() => validateLifeState(s)).not.toThrow();
+  });
   it("初回だけ全カテゴリの確定が必要で、後続の全岐路は無料で自動継承する", () => {
     const s = startStage();
     expect(s.versions).toEqual({ rules: "rules-13", data: "data-14", save: "save-14" });
@@ -293,16 +325,8 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       difficulty: "easy",
       request_id: "new",
     });
-    for (const choice of r.choices.filter((c) => c.route_choice)) {
-      r = await service.execute({
-        command: "choose",
-        run: "stage",
-        revision: r.revision!,
-        request_id: choice.event_id,
-        input: { event_instance: choice.instance_id, option_id: choice.options[0].option_id },
-      });
-      expect(r.ok).toBe(true);
-    }
+    expect(r.public!.life!.crossroad!.missing).toEqual([]);
+    expect(r.public!.forecast!.can_advance).toBe(true);
     const request = {
       command: "choose" as const,
       run: "stage",
@@ -335,6 +359,9 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       },
       (s: State) => {
         s.life!.stage_routes!["0:school"] = "unknown";
+      },
+      (s: State) => {
+        s.life!.stage_routes!["0:school"] = "private";
       },
       (s: State) => {
         s.life!.stage_routes!["1:school"] = "public";

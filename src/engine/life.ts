@@ -225,7 +225,19 @@ function resolvedPolicies(s: State, planned: boolean) {
 }
 export function initializeLife(s: State) {
   if (stageModel(s)) {
-    s.life = { stage_routes: {}, policies: {}, history: {}, visible: [], fresh: [], notices: [] };
+    s.life = {
+      stage_routes:
+        s.versions.rules === "rules-14"
+          ? Object.fromEntries(
+              config(s).route_groups!.map((group) => [`0:${group.id}`, group.routes[0].id]),
+            )
+          : {},
+      policies: {},
+      history: {},
+      visible: [],
+      fresh: [],
+      notices: [],
+    };
     return;
   }
   s.life = {

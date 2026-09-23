@@ -46,6 +46,23 @@ export function validateLifeState(state: State) {
       )
         throw new Error("ルート記録が不正です");
     }
+    if (state.versions.rules === "rules-14")
+      for (const group of groups) {
+        const changes = state.history.flatMap((entry) =>
+          entry.kind === "special" && entry.turn === 1
+            ? entry.events.filter((event) => event.event_id === stageRouteId(group.id))
+            : [],
+        );
+        const route = changes[0]?.option_id?.split(":")[1] ?? group.routes[0].id;
+        if (
+          changes.length > 1 ||
+          (changes.length === 1 && route === group.routes[0].id) ||
+          !group.routes.some((item) => item.id === route)
+        )
+          throw new Error("初回ルートの変更記録が不正です");
+        if (life.stage_routes[`0:${group.id}`] !== route)
+          throw new Error("初回ルートと変更記録が一致しません");
+      }
     for (let index = 0; index <= stageIndex(state); index++)
       if (
         index > 0 ||
@@ -62,7 +79,11 @@ export function validateLifeState(state: State) {
       const index = Math.floor((acquired.first_turn - 1) / 8);
       // A choice may be acquired on the inherited route before an optional switch.
       // Validate its route at acquisition, not the final route of the stage.
-      let route = index ? life.stage_routes[`${index - 1}:${node?.route_group}`] : undefined;
+      let route = index
+        ? life.stage_routes[`${index - 1}:${node?.route_group}`]
+        : state.versions.rules === "rules-14"
+          ? groups.find((group) => group.id === node?.route_group)?.routes[0]?.id
+          : undefined;
       let recorded = false;
       for (const entry of state.history) {
         if (

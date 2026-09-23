@@ -259,7 +259,7 @@ it("現行ルールの自動イベントを期首にダイアログで表示す�
   expect(within(dialog).getByText(view.public.decision_turn!.event_results[0].text)).toBeTruthy();
 });
 
-it("岐路の必須選択が残る間は半年進行ボタンを無効にする", async () => {
+it("開始時の既定ルートで半年進行でき、マップからルート変更を開ける", async () => {
   const { fireEvent } = await import("@testing-library/react");
   const { Catalog } = await import("../src/content/catalog");
   const { startDecisions } = await import("../src/engine/decisions");
@@ -280,12 +280,12 @@ it("岐路の必須選択が残る間は半年進行ボタンを無効にする"
   } as const;
   render(createElement(DecisionPlay, { response }));
   const advance = screen.getByRole("button", { name: "この暮らしで半年進める →" });
-  expect((advance as HTMLButtonElement).disabled).toBe(true);
-  expect(advance.getAttribute("title")).toBe("ホームで残りのルートを選んでください");
+  expect((advance as HTMLButtonElement).disabled).toBe(false);
+  expect(advance.getAttribute("title")).toBeNull();
   expect(screen.queryByRole("alert", { name: "岐路の必須選択" })).toBeNull();
-  expect(document.querySelectorAll(".map-marker.is-route-required")).toHaveLength(5);
+  expect(document.querySelectorAll(".map-marker.is-route-changeable")).toHaveLength(5);
   fireEvent.click(advance);
-  expect(update).not.toHaveBeenCalled();
+  expect(update).toHaveBeenCalledWith("advance");
 });
 
 it("現在ルートの取得可能な判断数をマップに表示し、取得後に更新する", () => {

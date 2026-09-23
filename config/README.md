@@ -61,7 +61,7 @@
 
 画面・仕様・設定では、方針と単発項目を総称して「選択」と呼びます。内部キーも`selection_tree`、`max_selections`、`kind: "selection"`へ統一します。
 
-旧rules-12では、`crossroads`の`required_decisions`に方針IDを並べていました。現行は上記のルートIDを使います。本編は0・4・8・12・16歳の春〜夏を岐路とし、初回のみ5分類すべてのルートを必須にします。後続の岐路では自動継承し、`life.crossroad.changeable`で任意に変更できるカテゴリを案内します。未選択がある間、予測は進行不可となり、公開状態の`life.crossroad.missing`から画面・CLIが同じ不足項目を案内します。
+旧rules-12では、`crossroads`の`required_decisions`に方針IDを並べていました。現行は上記のルートIDを使います。本編は0・4・8・12・16歳の春〜夏を岐路とし、開始時に5分類すべての先頭ルートを選択済みにし、初回の岐路では無料で一度だけ変更できます。後続の岐路では自動継承し、`life.crossroad.changeable`で任意に変更できるカテゴリを案内します。未選択がある間、予測は進行不可となり、公開状態の`life.crossroad.missing`から画面・CLIが同じ不足項目を案内します。
 
 ## DLCを追加する
 

@@ -28,8 +28,7 @@ it("新しい人生は状態を100%尺度、子と親の能力を0点から始�
     current: 100,
   });
 
-  for (const choice of publicView(state).choices.filter((item) => item.route_choice))
-    chooseDecision(state, choice.instance_id, choice.options[0].option_id);
+  expect(publicView(state).public.life!.crossroad!.missing).toEqual([]);
   const choice = publicView(state).choices.find(
     (item) => item.event_id === "education-public-0-01",
   )!;

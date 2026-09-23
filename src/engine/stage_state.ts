@@ -19,9 +19,13 @@ export function inheritStageRoutes(s: State) {
 export const canChangeStageRoute = (s: State, group: string) =>
   s.phase === "childhood" &&
   s.n % 8 === 0 &&
-  stageIndex(s) > 0 &&
+  (stageIndex(s) > 0 || s.versions.rules === "rules-14") &&
   !!routeAtStage(s, group) &&
-  routeAtStage(s, group) === routeAtStage(s, group, stageIndex(s) - 1);
+  (stageIndex(s) === 0
+    ? !s.history.some((entry) =>
+        entry.events.some((event) => event.event_id === stageRouteId(group)),
+      )
+    : routeAtStage(s, group) === routeAtStage(s, group, stageIndex(s) - 1));
 
 export function activeStageEffects(s: State) {
   if (!s.life || s.phase !== "childhood") return [];

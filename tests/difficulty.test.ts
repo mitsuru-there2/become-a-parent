@@ -138,16 +138,7 @@ describe("現行ステージ制の難易度", () => {
       seed: 0,
       request_id: "new",
     });
-    for (const choice of response.choices.filter((item) => item.route_choice)) {
-      response = await service.execute({
-        command: "choose",
-        run: "shortage",
-        revision: response.revision!,
-        request_id: choice.event_id,
-        input: { event_instance: choice.instance_id, option_id: choice.options[0].option_id },
-      });
-      expect(response.ok).toBe(true);
-    }
+    expect(response.public!.life!.crossroad!.missing).toEqual([]);
     let warned = false;
     while (response.phase === "childhood") {
       if (response.public!.forecast!.projected_cash < 0) {

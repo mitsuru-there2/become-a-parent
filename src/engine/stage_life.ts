@@ -198,8 +198,15 @@ export function stageChoices(s: State): Choice[] {
           {
             label: index
               ? "引き継いだルートから一度だけ変更できます"
-              : "このステージのルートは未確定です",
-            met: index ? canChangeStageRoute(s, group.id) && current !== route.id : !current,
+              : s.versions.rules === "rules-14"
+                ? "開始時のルートを一度だけ変更できます"
+                : "このステージのルートは未確定です",
+            met:
+              s.versions.rules === "rules-14"
+                ? canChangeStageRoute(s, group.id) && current !== route.id
+                : index
+                  ? canChangeStageRoute(s, group.id) && current !== route.id
+                  : !current,
           },
           { label: `変更費用 ${cost}万円（現在${s.cash}万円）`, met: s.cash >= cost },
           {
@@ -216,7 +223,7 @@ export function stageChoices(s: State): Choice[] {
           income: 0,
           description: changed
             ? `ルート変更：${cost}万円 ／ ${effectDescription(s, group.switch_effects!)}。確定後は次の岐路まで変更できません。`
-            : `${previous ? "同じルートを継続" : "初回のルート選択"}：無料。確定後は次の岐路まで変更できません。`,
+            : `${previous ? "同じルートを継続" : s.versions.rules === "rules-14" ? "開始時のルート変更" : "初回のルート選択"}：無料。確定後は次の岐路まで変更できません。`,
           requirements: details.map((d) => `${d.met ? "✓" : "未達"} ${d.label}`),
           acquired: current === route.id,
           available: details.every((d) => d.met),
