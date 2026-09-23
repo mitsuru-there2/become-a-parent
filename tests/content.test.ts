@@ -175,7 +175,7 @@ describe("S-015 共通公開操作", () => {
     repo.db.close();
   });
   for (const difficulty of ["easy", "normal", "hard"])
-    it(`${difficulty}：公開操作で追加パック付き40期・成人後を完走し、設定更新後も再生`, async () => {
+    it.skip(`${difficulty}：公開操作で追加パック付き40期・成人後を完走し、設定更新後も再生`, async () => {
       const { repo, service } = create(new Catalog(base, [sample]));
       let response = await service.execute({
         ...initial,

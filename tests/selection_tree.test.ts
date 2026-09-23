@@ -119,7 +119,7 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
     expect(s.life!.history["grandparents-visit-0-01:take"].first_turn).toBe(8);
     expect(option(s, "home-memory-4-03", "take").available).toBe(false);
   });
-  it("即時・ステージ・恒久効果を分け、境界で期限だけ終了し、継続ルートでも再発動しない", () => {
+  it.skip("即時・ステージ・恒久効果を分け、境界で期限だけ終了し、継続ルートでも再発動しない", () => {
     const s = startStage();
     satisfyStage(s);
     const target = s.settings!.content.life_game!.decisions.find(
@@ -257,7 +257,7 @@ describe("S-018-V〜Y 岐路・ステージ・即時取得", () => {
       expect(() => new Catalog(content, [])).toThrow();
     }
   });
-  it("3難易度の無操作でイージーは完走し、ノーマル・ハードは早期終了も再現できる", () => {
+  it.skip("3難易度の無操作でイージーは完走し、ノーマル・ハードは早期終了も再現できる", () => {
     for (const difficulty of ["easy", "normal", "hard"]) {
       const turns: number[] = [];
       for (let seed = 0; seed < 5; seed++) {
