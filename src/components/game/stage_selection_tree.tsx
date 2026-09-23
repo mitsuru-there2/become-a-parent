@@ -12,17 +12,30 @@ const durations = {
   stage: "このステージ中・毎期",
   permanent: "恒久・育児終了まで",
 };
-export function StageSelectionTree({ state, choices }: { state: PublicState; choices: Choice[] }) {
+export function StageSelectionTree({
+  state,
+  choices,
+  category,
+  onCategoryChange,
+}: {
+  state: PublicState;
+  choices: Choice[];
+  category?: string;
+  onCategoryChange?: (category: string | null) => void;
+}) {
   const life = state.life!;
   const currentStage = life.stage!;
-  const [menu, setMenu] = useState<string | null>(null);
+  const [localMenu, setLocalMenu] = useState<string | null>(null);
+  const menu = onCategoryChange ? (category ?? null) : localMenu;
   const [viewStage, setViewStage] = useState(currentStage.index);
+  const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
   const [selected, setSelected] = useState<Selected | null>(null);
   const busy = useStore($busy);
   const heading = useRef<HTMLHeadingElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const mapButtons = useRef<Record<string, HTMLButtonElement | null>>({});
+  const previousMenu = useRef<string | null>(null);
   const lanes = useRef<HTMLDivElement>(null);
   const selectedMenu = life.menus.find((m) => m.id === menu);
   const group = life.route_groups!.find((g) => g.menu === menu);
@@ -36,6 +49,11 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
   const missing = life.crossroad?.missing ?? [];
   const changeable = life.crossroad?.changeable ?? [];
   const canChangeRoute = changeable.some((item) => item.menu === menu);
+  const preferredRoute = group?.chosen_stages?.[String(viewStage)] ?? group?.current;
+  const activeRoute =
+    group?.routes.find((route) => route.id === selectedRoute)?.id ??
+    group?.routes.find((route) => route.id === preferredRoute)?.id ??
+    group?.routes[0]?.id;
   const availableCounts = new Map<string, number>();
   for (const choice of choices) {
     if (choice.route_choice || !choice.menu) continue;
@@ -44,6 +62,10 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
   }
   useEffect(() => {
     if (menu) heading.current?.focus();
+    else if (previousMenu.current) mapButtons.current[previousMenu.current]?.focus();
+    previousMenu.current = menu;
+    setViewStage(currentStage.index);
+    setSelectedRoute(null);
   }, [menu]);
   useEffect(() => {
     if (selected && dialog.current && !dialog.current.open) dialog.current.showModal();
@@ -67,9 +89,20 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
     setSelected({ choiceId: choice.event_id, optionId: option.option_id });
   }
   function openMenu(id: string) {
-    setMenu(id);
+    if (onCategoryChange) onCategoryChange(id);
+    else setLocalMenu(id);
     setViewStage(currentStage.index);
+    setSelectedRoute(null);
     if (id === menu) heading.current?.focus();
+  }
+  function closeMenu() {
+    if (onCategoryChange) onCategoryChange(null);
+    else setLocalMenu(null);
+  }
+  function changeStage(index: number) {
+    setViewStage(index);
+    setSelectedRoute(null);
+    if (lanes.current) lanes.current.scrollTop = 0;
   }
   return (
     <section
@@ -81,33 +114,10 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
           {notice}
         </p>
       ))}
-      {missing.length === 0 && changeable.length > 0 && (
-        <aside className="crossroad-alert" role="alert" aria-label="岐路のルート変更">
-          <div>
-            <strong>{life.crossroad!.label} · ルートを変更できます</strong>
-            <span>
-              現在のルートを引き継いでいます。変更せず、そのまま半年を進められます。変更するとペナルティが発生します。
-            </span>
-          </div>
-          <nav aria-label="変更できるルート">
-            {changeable.map((item) => (
-              <button key={item.decision_id} onClick={() => openMenu(item.menu)}>
-                {item.title}へ →
-              </button>
-            ))}
-          </nav>
-        </aside>
-      )}
       {selectedMenu && group && routeChoice ? (
         <>
           <div className="tree-category-heading">
-            <button
-              className="tree-back"
-              onClick={() => {
-                setMenu(null);
-                requestAnimationFrame(() => mapButtons.current[selectedMenu.id]?.focus());
-              }}
-            >
+            <button className="tree-back" onClick={closeMenu}>
               ← ホームに戻る
             </button>
             <div>
@@ -116,16 +126,48 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
               </h2>
               <p>{selectedMenu.description}</p>
             </div>
+            <span className="mobile-category-context">
+              {Math.floor(state.time.child_months / 12)}歳
+              {state.time.child_months % 12 ? "6か月" : ""} · 資金 {state.cash}万円
+            </span>
           </div>
           <nav className="stage-tabs" aria-label="ステージ">
             {life.stages!.map((item) => (
               <button
                 key={item.index}
                 aria-pressed={viewStage === item.index}
-                onClick={() => setViewStage(item.index)}
+                onClick={() => changeStage(item.index)}
               >
                 {item.label}
                 {item.index === currentStage.index ? " · 現在" : ""}
+              </button>
+            ))}
+          </nav>
+          <select
+            className="stage-mobile-select"
+            aria-label="ステージを選択"
+            value={viewStage}
+            onChange={(event) => changeStage(Number(event.target.value))}
+          >
+            {life.stages!.map((item) => (
+              <option key={item.index} value={item.index}>
+                {item.label}
+                {item.index === currentStage.index ? " · 現在" : ""}
+              </option>
+            ))}
+          </select>
+          <nav className="stage-route-tabs" aria-label="ルートを切り替え">
+            {group.routes.map((route) => (
+              <button
+                key={route.id}
+                aria-pressed={route.id === activeRoute}
+                onClick={() => {
+                  setSelectedRoute(route.id);
+                  if (lanes.current) lanes.current.scrollTop = 0;
+                }}
+              >
+                {route.label}
+                {group.chosen_stages?.[String(viewStage)] === route.id ? " ✓" : ""}
               </button>
             ))}
           </nav>
@@ -158,7 +200,7 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
                   .sort((a, b) => a.option.routes!.length - b.option.routes!.length);
                 return (
                   <section
-                    className={`stage-route ${chosen ? "is-current" : inactive ? "is-inactive" : ""}`}
+                    className={`stage-route ${chosen ? "is-current" : inactive ? "is-inactive" : ""}${route.id === activeRoute ? " is-mobile-active" : ""}`}
                     key={route.id}
                     aria-label={`${route.label}ルート`}
                   >
@@ -266,18 +308,22 @@ export function StageSelectionTree({ state, choices }: { state: PublicState; cho
             {life.menus.map((item) => {
               const route = life.route_groups!.find((g) => g.menu === item.id)!;
               const routeRequired = missing.some((entry) => entry.menu === item.id);
+              const routeChangeable = changeable.some((entry) => entry.menu === item.id);
               return (
                 <button
                   ref={(element) => {
                     mapButtons.current[item.id] = element;
                   }}
                   key={item.id}
-                  className={`map-marker ${routeRequired ? "is-route-required" : ""}`}
+                  className={`map-marker${routeRequired ? " is-route-required" : routeChangeable ? " is-route-changeable" : ""}`}
                   data-menu={item.id}
                   style={markerPosition(item.id)}
                   onClick={() => openMenu(item.id)}
                 >
                   {routeRequired && <span className="map-route-required">ルートを選択</span>}
+                  {routeChangeable && !routeRequired && (
+                    <span className="map-route-changeable">ルート変更可</span>
+                  )}
                   <span className="map-marker-icon" aria-hidden="true">
                     <MenuIcon id={item.id} />
                   </span>

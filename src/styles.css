@@ -2853,42 +2853,6 @@ meter::-moz-meter-bar {
   flex-direction: column;
   min-height: 0;
 }
-.crossroad-alert {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 10px 16px;
-  margin-bottom: 8px;
-  padding: 9px 12px;
-  border: 1px solid #c48d65;
-  background: #38251d;
-  color: #f1d6bd;
-  font-size: 11px;
-}
-.crossroad-alert > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 150px;
-}
-.crossroad-alert strong {
-  color: #ffd7a7;
-  font-size: 13px;
-}
-.crossroad-alert nav {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.crossroad-alert button {
-  min-height: 36px;
-  padding: 5px 8px;
-  border: 1px solid #bb9b79;
-  background: #241c17;
-  color: #f0ddc4;
-  text-align: left;
-}
 .tree-category-heading,
 .tree-legend,
 .map-footer {
@@ -3375,19 +3339,6 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-width: 640px) {
-  .crossroad-alert {
-    align-items: stretch;
-    flex-direction: column;
-    max-height: 196px;
-    overflow: auto;
-  }
-  .crossroad-alert nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .crossroad-alert button {
-    min-height: 44px;
-  }
   .status-shell .rpg-hud {
     min-height: 60px;
   }
@@ -3417,11 +3368,6 @@ meter::-moz-meter-bar {
   }
   .status-shell .rpg-party[data-members="4"] {
     gap: 4px;
-  }
-}
-@media (max-width: 640px) and (max-height: 600px) {
-  .crossroad-alert {
-    max-height: 142px;
   }
 }
 @media (max-height: 700px) {
@@ -3745,28 +3691,51 @@ meter::-moz-meter-bar {
   line-height: 1.2;
   white-space: nowrap;
 }
+.status-shell .stage-tree .map-marker.is-route-changeable {
+  border: 2px solid #9bceb5;
+  background: #21342cf5;
+  box-shadow:
+    0 5px 0 #090e0be6,
+    0 0 0 4px #9bceb54d;
+}
+.status-shell .stage-tree .map-marker .map-route-changeable {
+  padding: 3px 7px;
+  border-radius: 2px;
+  background: #9bceb5;
+  color: #14231c;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
 @media (max-height: 700px) {
-  .status-shell .stage-tree .map-marker.is-route-required {
+  .status-shell .stage-tree .map-marker.is-route-required,
+  .status-shell .stage-tree .map-marker.is-route-changeable {
     flex-direction: column;
   }
-  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon {
+  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon,
+  .status-shell .stage-tree .map-marker.is-route-changeable .map-marker-icon {
     display: none;
   }
 }
 @media (max-width: 600px) {
-  .status-shell .stage-tree .map-marker.is-route-required {
+  .status-shell .stage-tree .map-marker.is-route-required,
+  .status-shell .stage-tree .map-marker.is-route-changeable {
     gap: 2px;
     padding: 4px;
   }
-  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon {
+  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon,
+  .status-shell .stage-tree .map-marker.is-route-changeable .map-marker-icon {
     width: 26px;
     height: 26px;
   }
-  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon svg {
+  .status-shell .stage-tree .map-marker.is-route-required .map-marker-icon svg,
+  .status-shell .stage-tree .map-marker.is-route-changeable .map-marker-icon svg {
     width: 17px;
     height: 17px;
   }
-  .status-shell .stage-tree .map-marker.is-route-required small {
+  .status-shell .stage-tree .map-marker.is-route-required small,
+  .status-shell .stage-tree .map-marker.is-route-changeable small {
     display: none;
   }
 }
@@ -4064,6 +4033,9 @@ meter::-moz-meter-bar {
 .status-money {
   position: relative;
 }
+.status-money-visual {
+  display: none;
+}
 .observation-mark.status-changed svg {
   animation: status-observation-change 1.3s ease-out;
 }
@@ -4117,8 +4089,8 @@ meter::-moz-meter-bar {
 .member-full-stats .status-percent > span:first-child {
   display: none;
 }
-.status-meter > span,
-.status-money > span {
+.status-meter > span:first-child,
+.status-money > span:first-child {
   color: #bcc4b3;
   font-size: 11px;
   min-width: 4.5em;
@@ -4369,7 +4341,12 @@ meter::-moz-meter-bar {
   display: grid;
   margin: 0;
 }
+.member-full-stats.is-parent {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+}
 .member-full-stats > div {
+  min-width: 0;
   padding-block: 13px;
   border-top: 1px solid #43503b;
 }
@@ -4388,6 +4365,27 @@ meter::-moz-meter-bar {
   align-items: center;
   gap: 18px;
   margin: 5px 0 0;
+}
+.member-full-stats.is-parent .status-percent {
+  justify-content: center;
+}
+.member-full-stats.is-parent .status-percent-ring {
+  inline-size: 88px;
+  block-size: 88px;
+  min-inline-size: 88px;
+  min-block-size: 88px;
+  flex: 0 0 88px;
+  aspect-ratio: 1;
+  font-size: 17px;
+}
+.member-full-stats.is-parent .status-percent-ring::before {
+  inset: 9px;
+}
+.member-full-stats.is-parent dd:has(.status-percent) {
+  justify-content: center;
+}
+.member-full-stats.is-parent dd:has(meter) {
+  gap: 8px;
 }
 .member-full-stats dd strong {
   min-width: 64px;
@@ -4717,5 +4715,276 @@ meter::-moz-meter-bar {
 @media (prefers-reduced-motion: reduce) {
   .child-award-celebration {
     animation: none;
+  }
+}
+
+/* A category becomes its own reading surface on narrow screens. */
+.mobile-category-context,
+.stage-mobile-select,
+.stage-route-tabs {
+  display: none;
+}
+
+@media (max-width: 640px), (max-width: 900px) and (max-height: 500px) {
+  .status-shell .rpg-party,
+  .status-shell .rpg-party[data-members="4"],
+  .status-shell .rpg-party[data-members="5"] {
+    display: grid;
+    grid-template-columns: repeat(var(--party-columns, 4), minmax(0, 1fr));
+    height: 56px;
+  }
+  .status-shell .rpg-party[data-members="5"] {
+    --party-columns: 5;
+  }
+  .status-shell .rpg-party .party-member {
+    min-width: 0;
+    height: 56px;
+  }
+  .status-shell .rpg-party .family-member-button {
+    flex-direction: column;
+    align-items: center;
+    min-height: 56px;
+    padding: 3px 2px;
+    justify-content: center;
+    gap: 3px;
+  }
+  .status-shell .rpg-party .family-member-heading {
+    min-height: 0;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0;
+  }
+  .status-shell .rpg-party .family-member-heading > span:not(.family-portrait) {
+    display: none;
+  }
+  .status-shell .rpg-party .family-member-button .family-portrait {
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+  }
+  .status-shell .rpg-party .family-compact-stats,
+  .status-shell .rpg-party .child-compact-observations {
+    display: grid;
+    grid-template-columns: repeat(3, 18px);
+    justify-content: center;
+    gap: 2px;
+    flex: none;
+    width: 100%;
+  }
+  .status-shell .rpg-party .family-member-button .status-percent,
+  .status-shell .rpg-party .family-member-button .status-money,
+  .status-shell .rpg-party .family-member-button .status-meter,
+  .status-shell .rpg-party .family-member-button .observation-mark.is-compact {
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    min-height: 18px;
+  }
+  .status-shell .rpg-party .family-member-button .status-percent > span:first-child,
+  .status-shell
+    .rpg-party
+    .family-member-button
+    .status-meter:not(.status-percent)
+    > span:first-child,
+  .status-shell .rpg-party .family-member-button .status-percent-ring > span,
+  .status-shell .rpg-party .family-member-button .status-money > span:first-child,
+  .status-shell .rpg-party .family-member-button .status-money strong,
+  .status-shell .rpg-party .family-member-button .status-change,
+  .status-shell .rpg-party .family-member-button .observation-label {
+    display: none;
+  }
+  .status-shell .rpg-party .family-member-button .status-percent-ring,
+  .status-shell .rpg-party .family-compact-stats.is-percent .status-percent-ring {
+    inline-size: 18px;
+    block-size: 18px;
+    min-inline-size: 18px;
+    min-block-size: 18px;
+  }
+  .status-shell .rpg-party .family-member-button .status-percent-ring::before,
+  .status-shell .rpg-party .family-compact-stats.is-percent .status-percent-ring::before {
+    inset: 3px;
+  }
+  .status-shell .rpg-party .family-member-button .observation-mark.is-compact svg {
+    width: 18px;
+    height: 18px;
+    padding: 1px;
+    border-width: 1px;
+  }
+  .status-shell .rpg-party .family-member-button .status-meter meter {
+    width: 18px;
+    height: 5px;
+    flex: none;
+  }
+  .status-shell .rpg-party .family-member-button .status-money-visual {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    padding: 1px;
+  }
+  .status-shell .rpg-party .family-member-button .status-money-visual i {
+    display: block;
+    width: 4px;
+    height: 9px;
+    border: 1px solid #dfc58b;
+    border-radius: 50%;
+    opacity: 0.35;
+  }
+  .status-shell .rpg-party .family-member-button .status-money-visual i[data-active] {
+    background: #dfc58b;
+    opacity: 1;
+  }
+  .status-shell .rpg-bottom {
+    gap: 4px;
+  }
+
+  .status-shell.mobile-category-screen {
+    grid-template-rows: minmax(0, 1fr);
+    padding: 0;
+  }
+  .mobile-category-screen > .rpg-header,
+  .mobile-category-screen .rpg-hud,
+  .mobile-category-screen > .rpg-bottom {
+    display: none;
+  }
+  .mobile-category-screen .rpg-main {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .mobile-category-screen .rpg-stage,
+  .mobile-category-screen .rpg-window,
+  .mobile-category-screen .rpg-window-body {
+    min-height: 0;
+    height: 100%;
+  }
+  .mobile-category-screen .rpg-window {
+    width: 100%;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    outline: 0;
+  }
+  .mobile-category-screen .rpg-window-body:has(.stage-tree) {
+    padding: 0;
+    overflow: hidden;
+  }
+  .mobile-category-screen .stage-tree.is-category {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .mobile-category-screen .tree-category-heading {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 10px;
+    min-height: 76px;
+    padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+    background: #20251c;
+  }
+  .mobile-category-screen .tree-category-heading > div {
+    flex: 1;
+    min-width: 0;
+  }
+  .mobile-category-screen .tree-category-heading h2 {
+    font-size: 17px;
+  }
+  .mobile-category-screen .tree-category-heading p {
+    display: none;
+  }
+  .mobile-category-screen .tree-back {
+    min-height: 44px;
+    padding: 8px;
+  }
+  .mobile-category-screen .mobile-category-context {
+    display: block;
+    grid-column: 1 / -1;
+    text-align: right;
+    color: #e1d39b;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .mobile-category-screen .stage-tabs {
+    display: none;
+  }
+  .mobile-category-screen .stage-mobile-select {
+    display: block;
+    width: calc(100% - 24px);
+    min-height: 44px;
+    margin: 8px 12px;
+    padding: 8px 12px;
+    border: 1px solid #8a886d;
+    background: #25291f;
+    color: #f3f0e4;
+    font-size: 14px;
+  }
+  .mobile-category-screen .stage-route-tabs {
+    display: flex;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 12px 8px;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .mobile-category-screen .stage-route-tabs button {
+    min-width: 78px;
+    min-height: 44px;
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #777b64;
+    color: #dfdfd1;
+    background: #25291f;
+    font-size: 12px;
+  }
+  .mobile-category-screen .stage-route-tabs button[aria-pressed="true"] {
+    border-color: #e2c783;
+    color: #fff8e9;
+    background: #3d4931;
+  }
+  .mobile-category-screen .stage-summary {
+    padding: 0 12px 8px;
+  }
+  .mobile-category-screen .stage-summary > span {
+    display: none;
+  }
+  .mobile-category-screen .stage-lanes {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0 12px max(20px, env(safe-area-inset-bottom));
+  }
+  .mobile-category-screen .stage-lanes-inner {
+    display: block;
+    min-width: 0;
+  }
+  .mobile-category-screen .stage-route {
+    display: none;
+    width: 100%;
+    padding: 12px;
+  }
+  .mobile-category-screen .stage-route.is-mobile-active {
+    display: block;
+  }
+  .mobile-category-screen .stage-route-heading {
+    min-height: 0;
+  }
+  .mobile-category-screen .stage-selection {
+    width: 100%;
+  }
+
+  .mobile-category-screen .tree-detail {
+    width: 100%;
+    max-height: min(88dvh, 760px);
+    margin: auto 0 0;
+    border-bottom: 0;
+  }
+  .mobile-category-screen .tree-detail-body > img {
+    max-height: 120px;
+  }
+  .mobile-category-screen .tree-dialog-controls {
+    position: sticky;
+    bottom: 0;
+    background: #20221b;
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
   }
 }

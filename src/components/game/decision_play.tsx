@@ -129,7 +129,15 @@ function Options({
   );
 }
 
-export function DecisionPlay({ response }: { response: Response }) {
+export function DecisionPlay({
+  response,
+  category,
+  onCategoryChange,
+}: {
+  response: Response;
+  category?: string;
+  onCategoryChange?: (category: string | null) => void;
+}) {
   const state = response.public!;
   const turn = state.decision_turn!;
   const busy = useStore($busy);
@@ -194,7 +202,7 @@ export function DecisionPlay({ response }: { response: Response }) {
   }, [response.phase, tab, extra.result]);
   return (
     <div
-      className={`rpg-shell status-shell${life ? " life-shell" : ""}${state.life?.selection_tree ? " tree-shell" : ""}`}
+      className={`rpg-shell status-shell${life ? " life-shell" : ""}${state.life?.selection_tree ? " tree-shell" : ""}${tab === "play" && state.life?.stage_model && category ? " mobile-category-screen" : ""}`}
     >
       <ChildTitleCelebration
         runId={response.run_id}
@@ -377,7 +385,12 @@ export function DecisionPlay({ response }: { response: Response }) {
                   <p>人生を振り返っています…</p>
                 )
               ) : life ? (
-                <LifeMenus state={state} choices={decisions} />
+                <LifeMenus
+                  state={state}
+                  choices={decisions}
+                  category={category}
+                  onCategoryChange={onCategoryChange}
+                />
               ) : choice ? (
                 <>
                   <h2 ref={heading} tabIndex={-1}>

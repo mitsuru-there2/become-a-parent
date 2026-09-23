@@ -5,12 +5,30 @@ import { useStore } from "@nanostores/react";
 import type { Choice, PublicState } from "../../engine/types";
 import { $busy, update } from "../../stores/game";
 
-export function LifeMenus({ state, choices }: { state: PublicState; choices: Choice[] }) {
+export function LifeMenus({
+  state,
+  choices,
+  category,
+  onCategoryChange,
+}: {
+  state: PublicState;
+  choices: Choice[];
+  category?: string;
+  onCategoryChange?: (category: string | null) => void;
+}) {
   const [menu, setMenu] = useState<string | null>(null);
   const busy = useStore($busy);
   const life = state.life!;
   if (life.stage_model)
-    return <StageSelectionTree key={life.stage!.index} state={state} choices={choices} />;
+    return (
+      <StageSelectionTree
+        key={life.stage!.index}
+        state={state}
+        choices={choices}
+        category={category}
+        onCategoryChange={onCategoryChange}
+      />
+    );
   if (life.selection_tree) return <SelectionTree state={state} choices={choices} />;
   const selectedMenu = life.menus.find((m) => m.id === menu);
   const scheduled = choices.filter((c) => c.selected_option);

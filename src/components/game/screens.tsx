@@ -172,7 +172,8 @@ export function Home() {
     </>
   );
 }
-export function Play({ runId }: { runId: string }) {
+export function Play({ runId, category }: { runId: string; category?: string }) {
+  const navigate = useNavigate();
   const response = useStore($response);
   const busy = useStore($busy);
   const dirty = useStore($dirty);
@@ -194,6 +195,22 @@ export function Play({ runId }: { runId: string }) {
       void readExtra("result");
   }, [response?.phase, response?.run_id, runId, tab, extra.result]);
   const publicState = response?.run_id === runId ? response.public : null;
+  const validCategory =
+    publicState?.life?.stage_model && publicState.life.menus.some((item) => item.id === category)
+      ? category
+      : undefined;
+  useEffect(() => {
+    if (publicState && category && !validCategory)
+      void navigate({ to: "/play/$runId", params: { runId }, search: {}, replace: true });
+  }, [category, validCategory, publicState, navigate, runId]);
+  const changeCategory = (next: string | null) => {
+    void navigate({
+      to: "/play/$runId",
+      params: { runId },
+      search: next ? { category: next } : {},
+      replace: next === null,
+    });
+  };
   const changeTab = (next: typeof tab) => {
     setTab(next);
     if (next === "history") void readExtra("history");
@@ -210,7 +227,15 @@ export function Play({ runId }: { runId: string }) {
         </main>
       </>
     );
-  if (publicState.decision_turn) return <DecisionPlay key={runId} response={response!} />;
+  if (publicState.decision_turn)
+    return (
+      <DecisionPlay
+        key={runId}
+        response={response!}
+        category={validCategory}
+        onCategoryChange={changeCategory}
+      />
+    );
   const projection = publicState.forecast;
   const scene = sceneFor(publicState);
   const last = response?.payload?.history_added?.find((entry) => entry.kind === "turn");

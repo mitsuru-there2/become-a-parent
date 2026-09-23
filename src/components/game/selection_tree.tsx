@@ -156,7 +156,6 @@ function branchPositions(selections: SelectionNode[], group: RouteGroup) {
 export function SelectionTree({ state, choices }: { state: PublicState; choices: Choice[] }) {
   const [menu, setMenu] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [crossroadTarget, setCrossroadTarget] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const treeScroll = useRef<HTMLDivElement>(null);
   const detailHeading = useRef<HTMLHeadingElement>(null);
@@ -237,21 +236,6 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
           top: routeLayout!.stageTops[stage],
         }));
   useEffect(() => {
-    if (!crossroadTarget || !menu || !treeScroll.current) return;
-    const target = nodes.find((node) => node.choice.event_id === crossroadTarget);
-    if (!target) return;
-    treeScroll.current.scrollTo({
-      left: Math.max(0, target.x - 24),
-      top: Math.max(0, target.y - 36),
-      behavior: "smooth",
-    });
-    const button = treeScroll.current.querySelector<HTMLButtonElement>(
-      `[data-decision="${crossroadTarget}"]`,
-    );
-    button?.focus({ preventScroll: true });
-    setCrossroadTarget(null);
-  }, [crossroadTarget, menu, nodes]);
-  useEffect(() => {
     if (!routeGroup || !treeScroll.current) return;
     const current = routeStages.find(
       ([, choice]) =>
@@ -275,28 +259,6 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
       className={`life-content selection-tree-content ${selectedMenu ? "is-category" : "is-map"}`}
       aria-label={selectedMenu ? "選択ツリー" : "ホーム"}
     >
-      {life.crossroad && crossroadMissing.length > 0 && (
-        <aside className="crossroad-alert" role="alert" aria-label="岐路の必須選択">
-          <div>
-            <strong>{life.crossroad.label}</strong>
-            <span>方針を選ぶまで半年を進められません。</span>
-          </div>
-          <nav aria-label="未実施の必須選択">
-            {crossroadMissing.map((item) => (
-              <button
-                key={item.decision_id}
-                type="button"
-                onClick={() => {
-                  setMenu(item.menu);
-                  setCrossroadTarget(item.decision_id);
-                }}
-              >
-                {item.title}へ →
-              </button>
-            ))}
-          </nav>
-        </aside>
-      )}
       {selectedMenu ? (
         <>
           <div className="tree-category-heading">
@@ -498,7 +460,7 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
                   mapButtons.current[item.id] = element;
                 }}
                 key={item.id}
-                className="map-marker"
+                className={`map-marker${crossroadMissing.some((missing) => missing.menu === item.id) ? " is-route-required" : ""}`}
                 data-menu={item.id}
                 style={markerPosition(item.id)}
                 onClick={() => setMenu(item.id)}
@@ -507,6 +469,9 @@ export function SelectionTree({ state, choices }: { state: PublicState; choices:
                   <MenuIcon id={item.id} />
                 </span>
                 <strong>{item.id === "grandparents" ? "実家との関わり" : item.label}</strong>
+                {crossroadMissing.some((missing) => missing.menu === item.id) && (
+                  <span className="map-route-required">ルートを選択</span>
+                )}
                 {choices.some((choice) => choice.menu === item.id && choice.selected_option) && (
                   <small>予定中</small>
                 )}

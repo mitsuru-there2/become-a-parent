@@ -41,7 +41,9 @@ function statusSnapshot(state: PublicState, members: Member[]) {
 
 function MemberStats({ member }: { member: Member }) {
   return (
-    <dl className="member-full-stats">
+    <dl
+      className={`member-full-stats${member.id === "A" || member.id === "B" ? " is-parent" : ""}`}
+    >
       {member.stats.map((stat) => (
         <div key={stat.label} data-burden={stat.burden || undefined}>
           <dt>
@@ -270,6 +272,15 @@ export function PartyStatus({ state }: { state: PublicState }) {
                   <span className="status-money" key={stat.label}>
                     <span>{stat.label}</span>
                     <strong>{stat.value}</strong>
+                    <span
+                      className="status-money-visual"
+                      role="img"
+                      aria-label={`${stat.label} ${stat.value}`}
+                    >
+                      {[1, 50, 100].map((amount) => (
+                        <i key={amount} data-active={(stat.rawValue ?? 0) >= amount || undefined} />
+                      ))}
+                    </span>
                     {typeof changes.values[`${member.id}:${stat.label}`] === "number" && (
                       <span
                         className="status-change"

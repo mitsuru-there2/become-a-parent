@@ -259,6 +259,8 @@ it("岐路の必須選択が残る間は半年進行ボタンを無効にする"
   const advance = screen.getByRole("button", { name: "この暮らしで半年進める →" });
   expect((advance as HTMLButtonElement).disabled).toBe(true);
   expect(advance.getAttribute("title")).toBe("ホームで残りのルートを選んでください");
+  expect(screen.queryByRole("alert", { name: "岐路の必須選択" })).toBeNull();
+  expect(document.querySelectorAll(".map-marker.is-route-required")).toHaveLength(5);
   fireEvent.click(advance);
   expect(update).not.toHaveBeenCalled();
 });
@@ -395,6 +397,71 @@ it("別ルートは閲覧専用と示して取得を拒否し、将来ステー�
   expect(screen.getAllByRole("button", { name: /このルートを確認/ })).toHaveLength(3);
 });
 
+it("後続の岐路では変更可能なカテゴリをマップに示し、変更後と次期に消す", () => {
+  const state = startStage();
+  satisfyStage(state);
+  until(state, 8);
+  const props = () => {
+    const view = publicView(state);
+    return { state: view.public, choices: view.choices };
+  };
+  const { rerender } = render(createElement(StageSelectionTree, props()));
+  expect(document.querySelectorAll(".map-marker.is-route-changeable")).toHaveLength(5);
+  expect(screen.queryByRole("alert", { name: "岐路のルート変更" })).toBeNull();
+  const education = document.querySelector<HTMLElement>('.map-marker[data-menu="education"]')!;
+  expect(education.textContent).toContain("ルート変更可");
+  fireEvent.click(education);
+  expect(screen.getByRole("heading", { name: "教育・進路" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "← ホームに戻る" }));
+
+  state.cash = 10000;
+  chooseStage(state, "crossroad-school", "private");
+  rerender(createElement(StageSelectionTree, props()));
+  expect(document.querySelectorAll(".map-marker.is-route-changeable")).toHaveLength(4);
+  expect(
+    document
+      .querySelector('.map-marker[data-menu="education"]')
+      ?.classList.contains("is-route-changeable"),
+  ).toBe(false);
+  until(state, 9);
+  rerender(createElement(StageSelectionTree, props()));
+  expect(document.querySelectorAll(".map-marker.is-route-changeable")).toHaveLength(0);
+  expect(screen.getAllByText(/取得可能 \d+件/).length).toBeGreaterThan(0);
+}, 30_000);
+
+it("カテゴリをURL状態で開き、モバイルの表示ルートを切り替えられる", () => {
+  const state = startStage();
+  chooseStage(state, "crossroad-school", "public");
+  const view = publicView(state);
+  const onCategoryChange = vi.fn();
+  const { container } = render(
+    createElement(StageSelectionTree, {
+      state: view.public,
+      choices: view.choices,
+      category: "education",
+      onCategoryChange,
+    }),
+  );
+  expect(screen.getByRole("heading", { name: "教育・進路" })).toBeTruthy();
+  expect(container.querySelector(".stage-route.is-mobile-active")?.getAttribute("aria-label")).toBe(
+    "公立・地域ルート",
+  );
+  const routes = screen.getByRole("navigation", { name: "ルートを切り替え" });
+  fireEvent.click(within(routes).getByRole("button", { name: "私立" }));
+  expect(container.querySelector(".stage-route.is-mobile-active")?.getAttribute("aria-label")).toBe(
+    "私立ルート",
+  );
+  fireEvent.change(screen.getByRole("combobox", { name: "ステージを選択" }), {
+    target: { value: "1" },
+  });
+  expect(screen.getByRole("combobox", { name: "ステージを選択" })).toHaveProperty("value", "1");
+  expect(container.querySelector(".stage-route.is-mobile-active")?.getAttribute("aria-label")).toBe(
+    "公立・地域ルート",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "← ホームに戻る" }));
+  expect(onCategoryChange).toHaveBeenCalledWith(null);
+});
+
 it("取得や資金変更でもルート内の判断の並び順を維持する", () => {
   const state = startStage();
   chooseStage(state, "crossroad-home", "daily");
@@ -430,22 +497,4 @@ it("取得や資金変更でもルート内の判断の並び順を維持する"
   state.cash = 0;
   rerender(createElement(StageSelectionTree, props()));
   expect(cards()).toEqual(before);
-});
-
-it("後続の岐路ではルート変更案内を表示し、次期にマップの件数を表示する", () => {
-  const state = startStage();
-  until(state, 8);
-  const props = () => {
-    const view = publicView(state);
-    return { state: view.public, choices: view.choices };
-  };
-  const { rerender } = render(createElement(StageSelectionTree, props()));
-  expect(screen.getByRole("alert", { name: "岐路のルート変更" })).toBeTruthy();
-  expect(screen.queryByRole("alert", { name: "取得可能な判断" })).toBeNull();
-  expect(screen.getAllByRole("alert")).toHaveLength(1);
-  until(state, 9);
-  rerender(createElement(StageSelectionTree, props()));
-  expect(screen.queryByRole("alert", { name: "岐路のルート変更" })).toBeNull();
-  expect(screen.queryByRole("alert")).toBeNull();
-  expect(screen.getAllByText(/取得可能 \d+件/).length).toBeGreaterThan(0);
 });

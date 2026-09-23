@@ -1,37 +1,32 @@
-/** 公開UIのみでステージの操作を検証。Browser plugin not available. */
+/** Player-visible checks for the current stage map and mobile category screen. */
 import { chromium, expect } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
+
 const out = process.env.BROWSER_ARTIFACTS ?? "/tmp/parent-browser-850";
 const url = process.env.GAME_URL ?? "http://127.0.0.1:5173";
 await mkdir(out, { recursive: true });
+
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 try {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser.newPage({ viewport: { width: 320, height: 568 } });
   page.setDefaultTimeout(15000);
-  await page.addInitScript(() => {
-    const original = crypto.getRandomValues.bind(crypto);
-    crypto.getRandomValues = <T extends ArrayBufferView>(array: T): T => {
-      if (array instanceof Uint32Array && array.length === 1) {
-        array[0] = 3;
-        return array;
-      }
-      return original(array);
-    };
-  });
   const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  page.on("console", (m) => {
-    if (["error", "warning"].includes(m.type()) && !m.text().includes("Reduced Motion"))
-      errors.push(m.text());
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.text().includes("You have Reduced Motion enabled")) return;
+    if (["error", "warning"].includes(message.type())) errors.push(message.text());
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(url);
   await expect(page).toHaveTitle(/親伝説/);
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
+  await page.getByRole("combobox", { name: "難易度" }).selectOption("easy");
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
-  const dismiss = async () => {
+  await expect(page.locator(".stage-tree")).toBeVisible();
+
+  const dismissEvents = async () => {
     await expect(page.locator(".rpg-save")).not.toHaveText("保存中…");
-    // Dialogs deliberately appear on a 300 ms stagger.
+    // Events can arrive on a 300 ms stagger.
     await page.waitForTimeout(700);
     while (await page.getByRole("dialog", { name: "今期の出来事" }).count())
       await page
@@ -41,195 +36,210 @@ try {
         .last()
         .click();
   };
-  const next = page.getByRole("button", { name: "この暮らしで半年進める →", exact: true });
-  const alert = page.getByRole("alert", { name: "岐路の必須選択" });
-  const back = page.getByRole("button", { name: "← ホームに戻る" });
-  const detail = page.getByRole("dialog").filter({ has: page.locator("#stage-detail-title") });
-  const viewport = async () => {
-    const problems = await page.evaluate(() => {
-      const result: string[] = [];
-      if (document.documentElement.scrollWidth > innerWidth + 1)
-        result.push("document horizontal overflow");
-      if (document.documentElement.scrollHeight > innerHeight + 1)
-        result.push("document vertical overflow");
-      const dock = document.querySelector<HTMLElement>(".rpg-bottom")!.getBoundingClientRect();
-      if (dock.bottom > innerHeight + 1 || dock.left < -1 || dock.right > innerWidth + 1)
-        result.push("footer outside viewport");
-      const lanes = document.querySelector<HTMLElement>(".stage-lanes");
-      if (lanes && lanes.clientHeight < 44) result.push("choices viewport too short");
-      for (const button of document.querySelectorAll<HTMLElement>(
-        ".stage-tabs button, .stage-route-select, .stage-selection",
-      )) {
-        const bounds = button.getBoundingClientRect();
-        if (bounds.height < 44 || bounds.width < 44) result.push("control below 44px");
-      }
-      return result;
-    });
-    expect(problems).toEqual([]);
+  const openCategory = async (id: string) => {
+    await page.locator(`[data-menu="${id}"]`).click();
+    await expect(page).toHaveURL(new RegExp(`category=${id}`));
+    await expect(page.locator(".stage-route.is-mobile-active")).toBeVisible();
   };
-  await dismiss();
-  await expect(alert).toBeVisible();
-  await expect(next).toBeDisabled();
-  for (const width of [1231, 390]) {
-    await page.setViewportSize({ width, height: width === 1231 ? 1498 : 844 });
-    for (const label of ["家庭生活", "実家", "遊び・放課後", "仕事・家計", "教育・進路"]) {
-      await alert.getByRole("button", { name: `${label}のルートへ →`, exact: true }).click();
-      await expect(page.locator(".tree-category-heading h2")).toHaveText(label);
-      await expect(alert.getByRole("button")).toHaveCount(5);
-      await viewport();
+  const closeCategory = async () => {
+    await page.getByRole("button", { name: "← ホームに戻る" }).click();
+    await expect(page).not.toHaveURL(/category=/);
+  };
+  const detail = page.locator(".stage-detail");
+  const laneHeight = () =>
+    page.locator(".stage-lanes").evaluate((element) => element.getBoundingClientRect().height);
+  const checkParentDetail = async (parent: "父" | "母", size: string) => {
+    await page.getByRole("button", { name: `${parent}の詳細を開く` }).click();
+    const dialog = page.getByRole("dialog", { name: `${parent}の状態` });
+    await expect(dialog).toBeVisible();
+    const stats = dialog.locator(".member-full-stats.is-parent");
+    expect(
+      await stats.evaluate(
+        (element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length,
+      ),
+    ).toBe(2);
+    const rings = stats.locator(".status-percent-ring");
+    await expect(rings).toHaveCount(6);
+    for (const ring of await rings.all()) {
+      const { width, height } = await ring.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return { width: rect.width, height: rect.height };
+      });
+      expect(width).toBeGreaterThanOrEqual(87);
+      expect(Math.abs(width - height)).toBeLessThanOrEqual(0.5);
     }
-    await page.screenshot({ path: `${out}/unselected-routes-${width}.png` });
-  }
-  await page.setViewportSize({ width: 1440, height: 900 });
-  for (let remaining = 5; remaining > 0; remaining--) {
-    await expect(alert.getByRole("button")).toHaveCount(remaining);
-    await alert.getByRole("button").first().click();
-    await expect(page.locator(".tree-category-heading h2")).toBeFocused();
-    await page.locator(".stage-route-select").first().click();
-    await expect(detail).toContainText("無料");
-    await expect(detail).toContainText("次の岐路まで変更できません");
-    await detail.getByRole("button", { name: "このルートを確定", exact: true }).click();
-    await expect(detail).toHaveCount(0);
-    if (remaining > 1) await expect(alert.getByRole("button")).toHaveCount(remaining - 1);
-    else await expect(alert).toHaveCount(0);
-    await expect(page.locator(".stage-route.is-current")).toHaveCount(1);
-  }
-  await back.click();
-  await expect(next).toBeEnabled();
-  await page.screenshot({ path: `${out}/map-desktop.png` });
-  for (const width of [1440, 390]) {
-    await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 });
-    for (const menu of ["education", "home", "grandparents", "afterschool", "work"]) {
-      await page.locator(`[data-menu="${menu}"]`).click();
-      for (const age of ["0〜3歳 · 現在", "4〜7歳", "8〜11歳", "12〜15歳", "16〜19歳"]) {
-        await page.getByRole("button", { name: age, exact: true }).click();
-        const lanes = page.locator(".stage-route");
-        await expect(lanes).toHaveCount(["education", "home"].includes(menu) ? 4 : 3);
-        for (const lane of await lanes.all())
-          await expect(lane.locator(".stage-selection")).toHaveCount(10);
-        await expect(page.locator(".stage-selection-impact").first()).toContainText("支出");
-        await viewport();
-      }
-      await back.click();
-    }
-  }
-  for (const [width, height] of [
-    [1440, 900],
-    [1024, 768],
-    [390, 844],
-    [320, 568],
-    [844, 390],
+    expect(await stats.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+      true,
+    );
+    await dialog.screenshot({
+      path: `${out}/parent-${parent === "父" ? "father" : "mother"}-${size}.png`,
+    });
+    await dialog.getByRole("button", { name: "閉じる" }).first().click();
+  };
+
+  await dismissEvents();
+  await expect(page.getByRole("button", { name: "この暮らしで半年進める →" })).toBeDisabled();
+  await expect(page.locator(".map-marker.is-route-required")).toHaveCount(5);
+  await expect(page.getByRole("alert", { name: "岐路の必須選択" })).toHaveCount(0);
+  expect(
+    await page.locator(".rpg-party").evaluate((element) => element.getBoundingClientRect().height),
+  ).toBeLessThanOrEqual(64);
+  await expect(
+    page.locator(".rpg-party .child-compact-observations .observation-mark:visible"),
+  ).toHaveCount(3);
+  await expect(
+    page.locator(".rpg-party .family-compact-stats.is-percent .status-percent-ring:visible"),
+  ).toHaveCount(8);
+  await expect(page.locator(".rpg-party .status-money-visual:visible")).toHaveCount(1);
+  await expect(page.locator(".rpg-party .family-member-heading strong").first()).toBeHidden();
+  for (const button of await page.locator(".rpg-party .family-member-button").all())
+    expect(
+      await button.evaluate((element) => element.getBoundingClientRect().height),
+    ).toBeGreaterThanOrEqual(44);
+  await page.screenshot({ path: `${out}/map-320x568.png` });
+  for (const parent of ["父", "母"] as const) await checkParentDetail(parent, "320x568");
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const parent of ["父", "母"] as const) await checkParentDetail(parent, "390x844");
+  await page.setViewportSize({ width: 320, height: 568 });
+
+  await openCategory("education");
+  expect(await laneHeight()).toBeGreaterThanOrEqual(300);
+  await expect(page.getByRole("combobox", { name: "ステージを選択" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "ルートを切り替え" })).toBeVisible();
+  for (const control of [
+    page.getByRole("button", { name: "← ホームに戻る" }),
+    page.getByRole("combobox", { name: "ステージを選択" }),
+    page.getByRole("navigation", { name: "ルートを切り替え" }).getByRole("button").first(),
+    page.locator(".stage-route.is-mobile-active .stage-selection").first(),
+  ])
+    expect(
+      await control.evaluate((element) => element.getBoundingClientRect().height),
+    ).toBeGreaterThanOrEqual(44);
+  await page.screenshot({ path: `${out}/category-320x568.png` });
+  await page.locator(".stage-route.is-mobile-active .stage-route-select").click();
+  await expect(detail).toBeVisible();
+  expect(
+    await detail.evaluate((element) =>
+      Math.round(element.getBoundingClientRect().bottom - window.innerHeight),
+    ),
+  ).toBe(0);
+  await detail.getByRole("button", { name: "このルートを確定" }).click();
+  await expect(page.locator(".stage-route.is-current.is-mobile-active")).toBeVisible();
+
+  const available = page.locator(".stage-route.is-mobile-active .stage-selection.is-available");
+  expect(await available.count()).toBeGreaterThan(0);
+  const card = available.nth(Math.min((await available.count()) - 1, 2));
+  const cardName = (await card.getAttribute("aria-label"))!;
+  await card.click();
+  const scrollBefore = await page.locator(".stage-lanes").evaluate((element) => element.scrollTop);
+  await detail.getByRole("button", { name: "この選択を取得" }).click();
+  await expect(page.getByRole("button", { name: cardName, exact: true })).toContainText("取得済み");
+  const scrollAfter = await page.locator(".stage-lanes").evaluate((element) => element.scrollTop);
+  expect(Math.abs(scrollAfter - scrollBefore)).toBeLessThanOrEqual(3);
+
+  await page
+    .getByRole("navigation", { name: "ルートを切り替え" })
+    .getByRole("button", {
+      name: "私立",
+      exact: true,
+    })
+    .click();
+  await expect(page.locator(".stage-route.is-mobile-active")).toHaveAttribute(
+    "aria-label",
+    "私立ルート",
+  );
+  await page.getByRole("combobox", { name: "ステージを選択" }).selectOption("1");
+  await expect(page.locator(".stage-route.is-mobile-active .stage-selection")).toHaveCount(10);
+  await page.locator(".stage-route.is-mobile-active .stage-selection").first().click();
+  await expect(detail.getByRole("button", { name: "この選択を取得" })).toBeDisabled();
+  await detail.getByRole("button", { name: "閉じる" }).click();
+
+  await page.reload();
+  await dismissEvents();
+  await expect(page).toHaveURL(/category=education/);
+  await expect(page.getByRole("button", { name: cardName, exact: true })).toContainText("取得済み");
+  const heights = [];
+  for (const [width, height, minimum] of [
+    [320, 568, 300],
+    [390, 844, 500],
+    [844, 390, 180],
   ]) {
     await page.setViewportSize({ width, height });
-    await viewport();
-    await page.locator('[data-menu="home"]').click();
-    await viewport();
-    await expect(page.getByRole("navigation", { name: "ステージ", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "16〜19歳", exact: true }).click();
-    await expect(page.locator(".stage-summary")).toContainText("別のステージを閲覧");
-    await page.getByRole("button", { name: "0〜3歳 · 現在", exact: true }).click();
-    await page.screenshot({ path: `${out}/home-${width}x${height}.png` });
-    await back.click();
-    await expect(page.locator('[data-menu="home"]')).toBeFocused();
+    const lane = await laneHeight();
+    expect(lane).toBeGreaterThanOrEqual(minimum);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+    heights.push({ width, height, lane: Math.round(lane) });
+    await page.screenshot({ path: `${out}/category-${width}x${height}.png` });
+  }
+
+  await closeCategory();
+  await expect(page.getByRole("button", { name: "この暮らしで半年進める →" })).toBeVisible();
+  for (const id of ["home", "grandparents", "afterschool", "work"]) {
+    await openCategory(id);
+    await page.locator(".stage-route.is-mobile-active .stage-route-select").click();
+    await detail.getByRole("button", { name: "このルートを確定" }).click();
+    await closeCategory();
+  }
+  await expect(page.locator(".map-marker.is-route-required")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "この暮らしで半年進める →" })).toBeEnabled();
+  await openCategory("education");
+  await page.goBack();
+  await expect(page).not.toHaveURL(/category=/);
+  await expect(page.getByRole("region", { name: "ホーム", exact: true })).toBeVisible();
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openCategory("education");
+  for (const parent of ["父", "母"] as const) await checkParentDetail(parent, "1440x900");
+  await expect(page.locator(".stage-route:visible")).toHaveCount(4);
+  await expect(page.getByRole("navigation", { name: "ステージ" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "ルートを切り替え" })).toBeHidden();
+  const runId = new URL(page.url()).pathname.split("/").at(-1);
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto(`${url}/play/${runId}?category=unknown`);
+  await expect(page).not.toHaveURL(/category=/);
+  await expect(page.getByRole("region", { name: "ホーム", exact: true })).toBeVisible();
+
+  const advance = page.getByRole("button", { name: "この暮らしで半年進める →" });
+  for (let turn = 0; turn < 8; turn++) {
+    await expect(advance).toBeEnabled();
+    await advance.click();
+    await dismissEvents();
+  }
+  await expect(page.locator(".map-marker.is-route-changeable")).toHaveCount(5);
+  await expect(page.getByRole("alert", { name: "岐路のルート変更" })).toHaveCount(0);
+  await expect(advance).toBeEnabled();
+  for (const [width, height] of [
+    [320, 568],
+    [390, 844],
+    [1440, 900],
+  ]) {
+    await page.setViewportSize({ width, height });
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+    await page.screenshot({ path: `${out}/route-change-${width}x${height}.png` });
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('[data-menu="work"]').click();
-  await page.getByRole("button", { name: /不要な仕事道具を大売却/ }).click();
-  await expect(detail).toContainText("入金 125万円");
-  await detail.getByRole("button", { name: "この選択を取得", exact: true }).click();
-  await back.click();
-  await page.locator('[data-menu="home"]').click();
-  const trial = page.getByRole("button", { name: /家事ロボ軍団を試験配備する/ }).first();
-  await trial.click();
-  await expect(detail).toContainText("取得時のみ");
-  await detail.getByRole("button", { name: "この選択を取得", exact: true }).click();
-  await expect(trial).toContainText("取得済み");
-  await expect(trial).toBeFocused();
-  await trial.click();
-  await expect(detail.getByRole("button", { name: "取得済み", exact: true })).toBeDisabled();
-  await detail.getByRole("button", { name: "閉じる", exact: true }).click();
-  const help = page.getByRole("button", { name: /住み込み執事に家事を託す/ }).first();
-  await help.click();
-  await expect(detail).toContainText("このステージ中・毎期");
-  await expect(detail.getByRole("button", { name: "この選択を取得", exact: true })).toBeEnabled();
-  await page.screenshot({ path: `${out}/effect-detail-mobile.png` });
-  await detail.getByRole("button", { name: "この選択を取得", exact: true }).click();
-  await expect(help).toContainText("取得済み");
-  await page.reload();
-  await dismiss();
-  await page.locator('[data-menu="home"]').click();
-  await expect(
-    page.getByRole("button", { name: /住み込み執事に家事を託す/ }).first(),
-  ).toContainText("取得済み");
-  await back.click();
-  for (let n = 0; n < 8; n++) {
-    await expect(next).toBeEnabled();
-    await next.click();
-    await dismiss();
-  }
-  const changeAlert = page.getByRole("alert", { name: "岐路のルート変更", exact: true });
-  await expect(alert).toHaveCount(0);
-  await expect(changeAlert).toContainText("4歳");
-  await expect(changeAlert).toContainText("ルートを変更できます");
-  await expect(next).toBeEnabled();
-  await page.reload();
-  await dismiss();
-  await expect(next).toBeEnabled();
-  for (const width of [1231, 390]) {
-    await page.setViewportSize({ width, height: width === 1231 ? 1498 : 844 });
-    await expect(changeAlert.getByRole("button")).toHaveCount(5);
-    await changeAlert.getByRole("button", { name: "教育・進路のルートへ →", exact: true }).click();
-    await expect(page.locator(".stage-summary")).toContainText("現在のルート：公立・地域");
-    await expect(changeAlert.getByRole("button")).toHaveCount(5);
-    await viewport();
-    await page.screenshot({ path: `${out}/inherited-routes-${width}.png` });
-  }
+  await openCategory("education");
   await page
-    .getByRole("region", { name: "私立ルート", exact: true })
-    .getByRole("button", { name: /このルートを確認/ })
+    .getByRole("navigation", { name: "ルートを切り替え" })
+    .getByRole("button", { name: "私立", exact: true })
     .click();
-  await expect(detail).toContainText("80万円");
-  await expect(detail).toContainText("+3");
-  await detail.getByRole("button", { name: "このルートを確定", exact: true }).click();
-  await expect(page.locator(".stage-summary")).toContainText("現在のルート：私立");
-  await expect(changeAlert.getByRole("button")).toHaveCount(4);
-  await expect(next).toBeEnabled();
-  await page.screenshot({ path: `${out}/route-change-mobile.png` });
-  await back.click();
-  await next.click();
-  await dismiss();
-  await expect(changeAlert).toHaveCount(0);
-  await page.getByRole("button", { name: "遊び方", exact: true }).click();
-  await expect(page.getByText(/件数の上限はありません/)).toBeVisible();
-  await expect(page.getByText(/確定後の取消はできません/)).toBeVisible();
+  await page.locator(".stage-route.is-mobile-active .stage-route-select").click();
+  await detail.getByRole("button", { name: "このルートを確定" }).click();
+  await closeCategory();
+  await expect(page.locator(".map-marker.is-route-changeable")).toHaveCount(4);
+  await expect(page.locator('.map-marker[data-menu="education"]')).not.toHaveClass(
+    /is-route-changeable/,
+  );
+  await advance.click();
+  await dismissEvents();
+  await expect(page.locator(".map-marker.is-route-changeable")).toHaveCount(0);
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   expect(errors).toEqual([]);
-  console.log(
-    JSON.stringify({
-      ok: true,
-      url: page.url(),
-      viewports: 5,
-      checks: [
-        "identity",
-        "nonblank",
-        "no-overlay",
-        "console",
-        "crossroad",
-        "immediate-acquisition",
-        "same-turn-unlock",
-        "saved-reload",
-        "stage-boundary",
-        "automatic-route-inheritance",
-        "optional-route-change-alert",
-        "switch-penalty",
-        "focus",
-        "responsive",
-        "all-85-stage-route-groups-have-10-judgments",
-        "card-cost-and-effect-preview",
-      ],
-      artifacts: out,
-    }),
-  );
+  console.log(JSON.stringify({ ok: true, heights, artifacts: out }));
 } finally {
   await browser.close();
 }
