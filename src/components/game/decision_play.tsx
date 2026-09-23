@@ -173,6 +173,7 @@ export function DecisionPlay({
       "rules-11",
       "rules-12",
       "rules-13",
+      "rules-14",
     ].includes(state.versions.rules) &&
     turn.event_result.length > 0 &&
     turn.answered === 0 &&

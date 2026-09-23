@@ -236,6 +236,29 @@ it("進行不可時は理由を表示し、advanceを送信しない", async () 
   expect(update).not.toHaveBeenCalled();
 });
 
+it("現行ルールの自動イベントを期首にダイアログで表示する", async () => {
+  const { Catalog } = await import("../src/content/catalog");
+  const { startDecisions } = await import("../src/engine/decisions");
+  const { DecisionPlay } = await import("../src/components/game/decision_play");
+  const view = publicView(startDecisions("home-01", 0, new Catalog().resolve("normal")));
+  expect(view.public.versions.rules).toBe("rules-14");
+  expect(view.public.decision_turn!.event_results.length).toBeGreaterThan(0);
+  const response = {
+    api_version: "cli-2",
+    ok: true,
+    command: "observe",
+    run_id: "automatic-events",
+    revision: 1,
+    phase: "childhood",
+    ...view,
+    payload: null,
+    error: null,
+  } as const;
+  render(createElement(DecisionPlay, { response }));
+  const dialog = screen.getByRole("dialog", { name: "今期の出来事" });
+  expect(within(dialog).getByText(view.public.decision_turn!.event_results[0].text)).toBeTruthy();
+});
+
 it("岐路の必須選択が残る間は半年進行ボタンを無効にする", async () => {
   const { fireEvent } = await import("@testing-library/react");
   const { Catalog } = await import("../src/content/catalog");
