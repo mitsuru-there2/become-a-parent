@@ -1547,6 +1547,114 @@ meter::-moz-meter-bar {
   max-width: 1440px;
   margin: auto;
 }
+.rpg-shell.is-danger::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: rgba(167, 27, 27, 0.16);
+  box-shadow: inset 0 0 110px rgba(225, 35, 28, 0.48);
+}
+.rpg-danger-notice {
+  position: absolute;
+  z-index: 6;
+  top: 130px;
+  left: max(20px, env(safe-area-inset-left));
+  right: max(20px, env(safe-area-inset-right));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 8px 14px;
+  border: 1px solid #f28c77;
+  background: #5b171bed;
+  color: #fff2e8;
+  font-size: 13px;
+  pointer-events: none;
+}
+.rpg-danger-notice strong {
+  color: #fff;
+}
+.turn-result-money {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px;
+  background: #293528;
+  border: 1px solid #678267;
+}
+.turn-result-money strong {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 20px;
+  white-space: nowrap;
+}
+.turn-result-money em {
+  white-space: nowrap;
+}
+.turn-result-money em,
+.turn-result-stat em {
+  color: #97d3a0;
+  font-style: normal;
+  font-weight: 700;
+}
+.turn-result-money em[data-negative],
+.turn-result-stat em[data-negative] {
+  color: #f3a397;
+}
+.turn-result-caption {
+  color: #c7c6b9;
+}
+.turn-result-groups {
+  display: grid;
+  gap: 10px;
+}
+.turn-result-groups section {
+  border-top: 1px solid #56604f;
+  padding-top: 8px;
+}
+.turn-result-groups h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+.turn-result-stat {
+  display: grid;
+  grid-template-columns: 72px minmax(36px, 1fr) 86px 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+.turn-result-stat strong {
+  text-align: right;
+  font-size: 12px;
+}
+.turn-result-stat em {
+  text-align: right;
+}
+.turn-result-track {
+  height: 10px;
+  position: relative;
+  background: #303b30;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.turn-result-track i,
+.turn-result-track b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+}
+.turn-result-track i {
+  background: #69776a;
+}
+.turn-result-track b {
+  height: 5px;
+  top: 5px;
+  background: #e8c878;
+}
 .rpg-header {
   display: flex;
   align-items: center;
@@ -1689,8 +1797,23 @@ meter::-moz-meter-bar {
   }
 }
 @media (max-width: 360px) {
+  .rpg-age-scene-title {
+    display: none;
+  }
+  .rpg-money-summary {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 0 3px;
+    min-width: 106px;
+  }
+  .rpg-money-summary strong {
+    grid-column: 1 / -1;
+  }
   .rpg-money-summary .rpg-money-income,
   .rpg-money-summary .rpg-money-cost {
+    font-size: 8px;
+  }
+  .rpg-money-summary .rpg-money-more {
     display: none;
   }
 }

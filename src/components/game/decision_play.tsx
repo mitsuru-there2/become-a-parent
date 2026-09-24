@@ -15,6 +15,7 @@ import { tenPoint } from "../../engine/stat_scale";
 import { StatusDetail } from "./status_detail";
 import { Timeline } from "./timeline";
 import { Ending } from "./ending";
+import { TurnResult } from "./turn_result";
 import familyRoom from "../../../assets/scenes/family-room.png";
 
 function DockIcon({
@@ -149,6 +150,7 @@ export function DecisionPlay({
   const [showAdvanceReason, setShowAdvanceReason] = useState(false);
   const [eventResult, setEventResult] = useState(false);
   const [readEventTurn, setReadEventTurn] = useState<string | null>(null);
+  const [closedTurnResultRevision, setClosedTurnResultRevision] = useState<number | null>(null);
   const special = response.choices.find((choice) => choice.kind === "special");
   const decisions = response.choices.filter((choice) => choice.kind === "decision");
   const answered = (choice: Choice) =>
@@ -178,7 +180,11 @@ export function DecisionPlay({
     turn.event_result.length > 0 &&
     turn.answered === 0 &&
     readEventTurn !== eventTurn;
-  const showingResult = (eventResult || automaticResult) && !special && !ended;
+  const turnResultOpen =
+    response.command === "advance" &&
+    state.life?.turn_result?.turn === state.time.completed_turns &&
+    closedTurnResultRevision !== response.revision;
+  const showingResult = (eventResult || automaticResult) && !special && !ended && !turnResultOpen;
   const life = !!state.life;
   const stageKey = life
     ? `${tab}:${state.time.next_turn}:${response.phase}`
@@ -201,16 +207,17 @@ export function DecisionPlay({
   useEffect(() => {
     if (response.phase === "finished" && tab === "play" && !extra.result) void readExtra("result");
   }, [response.phase, tab, extra.result]);
+  const danger = !ended && (state.life?.danger?.length ?? 0) > 0;
   return (
     <div
-      className={`rpg-shell status-shell${life ? " life-shell" : ""}${state.life?.selection_tree ? " tree-shell" : ""}${tab === "play" && state.life?.stage_model && category ? " mobile-category-screen" : ""}`}
+      className={`rpg-shell status-shell${life ? " life-shell" : ""}${state.life?.selection_tree ? " tree-shell" : ""}${tab === "play" && state.life?.stage_model && category ? " mobile-category-screen" : ""}${danger ? " is-danger" : ""}`}
     >
       <ChildTitleCelebration
         runId={response.run_id}
         revision={response.revision}
         titles={state.child_identity?.latest_titles ?? []}
       />
-      <header className="rpg-header" inert={showingResult}>
+      <header className="rpg-header" inert={showingResult || turnResultOpen}>
         <Link to="/" className="brand">
           親伝説 <span>BECOME A PARENT</span>
         </Link>
@@ -221,7 +228,7 @@ export function DecisionPlay({
           保存一覧 ↗
         </Link>
       </header>
-      <main id="main" className="rpg-main" inert={showingResult}>
+      <main id="main" className="rpg-main" inert={showingResult || turnResultOpen}>
         <div className="rpg-hud">
           <div className="rpg-age">
             <strong>
@@ -263,6 +270,12 @@ export function DecisionPlay({
             )}
           </div>
         </div>
+        {danger && (
+          <div className="rpg-danger-notice" role="alert">
+            <strong>危険な状態です</strong>
+            <span>{state.life!.danger!.join(" ")}</span>
+          </div>
+        )}
         <div className="rpg-stage">
           {!state.life?.selection_tree && (
             <div className="rpg-scenery" aria-hidden="true">
@@ -339,7 +352,7 @@ export function DecisionPlay({
                     </li>
                     <li>
                       {state.life?.stage_model
-                        ? "ルートを選んだら、条件を満たす選択をステージ中いつでも取得できます。取得は即時で、一度限り。件数の上限はありません。"
+                        ? "ルートを選んだら、条件を満たす判断をステージ中いつでも追加できます。効果と収支は期末にまとめて反映します。件数の上限はありません。"
                         : life
                           ? `選択を確定すると、次期から新しい機会が現れます。今期だけの選択は全分類合計${state.life!.max_selections}件までです。`
                           : "最後に選択と家計を確認し、「半年を進める」を押します。"}
@@ -347,13 +360,13 @@ export function DecisionPlay({
                   </ol>
                   <p>
                     {state.life?.stage_model
-                      ? "効果は取得時のみ・このステージ中・恒久の3種類です。ステージ効果は次の岐路で終了します。詳細の費用と持続期間を確認して取得してください。確定後の取消はできません。"
+                      ? "効果は今期のみ・このステージ中・恒久の3種類です。ステージ効果は次の岐路で終了します。今期に取得した判断は、半年を進める前まで取り消せます。"
                       : life
                         ? "方針は変更するまで継続し、単発の選択は繰り返しません。半年を進める前は予定を取り消せます。費用と家族の負担を確認して進めましょう。"
                         : "下の「判断1〜3」から、半年を進める前なら選び直せます。下部の家族をタップすると能力や様子、暮らし画面では前の半年の結果を確認できます。"}
                   </p>
                   <p>
-                    20歳までの40期と、その後の人生をたどります。離婚・一家離散に加え、親の燃え尽き、子どもの家出・少年院送致、半年の資金不足でもゲームオーバーになります。危機の予兆が出たら、家族の様子と収支を確認してください。
+                    20歳までの40期と、その後の人生をたどります。離婚・一家離散に加え、親の燃え尽き、子どもの家出・少年院送致でもゲームオーバーになります。資金がマイナスのまま次の期を終えると資金難で終了します。危機の予兆が出たら、家族の様子と収支を確認してください。
                   </p>
                   <button
                     className="rpg-button"
@@ -504,7 +517,7 @@ export function DecisionPlay({
           </section>
         </div>
       </main>
-      <footer className="rpg-bottom" inert={showingResult}>
+      <footer className="rpg-bottom" inert={showingResult || turnResultOpen}>
         <PartyStatus state={state} />
         <div className="rpg-dock">
           <nav className="rpg-dock-controls" aria-label="ゲーム内">
@@ -614,6 +627,12 @@ export function DecisionPlay({
             setEventResult(false);
             setReadEventTurn(eventTurn);
           }}
+        />
+      )}
+      {turnResultOpen && state.life?.turn_result && (
+        <TurnResult
+          result={state.life.turn_result}
+          onClose={() => setClosedTurnResultRevision(response.revision)}
         />
       )}
     </div>

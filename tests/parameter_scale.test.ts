@@ -1,6 +1,6 @@
 import { expect, it } from "vite-plus/test";
 import { Catalog, defaultContent } from "../src/content/catalog";
-import { startDecisions, chooseDecision } from "../src/engine/decisions";
+import { startDecisions, chooseDecision, advanceDecisions } from "../src/engine/decisions";
 import { applyStat } from "../src/engine/automatic_events";
 import { publicView } from "../src/engine/simulation";
 import { clone } from "../src/engine/shared";
@@ -33,6 +33,8 @@ it("新しい人生は状態を100%尺度、子と親の能力を0点から始�
     (item) => item.event_id === "education-public-0-01",
   )!;
   chooseDecision(state, choice.instance_id, choice.options[0].option_id);
+  expect(state.decisions!.skills.A.learning + state.decisions!.skills.B.learning).toBe(0);
+  advanceDecisions(state);
   expect(state.decisions!.skills.A.learning + state.decisions!.skills.B.learning).toBeGreaterThan(
     0,
   );
@@ -42,6 +44,7 @@ it("新しい人生は状態を100%尺度、子と親の能力を0点から始�
   )!;
   state.cash = 1000;
   chooseDecision(state, play.instance_id, play.options[0].option_id);
+  advanceDecisions(state);
   expect(state.decisions!.skills.A.learning + state.decisions!.skills.B.learning).toBeGreaterThan(
     beforeLearning,
   );

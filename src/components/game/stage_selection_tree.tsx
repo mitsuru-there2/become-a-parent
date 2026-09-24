@@ -46,6 +46,7 @@ export function StageSelectionTree({
   );
   const selectedChoice = choices.find((c) => c.event_id === selected?.choiceId);
   const selectedOption = selectedChoice?.options.find((o) => o.option_id === selected?.optionId);
+  const pending = life.pending ?? [];
   const missing = life.crossroad?.missing ?? [];
   const changeable = life.crossroad?.changeable ?? [];
   const canChangeRoute = changeable.some((item) => item.menu === menu);
@@ -249,7 +250,9 @@ export function StageSelectionTree({
                         >
                           <span>
                             {option.acquired
-                              ? "✓ 取得済み"
+                              ? pending.includes(option.option_id)
+                                ? "↶ 今期の取得予定・取消可"
+                                : "✓ 取得済み"
                               : !currentView
                                 ? "◇ 対象ステージで取得"
                                 : inactive
@@ -257,7 +260,7 @@ export function StageSelectionTree({
                                   : !group.current
                                     ? "◇ 先にルートを選択"
                                     : option.available
-                                      ? "＋ 今すぐ取得できます"
+                                      ? "＋ 今期の判断に追加できます"
                                       : "◇ 取得不可 · 条件待ち"}
                           </span>
                           <strong>{option.label}</strong>
@@ -280,7 +283,9 @@ export function StageSelectionTree({
                             {option.effect_details?.map((effect) => (
                               <em key={effect.duration}>
                                 {effect.duration === "instant"
-                                  ? "取得時"
+                                  ? life.pending
+                                    ? "今期末"
+                                    : "取得時"
                                   : effect.duration === "stage"
                                     ? "ステージ中"
                                     : "恒久"}
@@ -365,11 +370,16 @@ export function StageSelectionTree({
                   対象ステージ：
                   {selectedChoice.stages!.map((index) => life.stages![index].label).join("、")}
                   。この選択は一度だけ取得できます。
+                  {life.pending && " 今期の取得は期末まで取り消せます。"}
                 </p>
               )}
               {selectedOption.effect_details?.map((effect) => (
                 <section className="stage-effect-detail" key={effect.duration}>
-                  <strong>{durations[effect.duration]}</strong>
+                  <strong>
+                    {life.pending && effect.duration === "instant"
+                      ? "今期末に反映"
+                      : durations[effect.duration]}
+                  </strong>
                   <p>{effect.description}</p>
                 </section>
               ))}
@@ -388,6 +398,17 @@ export function StageSelectionTree({
           </div>
           <div className="tree-dialog-controls">
             <button onClick={closeDetail}>閉じる</button>
+            {selectedOption.acquired && pending.includes(selectedOption.option_id) && (
+              <button
+                className="tree-undo"
+                disabled={busy}
+                onClick={async () => {
+                  if (await update("undo", { option_id: selectedOption.option_id })) closeDetail();
+                }}
+              >
+                今期の取得を取り消す
+              </button>
+            )}
             <button
               className="tree-select"
               disabled={busy || !currentView || !selectedOption.available}
@@ -407,7 +428,7 @@ export function StageSelectionTree({
                   : "取得済み"
                 : selectedChoice.route_choice
                   ? "このルートを確定"
-                  : "この選択を取得"}
+                  : "今期の判断に追加"}
             </button>
           </div>
         </dialog>

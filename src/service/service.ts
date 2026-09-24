@@ -5,7 +5,7 @@ import { validateLifeState } from "../engine/life_save";
 import * as v from "valibot";
 import { grandparentSchema } from "../content/decision_schema";
 import { syncGrandparents } from "../engine/grandparents";
-import { startDecisions, chooseDecision } from "../engine/decisions";
+import { startDecisions, chooseDecision, undoDecision } from "../engine/decisions";
 import { Catalog, catalog, contentFor } from "../content/catalog";
 import { ContentError, validateSettings } from "../content/validation";
 import type { State, Plan, PublicState, Choice, History, Result } from "../engine/types";
@@ -67,8 +67,9 @@ export interface Request {
   limit?: number;
 }
 export interface Commit {
-  kind?: "special";
+  kind?: "special" | "undo";
   choice?: { event_instance: string; option_id: string };
+  option_id?: string;
   turn: number;
   plan: Plan;
   answers: State["answers"];
@@ -261,9 +262,17 @@ export function replayRun(run: Run) {
         run.state.seed,
         run.state.settings!,
         run.state.versions.rules,
+        run.state.versions.rules === "rules-14" && run.state.life?.pending === undefined,
       )
     : start(run.state.scenario, run.state.seed, run.state.settings ?? null);
   for (const commit of run.commits) {
+    if (commit.kind === "undo") {
+      if (!commit.option_id) throw new Failure("REPLAY_MISMATCH", "取消の記録がありません。");
+      undoDecision(state, commit.option_id);
+      if (digest(state) !== commit.digest)
+        throw new Failure("REPLAY_MISMATCH", "取消の再生が一致しません。");
+      continue;
+    }
     if (commit.kind === "special") {
       if (!commit.choice) throw new Failure("REPLAY_MISMATCH", "イベントの記録がありません。");
       chooseDecision(state, commit.choice.event_instance, commit.choice.option_id);
@@ -332,6 +341,10 @@ export class Service {
         }
       }
       if (request.command === "choose") validateChoice(request.input);
+      if (request.command === "undo") {
+        object(request.input);
+        if (typeof request.input.option_id !== "string") invalid("option_idが必要です");
+      }
       if (updating)
         return await this.repo.transact(runId, (existing) => {
           if (existing) {
@@ -426,6 +439,21 @@ export class Service {
               } else state.answers[choice.event_instance] = choice.option_id;
               break;
             }
+            case "undo": {
+              const optionId = (request.input as { option_id: string }).option_id;
+              if (!state.life?.pending?.includes(optionId))
+                throw new Failure("UNKNOWN_SELECTION", "今期に取得した判断ではありません。");
+              undoDecision(state, optionId);
+              run.commits.push({
+                kind: "undo",
+                option_id: optionId,
+                turn: state.n,
+                plan: clone(state.plan),
+                answers: {},
+                digest: digest(state),
+              });
+              break;
+            }
             case "reset-plan":
               if (stageModel(state))
                 throw new Failure(
@@ -498,6 +526,7 @@ export class Service {
               !!state.decisions,
               !!state.life,
               stageModel(state),
+              !!state.life?.pending,
             ),
           };
           break;

@@ -5,6 +5,15 @@ import type { State } from "./types";
 import { contentFor } from "../content/catalog";
 const lifeStateSchema = v.strictObject({
   stage_routes: v.optional(dictionary(contentIdSchema, false)),
+  pending: v.optional(v.array(v.string())),
+  turn_start_cash: v.optional(v.number()),
+  turn_result: v.optional(
+    v.object({
+      turn: integer(1, 40),
+      before: v.record(v.string(), v.number()),
+      after: v.record(v.string(), v.number()),
+    }),
+  ),
   policies: dictionary(contentIdSchema),
   history: dictionary(
     v.strictObject({
@@ -35,6 +44,18 @@ export function validateLifeState(state: State) {
       (state.versions.rules !== "rules-14" && life.notices.length)
     )
       throw new Error("ステージ状態が不正です");
+    if (life.pending) {
+      if (
+        life.pending.length !== new Set(life.pending).size ||
+        life.pending.some(
+          (id) => !life.history[id] || life.history[id].first_turn !== state.n + 1,
+        ) ||
+        (state.phase !== "childhood" && life.pending.length > 0) ||
+        life.turn_start_cash === undefined ||
+        (life.turn_result && life.turn_result.turn !== state.n)
+      )
+        throw new Error("今期の取得予定が不正です");
+    }
     for (const [id, route] of Object.entries(life.stage_routes)) {
       const [stage, groupId] = id.split(":");
       const group = groups.find((g) => g.id === groupId);

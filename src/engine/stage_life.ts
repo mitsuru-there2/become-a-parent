@@ -136,6 +136,20 @@ export function stageForecast(s: State): Forecast {
         income: difficultyIncome(s, effect.income),
       });
   }
+  for (const id of s.life?.pending ?? []) {
+    const node = game.decisions.find((item) =>
+      item.options.some((option) => key(item, option) === id),
+    )!;
+    const option = node.options.find((item) => key(node, item) === id)!;
+    cost += option.cost;
+    income += difficultyIncome(s, option.income);
+    if (option.cost || option.income)
+      cashFlow.push({
+        label: `${node.title} / ${option.label}（今期の取得）`,
+        cost: option.cost,
+        income: difficultyIncome(s, option.income),
+      });
+  }
   const reasons: Forecast["reasons"] = missingGroups(s).map((g) => ({
     code: "CROSSROAD_SELECTION_REQUIRED",
     path: stageRouteId(g.id),
@@ -145,8 +159,11 @@ export function stageForecast(s: State): Forecast {
     reasons.push({
       code: "CASH_LIMIT",
       path: "cash",
-      message:
-        s.versions.rules === "rules-14"
+      message: s.life?.pending
+        ? (s.life.turn_start_cash ?? s.cash) < 0
+          ? "資金がマイナスのまま今期を終えるとゲームオーバーになります。"
+          : "半年後の資金がマイナスになります。次の期末までに回復してください。"
+        : s.versions.rules === "rules-14"
           ? "このまま半年進めると資金不足でゲームオーバーになります。収入や支出を見直してください。"
           : "半年後の資金が不足します。収入を得られる選択を確認してください。",
     });
@@ -278,11 +295,16 @@ export function stageChoices(s: State): Choice[] {
             ...conditions(s, node.requires),
             ...conditions(s, option.requires),
             {
-              label: `取得費用 ${option.cost}万円（現在${s.cash}万円）`,
-              met: s.cash >= option.cost,
+              label: s.life?.pending
+                ? `取得費用 ${option.cost}万円（今期の支出予定）`
+                : `取得費用 ${option.cost}万円（現在${s.cash}万円）`,
+              met: !!s.life?.pending || s.cash >= option.cost,
             },
           ];
-          if (option.cost > difficultyIncome(s, option.income) || ongoingNet > 0)
+          if (
+            !s.life?.pending &&
+            (option.cost > difficultyIncome(s, option.income) || ongoingNet > 0)
+          )
             details.push({
               label: "取得後も今期の継続費を支払えます",
               met:
@@ -315,6 +337,7 @@ export function stageView(s: State): NonNullable<PublicState["life"]> {
   const game = config(s);
   const index = stageIndex(s);
   const active = activeStageEffects(s);
+  const forecast = stageForecast(s);
   return {
     stage_model: true,
     selection_tree: true,
@@ -369,6 +392,9 @@ export function stageView(s: State): NonNullable<PublicState["life"]> {
         }
       : null,
     notices: [...s.life!.notices],
+    ...(s.life!.pending ? { pending: [...s.life!.pending] } : {}),
+    ...(s.life!.turn_result ? { turn_result: clone(s.life!.turn_result) } : {}),
+    danger: stageDanger(s, forecast),
     policies: active.map(({ node, option, effect, duration }) => ({
       id: `${node.id}:${option.id}:${duration}`,
       title: `${node.title}（${duration === "stage" ? "ステージ中" : "恒久"}）`,
@@ -378,6 +404,43 @@ export function stageView(s: State): NonNullable<PublicState["life"]> {
       planned_cost: effect.cost,
     })),
   };
+}
+function stageDanger(s: State, forecast: Forecast): string[] {
+  if (!s.life?.pending) return [];
+  const preview = s.life.pending.length ? clone(s) : s;
+  if (preview !== s) {
+    applyPendingStageLife(preview, []);
+    applyStageLife(preview, []);
+  }
+  const warnings: string[] = [];
+  if (forecast.projected_cash < 0)
+    warnings.push(
+      (s.life.turn_start_cash ?? s.cash) < 0
+        ? "資金がマイナスのまま期末を迎える見込みです。"
+        : "次の期に資金を回復する必要があります。",
+    );
+  const crisis = s.decisions?.crisis;
+  for (const parent of ["A", "B"] as const)
+    if (
+      preview.parents[parent].health <= 35 &&
+      preview.parents[parent].stress >= 75 &&
+      preview.decisions!.fatigue[parent] >= 75
+    )
+      warnings.push(`${parent === "A" ? "父" : "母"}の燃え尽きが近づいています。`);
+  if (crisis?.child?.turns && crisis.child.turns >= 2)
+    warnings.push("子どもの危機が続いています。");
+  else if (
+    s.n >= 24 &&
+    preview.child.stress >= 65 &&
+    preview.child.trust.A < 35 &&
+    preview.child.trust.B < 35
+  )
+    warnings.push("子どもの負担と孤立が強まっています。");
+  if (crisis && (crisis.divorce > 0 || crisis.separation > 0))
+    warnings.push("家族の関係が危機的です。");
+  else if (preview.couple <= 25 && (preview.parents.A.stress + preview.parents.B.stress) / 2 >= 70)
+    warnings.push("夫婦の関係が危機に近づいています。");
+  return warnings;
 }
 const skillForGroup = (group: string) =>
   group === "work"
@@ -435,6 +498,36 @@ export function chooseStageLife(s: State, eventInstance: string, optionId: strin
   const option = choice?.options.find((o) => o.option_id === optionId);
   if (!choice || !option?.available)
     throw new Error(option?.reasons[0]?.message ?? "現在の選択肢ではありません");
+  if (s.life?.pending && !choice.route_choice) {
+    s.life.pending.push(optionId);
+    s.life.history[optionId] = { first_turn: s.n + 1, last_turn: s.n + 1, count: 1 };
+    s.history.push({
+      index: s.history.length,
+      kind: "special",
+      turn: s.n + 1,
+      adult_step: null,
+      ages: {
+        child_months: s.n * 6,
+        A_months: s.parents.A.age_months,
+        B_months: s.parents.B.age_months,
+      },
+      selections: null,
+      events: [
+        {
+          instance_id: eventInstance,
+          event_id: choice.event_id,
+          option_id: optionId,
+          text: choice.text,
+        },
+      ],
+      money: [],
+      observations: clone(s.observations),
+      text: [`取得予定：${choice.text} → ${option.label}。効果と収支は期末に反映します。`],
+      related: [],
+      adult_result: null,
+    });
+    return;
+  }
   if (s.child.profile) s.child.latest_titles = [];
   const before = s.cash;
   s.cash = Math.min(99999, s.cash - option.cost + option.income);
@@ -512,6 +605,87 @@ export function chooseStageLife(s: State, eventInstance: string, optionId: strin
     related: [],
     adult_result: null,
   });
+}
+export function undoStageLife(s: State, optionId: string) {
+  if (!s.life?.pending?.includes(optionId)) throw new Error("今期に取得した判断ではありません");
+  const removed = new Set([optionId]);
+  const remove = (id: string) => {
+    delete s.life!.history[id];
+    s.life!.pending = s.life!.pending!.filter((item) => item !== id);
+    removed.add(id);
+  };
+  remove(optionId);
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const id of s.life.pending.slice()) {
+      const node = config(s).decisions.find((item) =>
+        item.options.some((option) => key(item, option) === id),
+      )!;
+      const option = node.options.find((item) => key(node, item) === id)!;
+      if (!meetsLifeRequirement(s, node.requires) || !meetsLifeRequirement(s, option.requires)) {
+        remove(id);
+        changed = true;
+      }
+    }
+  }
+  if (removed.size > 1)
+    s.life.notices.push(`前提がなくなったため、後続の判断${removed.size - 1}件も取り消しました。`);
+  s.history = s.history.filter(
+    (entry) =>
+      !(
+        entry.kind === "special" &&
+        entry.turn === s.n + 1 &&
+        entry.events.some((event) => event.option_id && removed.has(event.option_id))
+      ),
+  );
+  s.history.forEach((entry, index) => {
+    entry.index = index;
+  });
+}
+export function applyPendingStageLife(s: State, lines: string[]) {
+  for (const id of s.life?.pending ?? []) {
+    const node = config(s).decisions.find((item) =>
+      item.options.some((option) => key(item, option) === id),
+    )!;
+    const item = node.options.find((option) => key(node, option) === id)!;
+    lines.push(`今期の判断：${node.title} → ${item.label}`);
+    applyEffects(s, item.effects, lines, node.route_group);
+    applyHiddenJudgment(s, node, item);
+    practiceSkill(s, node.route_group, item.effects, lines);
+    if (item.skill) {
+      const { parent, ability, target, gain } = item.skill;
+      applyEffects(
+        s,
+        [
+          {
+            path: target,
+            delta: Math.max(
+              0,
+              gain +
+                Math.floor(s.decisions!.skills[parent][ability] / 3) -
+                (s.decisions!.fatigue[parent] >= 7 ? 2 : 0),
+            ),
+          },
+        ],
+        lines,
+      );
+    }
+    if (item.repair) {
+      s.repaired = true;
+      s.last_repair = true;
+    }
+    const record = s.history.find(
+      (entry) =>
+        entry.kind === "special" &&
+        entry.turn === s.n + 1 &&
+        entry.events.some((event) => event.option_id === id),
+    );
+    if (record)
+      record.text = [
+        `選択取得：${node.title} → ${item.label}。効果と収支は第${s.n + 1}期の結果に反映。`,
+      ];
+  }
+  if (s.life?.pending) s.life.pending = [];
 }
 export function applyStageLife(s: State, lines: string[]) {
   const active = activeStageEffects(s);

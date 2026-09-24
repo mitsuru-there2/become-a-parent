@@ -207,7 +207,8 @@ export function applyStat(state: State, effect: AutomaticEvent["effects"][number
       effect.path,
     );
   const delta = percentStats(state) && familyCondition ? effect.delta * 5 : effect.delta;
-  const current = Math.max(0, Math.min(max, previous + delta));
+  const minimum = effect.path === "cash" && state.life?.pending ? -99999 : 0;
+  const current = Math.max(minimum, Math.min(max, previous + delta));
   object[key] = current;
   if (effect.path.startsWith("child.profile.")) awardChildTitles(state);
   syncGrandparents(state.grandparents);

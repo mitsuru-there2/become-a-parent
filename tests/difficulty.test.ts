@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { describe, expect, it } from "vite-plus/test";
 import { Catalog, defaultContent } from "../src/content/catalog";
-import { startDecisions, chooseDecision } from "../src/engine/decisions";
+import { startDecisions, chooseDecision, advanceDecisions } from "../src/engine/decisions";
 import { publicView } from "../src/engine/simulation";
 import { clone } from "../src/engine/shared";
 import { applyAutomaticEvents } from "../src/engine/automatic_events";
@@ -49,9 +49,17 @@ describe("現行ステージ制の難易度", () => {
       )!;
       const income = choice.options[0].income;
       const before = state.cash;
+      const stressBefore = state.parents.A.stress;
       chooseDecision(state, choice.instance_id, choice.options[0].option_id);
-      expect(state.cash - before).toBe(income);
-      expect(state.history.at(-1)!.money[0].income).toBe(income);
+      expect(state.cash).toBe(before);
+      expect(state.parents.A.stress).toBe(stressBefore);
+      expect(publicView(state).public.forecast!.cash_flow).toContainEqual(
+        expect.objectContaining({ income }),
+      );
+      advanceDecisions(state);
+      expect(
+        state.history.findLast((entry) => entry.kind === "turn")!.money[0].income,
+      ).toBeGreaterThanOrEqual(income);
       return { income, stress: state.parents.A.stress };
     });
     expect(results.map((result) => result.income)).toEqual([250, 150, 120]);
@@ -144,7 +152,9 @@ describe("現行ステージ制の難易度", () => {
       if (response.public!.forecast!.projected_cash < 0) {
         warned = true;
         expect(response.public!.forecast!.can_advance).toBe(true);
-        expect(response.public!.forecast!.reasons[0].message).toContain("ゲームオーバー");
+        expect(response.public!.forecast!.reasons[0].message).toContain(
+          response.public!.cash! < 0 ? "ゲームオーバー" : "次の期末",
+        );
       }
       response = await service.execute({
         command: "advance",

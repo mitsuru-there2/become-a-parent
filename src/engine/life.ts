@@ -5,6 +5,8 @@ import {
   stageView,
   chooseStageLife,
   applyStageLife,
+  applyPendingStageLife,
+  undoStageLife,
 } from "./stage_life";
 import { contentFor, difficultyFor } from "../content/catalog";
 import type { LifeDecision, LifeOption, LifeRequirement } from "../content/life_schema";
@@ -226,6 +228,7 @@ function resolvedPolicies(s: State, planned: boolean) {
 export function initializeLife(s: State) {
   if (stageModel(s)) {
     s.life = {
+      ...(s.versions.rules === "rules-14" ? { pending: [] } : {}),
       stage_routes:
         s.versions.rules === "rules-14"
           ? Object.fromEntries(
@@ -662,6 +665,10 @@ export function chooseLife(s: State, eventInstance: string, optionId: string) {
     delete s.decisions!.selections[eventInstance];
   else s.decisions!.selections[eventInstance] = optionId;
 }
+export function undoLife(s: State, optionId: string) {
+  if (!stageModel(s)) throw new Error("この判断は取り消せません");
+  undoStageLife(s, optionId);
+}
 function applyEffects(s: State, effects: LifeOption["effects"], lines: string[]) {
   for (const effect of effects) {
     const { previous, current } = applyStat(s, {
@@ -675,7 +682,10 @@ function applyEffects(s: State, effects: LifeOption["effects"], lines: string[])
   }
 }
 export function applyLife(s: State, lines: string[]) {
-  if (stageModel(s)) return applyStageLife(s, lines);
+  if (stageModel(s)) {
+    applyPendingStageLife(s, lines);
+    return applyStageLife(s, lines);
+  }
   const resolved = resolvedPolicies(s, true);
   const before = clone(s);
   s.life!.policies = resolved.policies;

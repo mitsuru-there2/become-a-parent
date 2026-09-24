@@ -7,6 +7,7 @@ import {
   lifeForecast,
   lifeView,
   chooseLife,
+  undoLife,
   applyLife,
 } from "./life";
 import { GRANDPARENTS, grandparentNames, syncGrandparents } from "./grandparents";
@@ -77,6 +78,7 @@ export function startDecisions(
         ? "rules-7"
         : "rules-6"
       : "rules-5",
+  legacyStage = false,
 ): State {
   const state = start(scenario, seed, settings);
   state.versions =
@@ -171,6 +173,7 @@ export function startDecisions(
     )
   )
     initializeLife(state);
+  if (legacyStage && state.life) delete state.life.pending;
   openDecisionTurn(state);
   return state;
 }
@@ -289,6 +292,7 @@ function openThemes(state: State) {
 }
 export function openDecisionTurn(state: State) {
   const d = state.decisions!;
+  if (state.life?.pending) state.life.turn_start_cash = state.cash;
   if (automaticEventsEnabled(state)) {
     if (state.phase !== "childhood" || d.opened_turn === state.n + 1) return;
     d.opened_turn = state.n + 1;
@@ -761,7 +765,9 @@ function endGame(state: State, reason: GameOver["reason"]) {
         : reason === "separation"
           ? "家族はそれぞれ家を離れた。一緒に暮らした日々を、この記録に残す。"
           : reason === "bankruptcy"
-            ? "今期の生活費を支払えず、この家庭での物語はここで幕を閉じる。"
+            ? state.life?.pending
+              ? "前期からの資金不足を今期も解消できず、この家庭での物語はここで幕を閉じる。"
+              : "今期の生活費を支払えず、この家庭での物語はここで幕を閉じる。"
             : reason === "burnout"
               ? `${names[exhaustedParent ?? "A"]}は長く続いた疲労から暮らしを支えきれなくなった。この家庭での物語は、ここで幕を閉じる。`
               : reason === "runaway"
@@ -809,6 +815,25 @@ export function chooseDecision(state: State, eventInstance: string, optionId: st
   if (option.end) endGame(state, option.end);
   else openThemes(state);
 }
+export function undoDecision(state: State, optionId: string) {
+  if (!state.life?.pending) throw new Error("この判断は取り消せません");
+  undoLife(state, optionId);
+}
+function stageResultValues(state: State): Record<string, number> {
+  return {
+    cash: state.cash,
+    "child.study": state.child.ability.study,
+    "child.craft": state.child.ability.craft,
+    "parent.A.health": state.parents.A.health,
+    "parent.A.stress": state.parents.A.stress,
+    "parent.A.fatigue": state.decisions!.fatigue.A,
+    "parent.B.health": state.parents.B.health,
+    "parent.B.stress": state.parents.B.stress,
+    "parent.B.fatigue": state.decisions!.fatigue.B,
+    couple: state.couple,
+    "grandparents.relation": state.grandparents.relation,
+  };
+}
 export function advanceDecisions(state: State) {
   const d = state.decisions!;
   const f = decisionForecast(state);
@@ -818,8 +843,16 @@ export function advanceDecisions(state: State) {
     );
   if (state.child.profile) state.child.latest_titles = [];
   const cash = state.cash;
+  const stageBefore = state.life?.pending ? stageResultValues(state) : null;
+  const stageBankruptcy =
+    !!state.life?.pending && (state.life.turn_start_cash ?? state.cash) < 0 && f.projected_cash < 0;
   const previousStress = state.child.stress;
-  if (state.versions.rules === "rules-14" && state.life && f.projected_cash < 0) {
+  if (
+    state.versions.rules === "rules-14" &&
+    state.life &&
+    !state.life.pending &&
+    f.projected_cash < 0
+  ) {
     state.n++;
     for (const parent of PEOPLE) state.parents[parent].age_months += 6;
     state.cash = 0;
@@ -910,7 +943,14 @@ export function advanceDecisions(state: State) {
   const entry = historyEntry(state, "turn", lines, cash, f.income, f.cost);
   entry.decisions = selections;
   state.history.push(entry);
-  if (d.crisis.separation >= 2) endGame(state, "separation");
+  if (stageBefore && state.life)
+    state.life.turn_result = {
+      turn: state.n,
+      before: stageBefore,
+      after: stageResultValues(state),
+    };
+  if (stageBankruptcy) endGame(state, "bankruptcy");
+  else if (d.crisis.separation >= 2) endGame(state, "separation");
   else if (d.crisis.divorce >= 2) endGame(state, "divorce");
   else if (additionalEnd) endGame(state, additionalEnd);
   else if (state.n === 40) {

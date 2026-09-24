@@ -24,7 +24,16 @@ try {
   await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
   await expect(page.locator(".stage-tree")).toBeVisible();
 
-  const dismissEvents = async () => {
+  const dismissEvents = async (expectTurnResult = false) => {
+    const result = page.getByRole("dialog", { name: /第\d+期の結果/ });
+    if (expectTurnResult) await expect(result).toBeVisible();
+    if (await result.count()) {
+      await expect(result).toBeVisible();
+      await expect(result.getByText("資金", { exact: true })).toBeVisible();
+      if ((await result.getAttribute("aria-label")) === "第1期の結果")
+        await result.screenshot({ path: `${out}/turn-result-320x568.png` });
+      await result.getByRole("button", { name: "閉じる" }).last().click();
+    }
     await expect(page.locator(".rpg-save")).not.toHaveText("保存中…");
     // Events can arrive on a 300 ms stagger.
     await page.waitForTimeout(700);
@@ -78,8 +87,8 @@ try {
   };
 
   await dismissEvents();
-  await expect(page.getByRole("button", { name: "この暮らしで半年進める →" })).toBeDisabled();
-  await expect(page.locator(".map-marker.is-route-required")).toHaveCount(5);
+  await expect(page.getByRole("button", { name: "この暮らしで半年進める →" })).toBeEnabled();
+  await expect(page.locator(".map-marker.is-route-changeable")).toHaveCount(5);
   await expect(page.getByRole("alert", { name: "岐路の必須選択" })).toHaveCount(0);
   expect(
     await page.locator(".rpg-party").evaluate((element) => element.getBoundingClientRect().height),
@@ -116,26 +125,35 @@ try {
       await control.evaluate((element) => element.getBoundingClientRect().height),
     ).toBeGreaterThanOrEqual(44);
   await page.screenshot({ path: `${out}/category-320x568.png` });
-  await page.locator(".stage-route.is-mobile-active .stage-route-select").click();
-  await expect(detail).toBeVisible();
-  expect(
-    await detail.evaluate((element) =>
-      Math.round(element.getBoundingClientRect().bottom - window.innerHeight),
-    ),
-  ).toBe(0);
-  await detail.getByRole("button", { name: "このルートを確定" }).click();
   await expect(page.locator(".stage-route.is-current.is-mobile-active")).toBeVisible();
 
   const available = page.locator(".stage-route.is-mobile-active .stage-selection.is-available");
   expect(await available.count()).toBeGreaterThan(0);
-  const card = available.nth(Math.min((await available.count()) - 1, 2));
+  const card = available.filter({ hasText: /支出 [1-9]/ }).first();
+  await expect(card).toBeVisible();
   const cardName = (await card.getAttribute("aria-label"))!;
   await card.click();
   const scrollBefore = await page.locator(".stage-lanes").evaluate((element) => element.scrollTop);
-  await detail.getByRole("button", { name: "この選択を取得" }).click();
-  await expect(page.getByRole("button", { name: cardName, exact: true })).toContainText("取得済み");
+  await detail.getByRole("button", { name: "今期の判断に追加" }).click();
+  await expect(page.getByRole("button", { name: cardName, exact: true })).toContainText("取消可");
+  await page.getByRole("button", { name: cardName, exact: true }).click();
+  await detail.getByRole("button", { name: "今期の取得を取り消す" }).click();
+  await expect(page.getByRole("button", { name: cardName, exact: true })).toContainText(
+    "追加できます",
+  );
+  await page.getByRole("button", { name: cardName, exact: true }).click();
+  await detail.getByRole("button", { name: "今期の判断に追加" }).click();
+  await expect(page.getByRole("button", { name: cardName, exact: true })).toContainText("取消可");
   const scrollAfter = await page.locator(".stage-lanes").evaluate((element) => element.scrollTop);
   expect(Math.abs(scrollAfter - scrollBefore)).toBeLessThanOrEqual(3);
+  await closeCategory();
+  await page.locator(".rpg-money-summary").click();
+  await expect(page.getByRole("dialog", { name: "半年の資金予定" })).toContainText("今期の取得");
+  await page
+    .getByRole("dialog", { name: "半年の資金予定" })
+    .getByRole("button", { name: "閉じる" })
+    .click();
+  await openCategory("education");
 
   await page
     .getByRole("navigation", { name: "ルートを切り替え" })
@@ -151,13 +169,13 @@ try {
   await page.getByRole("combobox", { name: "ステージを選択" }).selectOption("1");
   await expect(page.locator(".stage-route.is-mobile-active .stage-selection")).toHaveCount(10);
   await page.locator(".stage-route.is-mobile-active .stage-selection").first().click();
-  await expect(detail.getByRole("button", { name: "この選択を取得" })).toBeDisabled();
+  await expect(detail.getByRole("button", { name: "今期の判断に追加" })).toBeDisabled();
   await detail.getByRole("button", { name: "閉じる" }).click();
 
   await page.reload();
   await dismissEvents();
   await expect(page).toHaveURL(/category=education/);
-  await expect(page.getByRole("button", { name: cardName, exact: true })).toContainText("取得済み");
+  await expect(page.getByRole("button", { name: cardName, exact: true })).toContainText("取消可");
   const heights = [];
   for (const [width, height, minimum] of [
     [320, 568, 300],
@@ -176,12 +194,6 @@ try {
 
   await closeCategory();
   await expect(page.getByRole("button", { name: "この暮らしで半年進める →" })).toBeVisible();
-  for (const id of ["home", "grandparents", "afterschool", "work"]) {
-    await openCategory(id);
-    await page.locator(".stage-route.is-mobile-active .stage-route-select").click();
-    await detail.getByRole("button", { name: "このルートを確定" }).click();
-    await closeCategory();
-  }
   await expect(page.locator(".map-marker.is-route-required")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "この暮らしで半年進める →" })).toBeEnabled();
   await openCategory("education");
@@ -200,12 +212,13 @@ try {
   await page.goto(`${url}/play/${runId}?category=unknown`);
   await expect(page).not.toHaveURL(/category=/);
   await expect(page.getByRole("region", { name: "ホーム", exact: true })).toBeVisible();
+  await dismissEvents();
 
   const advance = page.getByRole("button", { name: "この暮らしで半年進める →" });
   for (let turn = 0; turn < 8; turn++) {
     await expect(advance).toBeEnabled();
     await advance.click();
-    await dismissEvents();
+    await dismissEvents(true);
   }
   await expect(page.locator(".map-marker.is-route-changeable")).toHaveCount(5);
   await expect(page.getByRole("alert", { name: "岐路のルート変更" })).toHaveCount(0);
@@ -235,8 +248,19 @@ try {
     /is-route-changeable/,
   );
   await advance.click();
-  await dismissEvents();
+  await dismissEvents(true);
   await expect(page.locator(".map-marker.is-route-changeable")).toHaveCount(0);
+  await page.goto(url);
+  await page.getByRole("combobox", { name: "難易度" }).selectOption("hard");
+  await page.getByRole("button", { name: "新しい人生をはじめる" }).click();
+  await dismissEvents();
+  for (let turn = 0; turn < 12 && !(await page.locator(".rpg-shell.is-danger").count()); turn++) {
+    await page.getByRole("button", { name: "この暮らしで半年進める →" }).click();
+    await dismissEvents(true);
+  }
+  await expect(page.locator(".rpg-shell.is-danger")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("危険な状態です");
+  await page.screenshot({ path: `${out}/danger-390x844.png` });
   await expect(page.locator("vite-error-overlay")).toHaveCount(0);
   expect(errors).toEqual([]);
   console.log(JSON.stringify({ ok: true, heights, artifacts: out }));

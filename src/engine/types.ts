@@ -194,6 +194,14 @@ export interface GameOver {
 }
 export interface LifeState {
   stage_routes?: Record<string, string>;
+  /** Present on new stage runs. Older saves keep their immediate acquisition rules. */
+  pending?: string[];
+  turn_start_cash?: number;
+  turn_result?: {
+    turn: number;
+    before: Record<string, number>;
+    after: Record<string, number>;
+  };
   policies: Record<string, string>;
   history: Record<string, { first_turn: number; last_turn: number; count: number }>;
   route_stage_resolved?: Record<string, number>;
@@ -274,6 +282,9 @@ export interface PublicState {
       changeable?: { decision_id: string; menu: string; title: string }[];
     } | null;
     notices: string[];
+    pending?: string[];
+    turn_result?: LifeState["turn_result"];
+    danger?: string[];
   };
   decision_turn?: {
     step: "special" | "decisions" | "ended";

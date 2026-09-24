@@ -281,6 +281,14 @@ it("通常の履歴・取得応答・再送から子どもの隠し実数を出�
   expect(response.ok).toBe(true);
   const raw = /子ども・(?:ストレス|信頼・[父母]|能力・創作|主体性|興味・(?:学び|創作)) -?\d+→/;
   expect(raw.test(JSON.stringify(response))).toBe(false);
+  expect(raw.test(JSON.stringify((await repo.read("test"))!.state.history))).toBe(false);
+  response = await service.execute({
+    command: "advance",
+    run: "test",
+    revision: response.revision!,
+    request_id: "advance-child-change",
+  });
+  expect(response.ok).toBe(true);
   const saved = (await repo.read("test"))!;
   expect(raw.test(JSON.stringify(saved.state.history))).toBe(true);
   const history = await service.execute({ command: "history", run: "test" });

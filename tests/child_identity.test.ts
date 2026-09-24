@@ -136,6 +136,14 @@ describe("子どもの隠し特性と称号", () => {
       input: { event_instance: decision.instance_id, option_id: decision.options[0].option_id },
     });
     expect(response.ok).toBe(true);
+    expect((await repo.read("identity"))!.state.child.profile!.responsibility).toBe(0);
+    response = await service.execute({
+      command: "advance",
+      run: "identity",
+      revision: response.revision!,
+      request_id: "advance-1",
+    });
+    expect(response.ok).toBe(true);
     const saved = (await repo.read("identity"))!;
     expect(saved.state.child.profile!.responsibility).toBeGreaterThan(0);
     expect(importRun(exportRun(saved))).toEqual(saved);

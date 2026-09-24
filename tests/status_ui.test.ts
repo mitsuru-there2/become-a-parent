@@ -406,7 +406,8 @@ it("別ルートは閲覧専用と示して取得を拒否し、将来ステー�
   fireEvent.click(candidate);
   const detail = screen.getByRole("dialog");
   expect(
-    (within(detail).getByRole("button", { name: "この選択を取得" }) as HTMLButtonElement).disabled,
+    (within(detail).getByRole("button", { name: "今期の判断に追加" }) as HTMLButtonElement)
+      .disabled,
   ).toBe(true);
   fireEvent.click(within(detail).getByRole("button", { name: "閉じる" }));
   expect(document.activeElement).toBe(candidate);
@@ -505,7 +506,7 @@ it("取得や資金変更でもルート内の判断の並び順を維持する"
     Array.from(container.querySelectorAll(".stage-route.is-current .stage-selection"));
   const before = cards();
   const first = before.find((card) => card.classList.contains("is-available"))!;
-  expect(first.textContent).toContain("今すぐ取得できます");
+  expect(first.textContent).toContain("今期の判断に追加できます");
   const choice = props().choices.find(
     (item) =>
       !item.route_choice &&

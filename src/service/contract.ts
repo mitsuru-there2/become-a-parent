@@ -60,7 +60,7 @@ export function validateChoice(
 ): asserts value is { event_instance: string; option_id: string } {
   if (!v.is(choiceSchema, value)) invalid("event_instanceとoption_idの2文字列が必要です");
 }
-export const UPDATES = ["plan", "choose", "reset-plan", "advance"] as const;
+export const UPDATES = ["plan", "choose", "undo", "reset-plan", "advance"] as const;
 export const COMMANDS = [
   "new",
   "scenarios",
@@ -69,6 +69,7 @@ export const COMMANDS = [
   "forecast",
   "plan",
   "choose",
+  "undo",
   "reset-plan",
   "advance",
   "history",
@@ -85,6 +86,7 @@ function requiredArguments(command: Command): string[] {
       return ["run", "scenario", "seed", "request_id"];
     case "plan":
     case "choose":
+    case "undo":
       return ["run", "revision", "request_id", "input"];
     case "reset-plan":
     case "advance":
@@ -100,6 +102,7 @@ export function selections(
   decisions = false,
   life = false,
   immediate = false,
+  canUndo = false,
 ) {
   const paths = ["A", "B"]
     .flatMap((parentId) =>
@@ -110,6 +113,7 @@ export function selections(
     commands: COMMANDS.filter(
       (id) =>
         (!immediate || id !== "reset-plan") &&
+        (canUndo || id !== "undo") &&
         (!decisions || (id !== "plan" && (life || id !== "reset-plan"))),
     ).map((id) => ({
       id,
